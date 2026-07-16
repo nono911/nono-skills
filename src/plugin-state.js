@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { sha256File } from './fs-safe.js';
+import { listFiles, sha256File } from './fs-safe.js';
 
 export async function readMarketplace(file) {
   try {
@@ -72,5 +72,11 @@ export async function verifyOwnership(manifest, root) {
       else throw error;
     }
   }
+  const expectedFiles = new Set(Object.keys(manifest.files ?? {}));
+  const actualFiles = (await listFiles(root)).filter((relative) => relative !== '.installer-state.json');
+  for (const relative of actualFiles) {
+    if (!expectedFiles.has(relative)) mismatches.push(relative);
+  }
+  mismatches.sort();
   return { valid: mismatches.length === 0, mismatches };
 }
