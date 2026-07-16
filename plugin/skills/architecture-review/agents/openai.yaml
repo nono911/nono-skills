@@ -1,0 +1,4 @@
+interface:
+  display_name: "architecture-review"
+  short_description: "Reusable engineering workflow for architecture-review"
+  default_prompt: "Use $architecture-review for this task."

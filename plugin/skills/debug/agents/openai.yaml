@@ -1,0 +1,4 @@
+interface:
+  display_name: "debug"
+  short_description: "Reusable engineering workflow for debug"
+  default_prompt: "Use $debug for this task."

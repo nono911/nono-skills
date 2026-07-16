@@ -1,0 +1,4 @@
+interface:
+  display_name: "migration"
+  short_description: "Reusable engineering workflow for migration"
+  default_prompt: "Use $migration for this task."

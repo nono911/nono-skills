@@ -1,0 +1,4 @@
+interface:
+  display_name: "release-readiness"
+  short_description: "Reusable engineering workflow for release-readiness"
+  default_prompt: "Use $release-readiness for this task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "test"
+  short_description: "Reusable engineering workflow for test"
+  default_prompt: "Use $test for this task."

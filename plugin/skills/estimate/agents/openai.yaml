@@ -1,0 +1,4 @@
+interface:
+  display_name: "estimate"
+  short_description: "Reusable engineering workflow for estimate"
+  default_prompt: "Use $estimate for this task."

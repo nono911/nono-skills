@@ -1,0 +1,4 @@
+interface:
+  display_name: "plan"
+  short_description: "Reusable engineering workflow for plan"
+  default_prompt: "Use $plan for this task."

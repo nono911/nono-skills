@@ -1,0 +1,4 @@
+interface:
+  display_name: "database-design"
+  short_description: "Reusable engineering workflow for database-design"
+  default_prompt: "Use $database-design for this task."

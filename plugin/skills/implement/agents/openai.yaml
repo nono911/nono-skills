@@ -1,0 +1,4 @@
+interface:
+  display_name: "implement"
+  short_description: "Reusable engineering workflow for implement"
+  default_prompt: "Use $implement for this task."

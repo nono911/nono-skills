@@ -1,0 +1,4 @@
+interface:
+  display_name: "brainstorm"
+  short_description: "Reusable engineering workflow for brainstorm"
+  default_prompt: "Use $brainstorm for this task."

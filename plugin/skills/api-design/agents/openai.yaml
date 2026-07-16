@@ -1,0 +1,4 @@
+interface:
+  display_name: "api-design"
+  short_description: "Reusable engineering workflow for api-design"
+  default_prompt: "Use $api-design for this task."

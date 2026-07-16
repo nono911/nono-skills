@@ -1,0 +1,24 @@
+{
+  "name": "engineering",
+  "version": "0.1.0",
+  "description": "Lightweight, artifact-centered engineering workflows for Codex.",
+  "author": {
+    "name": "thitikorn.j"
+  },
+  "license": "MIT",
+  "keywords": ["codex", "engineering", "skills", "workflow"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Engineering",
+    "shortDescription": "Plan, build, review, debug, and release software.",
+    "longDescription": "A concise engineering workflow pack centered on durable specs, plans, decisions, findings, and handoffs.",
+    "developerName": "thitikorn.j",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": [
+      "Plan this engineering task.",
+      "Implement this change and verify it.",
+      "Review the current change for defects."
+    ]
+  }
+}

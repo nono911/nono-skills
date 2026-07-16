@@ -1,0 +1,4 @@
+interface:
+  display_name: "security-review"
+  short_description: "Reusable engineering workflow for security-review"
+  default_prompt: "Use $security-review for this task."

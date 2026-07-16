@@ -1,0 +1,4 @@
+interface:
+  display_name: "refactor"
+  short_description: "Reusable engineering workflow for refactor"
+  default_prompt: "Use $refactor for this task."
