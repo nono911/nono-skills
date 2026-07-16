@@ -20,6 +20,9 @@ test('plugin manifest matches the npm package', async () => {
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
   assert.equal(plugin.interface.displayName, 'Engineering');
+  assert.equal(packageJson.repository.url, 'git+https://github.com/nono911/nono-skills.git');
+  assert.equal(packageJson.publishConfig.access, 'public');
+  assert.equal(plugin.repository, 'https://github.com/nono911/nono-skills');
 });
 
 test('bundle contains exactly the validated 15-skill set', async () => {

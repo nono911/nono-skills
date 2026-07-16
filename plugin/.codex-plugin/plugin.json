@@ -1,17 +1,19 @@
 {
   "name": "engineering",
   "version": "0.1.0",
-  "description": "Lightweight, artifact-centered engineering workflows for Codex.",
+  "description": "Lightweight, reasoning-first engineering workflows for Codex.",
   "author": {
     "name": "thitikorn.j"
   },
+  "homepage": "https://github.com/nono911/nono-skills",
+  "repository": "https://github.com/nono911/nono-skills",
   "license": "MIT",
   "keywords": ["codex", "engineering", "skills", "workflow"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Engineering",
     "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "A concise engineering workflow pack centered on durable specs, plans, decisions, findings, and handoffs.",
+    "longDescription": "A concise reasoning-first engineering pack centered on outcomes, evidence, verification, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],

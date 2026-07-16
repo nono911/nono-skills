@@ -5,7 +5,7 @@
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
-    "nono-skills": "./bin/cli.js"
+    "nono-skills": "bin/cli.js"
   },
   "engines": {
     "node": ">=20"
@@ -31,5 +31,16 @@
     "engineering",
     "workflow"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nono911/nono-skills.git"
+  },
+  "homepage": "https://github.com/nono911/nono-skills#readme",
+  "bugs": {
+    "url": "https://github.com/nono911/nono-skills/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
