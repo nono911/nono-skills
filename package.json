@@ -1,0 +1,16 @@
+{
+  "name": "codex-engineering-skills",
+  "version": "0.1.0",
+  "description": "Install a lightweight engineering workflow plugin for Codex.",
+  "type": "module",
+  "bin": {
+    "codex-engineering-skills": "./bin/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "MIT"
+}
