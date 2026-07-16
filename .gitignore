@@ -1,5 +1,5 @@
 .worktrees/
+.DS_Store
 node_modules/
 *.tgz
 .codex-engineering-skills-backup/
-
