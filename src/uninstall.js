@@ -24,7 +24,7 @@ export async function uninstallPlugin({ home, runCodex }) {
     throw new Error('Engineering marketplace entry is not owned by this installer');
   }
 
-  const removal = await runCodex(['plugin', 'remove', 'engineering']);
+  const removal = await runCodex(['plugin', 'remove', `engineering@${state.marketplaceName}`]);
   if (removal.code !== 0) throw new Error(removal.stderr || 'Codex plugin removal failed');
   const next = removeMarketplaceEntry(marketplace, 'engineering');
   await writeJsonAtomic(marketplacePath, next.marketplace);

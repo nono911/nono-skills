@@ -76,5 +76,10 @@ export async function run(argv, context) {
     stderr.write(`Command is not available: ${options.command}\n`);
     return 1;
   }
-  return await handler(options, context);
+  try {
+    return await handler(options, context);
+  } catch (error) {
+    stderr.write(`${error.message}\n`);
+    return 1;
+  }
 }

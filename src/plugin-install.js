@@ -55,6 +55,8 @@ async function transact(context, requireExisting) {
   const backup = path.join(pluginsRoot, `.engineering-backup-${process.pid}-${Date.now()}`);
   let movedExisting = false;
   let installedStage = false;
+  let registrationSucceeded = false;
+  let registrationMarketplace = oldMarketplace?.name ?? 'personal';
   try {
     await cp(path.join(packageRoot, 'plugin'), stage, { recursive: true, errorOnExist: true });
     const pluginJsonPath = path.join(stage, '.codex-plugin', 'plugin.json');
@@ -72,8 +74,19 @@ async function transact(context, requireExisting) {
     await writeJsonAtomic(path.join(stage, '.installer-state.json'), manifest);
 
     if (oldState && JSON.stringify(oldState.files) === JSON.stringify(manifest.files) && oldState.packageVersion === manifest.packageVersion) {
+      const marketplaceResult = upsertMarketplaceEntry(oldMarketplace, MARKETPLACE_ENTRY);
+      if (marketplaceResult.change !== 'unchanged') await writeJsonAtomic(marketplacePath, marketplaceResult.marketplace);
+      const marketplaceName = marketplaceResult.marketplace.name;
+      registrationMarketplace = marketplaceName;
+      const registration = await runCodex(['plugin', 'add', `${PLUGIN_NAME}@${marketplaceName}`]);
+      if (registration.code !== 0) throw new Error(registration.stderr || 'Codex plugin registration failed');
+      registrationSucceeded = true;
+      const verification = await runCodex(['plugin', 'list']);
+      if (verification.code !== 0 || !verification.stdout.includes(`${PLUGIN_NAME}@`)) {
+        throw new Error(verification.stderr || 'Codex plugin verification failed');
+      }
       await rm(stage, { recursive: true, force: true });
-      return { status: 'unchanged', pluginVersion: plugin.version };
+      return { status: marketplaceResult.change === 'unchanged' ? 'unchanged' : 'repaired', pluginVersion: plugin.version };
     }
 
     if (destinationExists) {
@@ -86,8 +99,10 @@ async function transact(context, requireExisting) {
     const marketplaceResult = upsertMarketplaceEntry(oldMarketplace, MARKETPLACE_ENTRY);
     await writeJsonAtomic(marketplacePath, marketplaceResult.marketplace);
     const marketplaceName = marketplaceResult.marketplace.name;
+    registrationMarketplace = marketplaceName;
     const registration = await runCodex(['plugin', 'add', `${PLUGIN_NAME}@${marketplaceName}`]);
     if (registration.code !== 0) throw new Error(registration.stderr || 'Codex plugin registration failed');
+    registrationSucceeded = true;
     const verification = await runCodex(['plugin', 'list']);
     if (verification.code !== 0 || !verification.stdout.includes(`${PLUGIN_NAME}@`)) {
       throw new Error(verification.stderr || 'Codex plugin verification failed');
@@ -100,6 +115,13 @@ async function transact(context, requireExisting) {
     if (movedExisting && await exists(backup)) await rename(backup, destination);
     if (oldMarketplace === null) await rm(marketplacePath, { force: true });
     else await writeJsonAtomic(marketplacePath, oldMarketplace);
+    if (registrationSucceeded) {
+      const previousEntry = oldMarketplace?.plugins?.find((plugin) => plugin.name === PLUGIN_NAME);
+      const rollback = previousEntry && oldState
+        ? await runCodex(['plugin', 'add', `${PLUGIN_NAME}@${oldMarketplace.name}`])
+        : await runCodex(['plugin', 'remove', `${PLUGIN_NAME}@${registrationMarketplace}`]);
+      if (rollback.code !== 0) throw new Error(`${error.message}; Codex rollback failed: ${rollback.stderr || 'unknown error'}`);
+    }
     throw error;
   }
 }

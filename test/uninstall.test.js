@@ -16,23 +16,26 @@ async function fixture() {
   await mkdir(path.join(packageRoot, 'plugin', 'skills', 'plan'), { recursive: true });
   await writeFile(path.join(packageRoot, 'plugin', '.codex-plugin', 'plugin.json'), JSON.stringify({ name: 'engineering', version: '0.1.0' }));
   await writeFile(path.join(packageRoot, 'plugin', 'skills', 'plan', 'SKILL.md'), 'plan');
+  const calls = [];
   const runCodex = async (args) => {
+    calls.push(args);
     if (args[0] === '--version') return { code: 0, stdout: 'codex', stderr: '' };
     if (args[1] === 'list') return { code: 0, stdout: 'engineering@personal installed, enabled', stderr: '' };
     return { code: 0, stdout: 'ok', stderr: '' };
   };
   await installPlugin({ home, packageRoot, runCodex, clock: () => 'test', packageVersion: '0.1.0' });
-  return { root, home, runCodex };
+  return { root, home, runCodex, calls };
 }
 
 test('uninstall removes owned plugin and preserves unrelated marketplace entries', async () => {
-  const { home, runCodex } = await fixture();
+  const { home, runCodex, calls } = await fixture();
   const marketplacePath = path.join(home, '.agents', 'plugins', 'marketplace.json');
   const marketplace = JSON.parse(await readFile(marketplacePath, 'utf8'));
   marketplace.plugins.unshift({ name: 'other' });
   await writeFile(marketplacePath, JSON.stringify(marketplace));
   const result = await uninstallPlugin({ home, runCodex });
   assert.equal(result.status, 'uninstalled');
+  assert.deepEqual(calls.at(-1), ['plugin', 'remove', 'engineering@personal']);
   await assert.rejects(stat(path.join(home, 'plugins', 'engineering')), { code: 'ENOENT' });
   assert.deepEqual(JSON.parse(await readFile(marketplacePath, 'utf8')).plugins, [{ name: 'other' }]);
 });

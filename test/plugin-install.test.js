@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -47,6 +47,19 @@ test('owned reinstall is idempotent', async () => {
   assert.equal(result.status, 'unchanged');
 });
 
+test('owned reinstall repairs missing marketplace registration', async () => {
+  const { home, packageRoot } = await fixture();
+  const calls = [];
+  const runCodex = successfulCodex(calls);
+  await installPlugin({ home, packageRoot, runCodex, clock: () => 'same', packageVersion: '0.1.0' });
+  await rm(path.join(home, '.agents', 'plugins', 'marketplace.json'));
+  calls.length = 0;
+  const result = await installPlugin({ home, packageRoot, runCodex, clock: () => 'same', packageVersion: '0.1.0' });
+  assert.equal(result.status, 'repaired');
+  assert.equal(JSON.parse(await readFile(path.join(home, '.agents', 'plugins', 'marketplace.json'), 'utf8')).plugins[0].name, 'engineering');
+  assert.deepEqual(calls.map((args) => args.slice(0, 2)), [['--version'], ['plugin', 'add'], ['plugin', 'list']]);
+});
+
 test('refuses unrecognized files added to an owned plugin', async () => {
   const { home, packageRoot } = await fixture();
   const runCodex = successfulCodex([]);
@@ -80,6 +93,19 @@ test('failed Codex registration restores source and marketplace', async () => {
   await assert.rejects(installPlugin({ home, packageRoot, runCodex, clock: () => 'now', packageVersion: '0.1.0' }), /registration failed/);
   await assert.rejects(stat(path.join(home, 'plugins', 'engineering')), { code: 'ENOENT' });
   assert.deepEqual(JSON.parse(await readFile(marketplacePath, 'utf8')).plugins, [{ name: 'other' }]);
+});
+
+test('failed verification removes a newly registered plugin', async () => {
+  const { home, packageRoot } = await fixture();
+  const calls = [];
+  const runCodex = async (args) => {
+    calls.push(args);
+    if (args[0] === '--version' || args[1] === 'add' || args[1] === 'remove') return { code: 0, stdout: 'ok', stderr: '' };
+    return { code: 0, stdout: 'plugin missing', stderr: '' };
+  };
+  await assert.rejects(installPlugin({ home, packageRoot, runCodex, clock: () => 'now', packageVersion: '0.1.0' }), /verification failed/);
+  assert.deepEqual(calls.at(-1), ['plugin', 'remove', 'engineering@personal']);
+  await assert.rejects(stat(path.join(home, 'plugins', 'engineering')), { code: 'ENOENT' });
 });
 
 test('missing Codex fails before filesystem mutation', async () => {

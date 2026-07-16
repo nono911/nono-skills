@@ -2,6 +2,7 @@
   "name": "codex-engineering-skills",
   "version": "0.1.0",
   "description": "Install a lightweight engineering workflow plugin for Codex.",
+  "author": "thitikorn.j",
   "type": "module",
   "bin": {
     "codex-engineering-skills": "./bin/cli.js"
@@ -10,7 +11,25 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "validate": "node scripts/validate.mjs",
+    "prepublishOnly": "npm test && npm run validate"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "plugin/",
+    "templates/",
+    "scripts/validate.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "codex",
+    "skills",
+    "plugin",
+    "engineering",
+    "workflow"
+  ],
   "license": "MIT"
 }

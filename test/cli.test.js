@@ -58,3 +58,14 @@ test('run dispatches parsed options to a command handler', async () => {
   assert.equal(received.target, 'repo');
   assert.equal(received.dryRun, true);
 });
+
+test('run reports command failures without an unhandled rejection', async () => {
+  const stderr = output();
+  const code = await run(['install'], {
+    stdout: output().stream,
+    stderr: stderr.stream,
+    handlers: { install: async () => { throw new Error('safe failure'); } },
+  });
+  assert.equal(code, 1);
+  assert.equal(stderr.read(), 'safe failure\n');
+});
