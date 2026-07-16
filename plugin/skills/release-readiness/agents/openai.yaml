@@ -1,4 +1,4 @@
 interface:
-  display_name: "release-readiness"
-  short_description: "Reusable engineering workflow for release-readiness"
-  default_prompt: "Use $release-readiness for this task."
+  display_name: "Release Readiness"
+  short_description: "Judge readiness from current verification evidence"
+  default_prompt: "Use $release-readiness to decide whether this candidate is ready and identify every blocker."

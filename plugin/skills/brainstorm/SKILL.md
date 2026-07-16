@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use when a product, feature, technical approach, workflow, or problem space needs exploration before committing to requirements or implementation.
+description: Use when a product, feature, technical approach, workflow, or problem space needs distinct options explored before choosing a direction or writing an execution plan.
 ---
 
 # Brainstorm
@@ -34,8 +34,8 @@ Turn an unclear opportunity into a small set of distinct, evidence-aware options
 ## Decision-log updates
 
 Record the selected direction, rejected alternatives when the tradeoff may recur, key assumptions to validate, and the next experiment. Keep unselected raw ideas out of the durable log unless they explain a decision.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when the core user or outcome is unknown, options encode incompatible product strategies, ethical or legal risk is material, or a choice commits significant time, spend, vendor lock-in, or irreversible data design.
-

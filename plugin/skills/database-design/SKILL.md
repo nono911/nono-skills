@@ -33,8 +33,8 @@ Create a data model that enforces domain invariants, serves proven access patter
 ## Decision-log updates
 
 Record data ownership, normalization tradeoffs, identifiers, consistency model, transaction boundaries, retention, tenant isolation, and irreversible schema choices. Link migration and rollback implications.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when domain truth is ambiguous, data classification or retention needs ownership, consistency and availability goals conflict, projected scale lacks evidence, or a design requires destructive migration, downtime, or irreversible data transformation.
-

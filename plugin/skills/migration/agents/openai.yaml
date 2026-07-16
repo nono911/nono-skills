@@ -1,4 +1,4 @@
 interface:
-  display_name: "migration"
-  short_description: "Reusable engineering workflow for migration"
-  default_prompt: "Use $migration for this task."
+  display_name: "Migration"
+  short_description: "Plan reversible migrations with validation and rollback"
+  default_prompt: "Use $migration to design a staged, observable, and recoverable transition."

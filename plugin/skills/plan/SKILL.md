@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when a software task is multi-step, cross-cutting, ambiguous, risky, or long-running and needs a concrete execution map before implementation.
+description: Use when a software direction is defined enough to map multi-step, cross-cutting, risky, or long-running work into a concrete execution plan before implementation.
 ---
 
 # Plan
@@ -17,8 +17,8 @@ Turn the request and repository evidence into a decision-ready spec and a concis
 
 ## Outputs
 
-- Updated `docs/agent/spec.md` with scope and testable acceptance criteria
-- Updated `docs/agent/plan.md` with ordered work items, risks, dependencies, and verification
+- A decision-ready spec and concise execution map with testable acceptance criteria
+- When the artifact files already exist or the user requests durable planning, updated `docs/agent/spec.md` and `docs/agent/plan.md`
 - A short summary of assumptions and human decisions needed
 
 ## Rules
@@ -33,8 +33,8 @@ Turn the request and repository evidence into a decision-ready spec and a concis
 ## Decision-log updates
 
 Record scope interpretations, contract choices, rejected approaches with non-obvious tradeoffs, and material re-plans. Link each entry to the affected plan item.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when competing interpretations change user-visible behavior, a required system or owner is outside scope, risk cannot be bounded, or the plan requires destructive operations, production access, significant spend, or a product decision. Otherwise state reasonable assumptions and proceed.
-

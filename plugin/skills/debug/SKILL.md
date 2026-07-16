@@ -33,8 +33,8 @@ Reproduce the symptom, trace the failing path, falsify competing hypotheses, iso
 ## Decision-log updates
 
 Record confirmed root cause, discarded high-likelihood hypotheses, material diagnostic pivots, chosen remediation tradeoffs, and remaining uncertainty. Avoid logging every command.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when reproduction risks data or availability, required logs or access need new authority, evidence suggests an active incident or security issue, or multiple fixes imply materially different product behavior.
-

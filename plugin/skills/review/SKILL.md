@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use when the user asks for an objective code review, diff review, PR review, implementation audit, or verification of a claimed fix without requesting edits.
+description: Use for a general objective code, diff, PR, or fix review without edits; use security-review when security is the primary assessment objective.
 ---
 
 # Review
@@ -31,9 +31,9 @@ Find actionable correctness, compatibility, security, reliability, and maintaina
 
 ## Decision-log updates
 
-Record only review-scope interpretations or accepted risk decisions that future work must preserve. Put individual defects and lifecycle changes in `docs/agent/findings.md`, not the decision log.
+Record only review-scope interpretations or accepted risk decisions that future work must preserve. Put individual defects in an existing `docs/agent/findings.md`; otherwise report them in the final response.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when the baseline is ambiguous and changes the verdict, required evidence is inaccessible, a suspected critical issue could expose users or data, or the review requires live destructive testing. Otherwise complete the strongest safe review and disclose the gap.
-

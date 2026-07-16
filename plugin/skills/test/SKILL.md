@@ -33,8 +33,8 @@ Create the smallest reliable test set that proves important behavior and failure
 ## Decision-log updates
 
 Record material test-boundary choices, intentionally excluded coverage, chosen substitutes for unavailable dependencies, and risk accepted because a scenario cannot be automated. Routine test cases do not need entries.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when validation requires production data or destructive actions, expected behavior is undefined, the available environment cannot provide meaningful proof, or the requested test conflicts with privacy, cost, or reliability constraints.
-

@@ -1,6 +1,6 @@
 ---
 name: architecture-review
-description: Use when a design or implementation needs evaluation for boundaries, coupling, ownership, scalability, resilience, maintainability, or long-term change cost.
+description: Use when architecture is the primary review objective for boundaries, coupling, ownership, scalability, resilience, maintainability, or long-term change cost.
 ---
 
 # Architecture Review
@@ -33,8 +33,8 @@ Evaluate whether system structure supports the stated product and operational ne
 ## Decision-log updates
 
 Record accepted boundaries, ownership, technology choices, quality-attribute priorities, and deliberately accepted coupling or debt. Capture alternatives and migration consequences.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when priorities conflict, ownership is unclear, a recommendation commits the team to major platform or vendor cost, or missing product and operational constraints prevent a defensible recommendation.
-

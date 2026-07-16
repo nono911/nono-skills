@@ -33,8 +33,8 @@ Resolve accepted findings at their root cause, preserve intended behavior, and p
 ## Decision-log updates
 
 Record chosen remediations when alternatives have meaningful compatibility, security, performance, or operational tradeoffs. Link the decision to finding IDs and record any accepted residual risk.
+Use existing `docs/agent/findings.md` and `decision-log.md` files when present. If they are absent, report state changes and decisions in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when a finding is disputed and evidence is inconclusive, remediation changes a public contract, fixes conflict, the safe fix requires migration or downtime, or residual risk needs acceptance. Do not broaden authority from “fix” into deploy or production mutation.
-

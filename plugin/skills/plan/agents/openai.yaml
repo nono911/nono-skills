@@ -1,4 +1,4 @@
 interface:
-  display_name: "plan"
-  short_description: "Reusable engineering workflow for plan"
-  default_prompt: "Use $plan for this task."
+  display_name: "Plan"
+  short_description: "Turn complex work into a verifiable execution plan"
+  default_prompt: "Use $plan to turn this task into a concise, verifiable execution plan."

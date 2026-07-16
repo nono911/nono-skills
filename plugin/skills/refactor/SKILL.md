@@ -33,8 +33,8 @@ Improve changeability and clarity while preserving behavior and keeping the diff
 ## Decision-log updates
 
 Record new module boundaries, ownership changes, intentionally retained debt, compatibility constraints, and abstraction choices with long-term consequences. Routine renames and local cleanup do not need entries.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when preserving behavior is impossible or unprovable, the refactor implies a public or data contract change, scope grows across ownership boundaries, or the safety net is too weak for the risk.
-

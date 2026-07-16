@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: Use when code, configuration, architecture, authentication, authorization, data handling, or a change set needs a focused security assessment.
+description: Use when security is the primary assessment objective for code, configuration, architecture, identities, data handling, or a change set.
 ---
 
 # Security Review
@@ -31,9 +31,9 @@ Identify plausible, evidence-backed security weaknesses across trust boundaries,
 
 ## Decision-log updates
 
-Keep vulnerabilities in `docs/agent/findings.md`. Log only accepted security tradeoffs, threat-model assumptions, compensating controls, or risk acceptance decisions, using sanitized evidence.
+Keep vulnerabilities in an existing `docs/agent/findings.md`; otherwise report sanitized findings in the final response. Log only accepted security tradeoffs, threat-model assumptions, compensating controls, or risk acceptance decisions.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate immediately for plausible critical exposure, active compromise indicators, secrets in version control, testing that may affect real users, or remediation requiring risk acceptance. Avoid broadcasting sensitive details beyond the authorized audience.
-

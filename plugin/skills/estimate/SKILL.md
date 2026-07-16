@@ -33,8 +33,8 @@ Provide a transparent range derived from scope, dependencies, uncertainty, and c
 ## Decision-log updates
 
 Record the committed estimation basis, major assumptions, exclusions, selected scenario, and later changes that materially move the range. Do not log exploratory arithmetic.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when scope is not bounded enough to produce a useful range, staffing or dependency ownership is unknown, a deadline requires explicit scope tradeoffs, or the estimate will be treated as a commitment despite low confidence.
-

@@ -1,4 +1,4 @@
 interface:
-  display_name: "implement"
-  short_description: "Reusable engineering workflow for implement"
-  default_prompt: "Use $implement for this task."
+  display_name: "Implement"
+  short_description: "Build the smallest complete, verified software change"
+  default_prompt: "Use $implement to deliver this software change with proportionate verification."

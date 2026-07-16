@@ -1,4 +1,4 @@
 interface:
-  display_name: "architecture-review"
-  short_description: "Reusable engineering workflow for architecture-review"
-  default_prompt: "Use $architecture-review for this task."
+  display_name: "Architecture Review"
+  short_description: "Evaluate boundaries, coupling, ownership, and change cost"
+  default_prompt: "Use $architecture-review to assess this design against its real constraints and change scenarios."

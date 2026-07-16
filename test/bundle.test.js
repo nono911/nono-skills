@@ -34,6 +34,32 @@ test('bundle contains exactly the validated 15-skill set', async () => {
   }
 });
 
+test('every skill has specific UI metadata and safe artifact fallback', async () => {
+  for (const name of expectedSkills) {
+    const skillRoot = path.join(root, 'plugin', 'skills', name);
+    const skill = await readFile(path.join(skillRoot, 'SKILL.md'), 'utf8');
+    const metadata = await readFile(path.join(skillRoot, 'agents', 'openai.yaml'), 'utf8');
+    const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
+
+    assert.ok(shortDescription, `${name} must define a short_description`);
+    assert.ok(shortDescription.length >= 25 && shortDescription.length <= 64,
+      `${name} short_description must be 25-64 characters`);
+    assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
+    assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
+    assert.match(skill, /create workflow artifacts only when the user requests them/);
+  }
+});
+
+test('plan artifacts are conditional and repository guidance stays concise', async () => {
+  const plan = await readFile(path.join(root, 'plugin', 'skills', 'plan', 'SKILL.md'), 'utf8');
+  const agents = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
+
+  assert.match(plan, /artifact files already exist or the user requests durable planning/);
+  assert.match(agents, /Do not create missing workflow artifacts unless the user requests/);
+  assert.match(agents, /\$engineering:<skill>/);
+  assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');
+});
+
 test('bundle contains every project artifact template', async () => {
   const expected = [
     'AGENTS.md', 'docs/agent/decision-log.md', 'docs/agent/findings.md',

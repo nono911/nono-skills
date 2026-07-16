@@ -33,8 +33,8 @@ Design or execute a staged, observable, reversible transition with explicit comp
 ## Decision-log updates
 
 Record compatibility windows, cutover criteria, data ownership, transformation rules, rollback limits, accepted downtime, and irreversible checkpoints. Link evidence for completing each phase.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate before destructive or irreversible steps, production backfills or cutovers, downtime, data loss or semantic ambiguity, privacy-sensitive movement, or rollback beyond the stated tolerance.
-

@@ -1,4 +1,4 @@
 interface:
-  display_name: "test"
-  short_description: "Reusable engineering workflow for test"
-  default_prompt: "Use $test for this task."
+  display_name: "Test"
+  short_description: "Design focused tests for behavior and regression risk"
+  default_prompt: "Use $test to prove the important behavior and regression risks in this scope."

@@ -1,4 +1,4 @@
 interface:
-  display_name: "fix-findings"
-  short_description: "Reusable engineering workflow for fix-findings"
-  default_prompt: "Use $fix-findings for this task."
+  display_name: "Fix Findings"
+  short_description: "Resolve validated findings and prove each correction"
+  default_prompt: "Use $fix-findings to correct and verify every accepted finding in scope."

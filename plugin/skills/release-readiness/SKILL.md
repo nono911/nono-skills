@@ -32,8 +32,8 @@ Produce an evidence-backed `ready`, `not ready`, or `ready with accepted risks` 
 ## Decision-log updates
 
 Record risk acceptance, waived gates, rollout or rollback choices, and readiness verdict changes with evidence. Link unresolved findings and owners.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate for blocked gates, missing rollback for high-risk changes, unresolved ownership, destructive migration, compliance or security risk, production action, or any request to waive a required control.
-

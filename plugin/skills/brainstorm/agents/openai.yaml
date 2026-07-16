@@ -1,4 +1,4 @@
 interface:
-  display_name: "brainstorm"
-  short_description: "Reusable engineering workflow for brainstorm"
-  default_prompt: "Use $brainstorm for this task."
+  display_name: "Brainstorm"
+  short_description: "Explore distinct options before choosing a direction"
+  default_prompt: "Use $brainstorm to frame this problem, compare distinct options, and recommend a direction."

@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Use when the user asks to build, change, or complete software from a requirement, spec, issue, or existing plan.
+description: Use for general software implementation from a requirement, spec, issue, or plan; use fix-findings instead when validated findings are the primary work queue.
 ---
 
 # Implement
@@ -18,7 +18,7 @@ Deliver the smallest complete change that satisfies the contract, preserves unre
 ## Outputs
 
 - Scoped source, test, configuration, migration, or documentation changes
-- Updated plan status and handoff when work remains
+- Updated existing plan status and handoff when those artifacts are in use and work remains
 - Verification evidence and a concise change summary
 
 ## Rules
@@ -33,8 +33,8 @@ Deliver the smallest complete change that satisfies the contract, preserves unre
 ## Decision-log updates
 
 Record material implementation choices, deviations from the plan, assumptions that affect behavior, accepted tradeoffs, and why a simpler or established pattern was not used. Include verification or follow-up consequences.
+Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
 
 ## Escalate to the human
 
 Escalate when acceptance criteria conflict, implementation requires a breaking or destructive change, credentials or production data are required, an external action needs new authority, or the only viable approach materially expands scope. Routine code-level choices do not require escalation.
-

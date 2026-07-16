@@ -1,4 +1,4 @@
 interface:
-  display_name: "database-design"
-  short_description: "Reusable engineering workflow for database-design"
-  default_prompt: "Use $database-design for this task."
+  display_name: "Database Design"
+  short_description: "Design data around invariants and access patterns"
+  default_prompt: "Use $database-design to model this data around domain invariants and proven access patterns."

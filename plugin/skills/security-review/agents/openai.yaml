@@ -1,4 +1,4 @@
 interface:
-  display_name: "security-review"
-  short_description: "Reusable engineering workflow for security-review"
-  default_prompt: "Use $security-review for this task."
+  display_name: "Security Review"
+  short_description: "Assess trust boundaries and evidence-backed security risk"
+  default_prompt: "Use $security-review to assess this scope for plausible, evidence-backed security weaknesses."

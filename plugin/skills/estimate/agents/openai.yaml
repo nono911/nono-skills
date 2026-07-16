@@ -1,4 +1,4 @@
 interface:
-  display_name: "estimate"
-  short_description: "Reusable engineering workflow for estimate"
-  default_prompt: "Use $estimate for this task."
+  display_name: "Estimate"
+  short_description: "Estimate work with ranges and explicit uncertainty"
+  default_prompt: "Use $estimate to produce an evidence-based range with assumptions, risks, and confidence."
