@@ -1,6 +1,6 @@
 const COMMANDS = new Set(['install', 'init', 'update', 'doctor', 'uninstall']);
 
-export const HELP = `codex-engineering-skills <command> [options]
+export const HELP = `nono-skills <command> [options]
 
 Commands:
   install                 Install the engineering Codex plugin

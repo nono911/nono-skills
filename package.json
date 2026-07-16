@@ -1,11 +1,11 @@
 {
-  "name": "codex-engineering-skills",
+  "name": "nono-skills",
   "version": "0.1.0",
   "description": "Install a lightweight engineering workflow plugin for Codex.",
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
-    "codex-engineering-skills": "./bin/cli.js"
+    "nono-skills": "./bin/cli.js"
   },
   "engines": {
     "node": ">=20"

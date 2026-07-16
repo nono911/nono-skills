@@ -1,4 +1,4 @@
-# Codex Engineering Skills
+# Nono Skills
 
 A lightweight, artifact-centered engineering workflow pack for Codex. It provides 15 namespaced skills without imposing Superpowers-style mandatory gates, worktree policy, or subagent orchestration.
 
@@ -7,7 +7,7 @@ A lightweight, artifact-centered engineering workflow pack for Codex. It provide
 Requires Node.js 20 or newer and Codex CLI with plugin support.
 
 ```bash
-npx codex-engineering-skills install
+npx nono-skills install
 ```
 
 Start a new Codex task after installation. Skills appear under the `engineering` namespace:
@@ -35,20 +35,20 @@ $engineering:database-design
 Add durable repository guidance and shared agent artifacts to the current project:
 
 ```bash
-npx codex-engineering-skills init
+npx nono-skills init
 ```
 
 Preview changes or target another repository:
 
 ```bash
-npx codex-engineering-skills init --dry-run
-npx codex-engineering-skills init ../my-project
+npx nono-skills init --dry-run
+npx nono-skills init ../my-project
 ```
 
 Existing differing files are reported as conflicts and no files are written. To replace them explicitly, create timestamped backups first:
 
 ```bash
-npx codex-engineering-skills init --force
+npx nono-skills init --force
 ```
 
 Project artifacts include `AGENTS.md` and `docs/agent/` templates for specs, plans, decisions, findings, and handoffs.
@@ -56,15 +56,15 @@ Project artifacts include `AGENTS.md` and `docs/agent/` templates for specs, pla
 ## Maintain the installation
 
 ```bash
-npx codex-engineering-skills doctor
-npx codex-engineering-skills update
-npx codex-engineering-skills uninstall
+npx nono-skills doctor
+npx nono-skills update
+npx nono-skills uninstall
 ```
 
 Uninstall preserves project files. Remove only project files that still match their installed checksums with:
 
 ```bash
-npx codex-engineering-skills uninstall --purge-project /path/to/project
+npx nono-skills uninstall --purge-project /path/to/project
 ```
 
 Modified project files are always preserved.
