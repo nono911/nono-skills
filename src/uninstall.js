@@ -32,20 +32,32 @@ export async function uninstallPlugin({ home, runCodex }) {
   return { status: 'uninstalled', projectArtifactsPreserved: true };
 }
 
-function isWorkItemArtifact(relative) {
+function recordedPathPolicy(relative) {
   const normalized = relative.replaceAll('\\', '/');
-  return normalized.startsWith('docs/agent/work/');
+  if (path.posix.isAbsolute(normalized) || /^[A-Za-z]:\//.test(normalized)) {
+    return { safe: false };
+  }
+  const canonical = path.posix.normalize(normalized);
+  if (canonical === '..' || canonical.startsWith('../')) {
+    return { safe: false };
+  }
+  return {
+    safe: true,
+    canonical,
+    isWorkItem: canonical.startsWith('docs/agent/work/'),
+  };
 }
 
 export async function purgeProject({ targetRoot, recordedChecksums }) {
   const removed = [];
   const preserved = [];
   for (const [relative, expected] of Object.entries(recordedChecksums).sort(([a], [b]) => a.localeCompare(b))) {
-    if (isWorkItemArtifact(relative)) {
+    const policy = recordedPathPolicy(relative);
+    if (!policy.safe || policy.isWorkItem) {
       preserved.push(relative);
       continue;
     }
-    const file = path.join(targetRoot, relative);
+    const file = path.join(targetRoot, policy.canonical);
     try {
       if (await sha256File(file) === expected) {
         await rm(file);
