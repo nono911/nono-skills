@@ -23,11 +23,8 @@ for (const relative of skillFiles) {
   const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
   assert.match(content, new RegExp(`^---\\nname: ${expectedName}\\ndescription: .+\\n---`, 's'));
   assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
-  assert.ok(
-    content.includes('Read `../../references/workspaces.md`')
-      || content.includes('create workflow artifacts only when the user requests them'),
-    `${expectedName} must use the adaptive protocol or the legacy fallback during migration`,
-  );
+  assert.match(content, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
+  assert.doesNotMatch(content, /docs\/agent\/(?:spec|plan|decision-log|findings|handoff)\.md/);
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
   assert.match(metadata, new RegExp(`default_prompt: ".*\\$${expectedName.replaceAll('-', '\\-')}\\b`));

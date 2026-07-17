@@ -9,6 +9,10 @@ description: Use when a change, branch, build, migration, or release candidate m
 
 Produce an evidence-backed `ready`, `not ready`, or `ready with accepted risks` verdict. Assessment does not authorize release actions.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Release scope, target environment, acceptance criteria, and rollout expectations
@@ -32,7 +36,7 @@ Produce an evidence-backed `ready`, `not ready`, or `ready with accepted risks` 
 ## Decision-log updates
 
 Record risk acceptance, waived gates, rollout or rollback choices, and readiness verdict changes with evidence. Link unresolved findings and owners.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append only accepted release risk, waivers, rollback choices, and readiness-scope decisions to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

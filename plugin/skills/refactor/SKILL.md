@@ -9,6 +9,10 @@ description: Use when internal code structure, naming, duplication, coupling, co
 
 Improve changeability and clarity while preserving behavior and keeping the diff proportionate to a concrete maintenance problem.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Refactoring goal or documented code smell
@@ -33,7 +37,7 @@ Improve changeability and clarity while preserving behavior and keeping the diff
 ## Decision-log updates
 
 Record new module boundaries, ownership changes, intentionally retained debt, compatibility constraints, and abstraction choices with long-term consequences. Routine renames and local cleanup do not need entries.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append boundary changes, compatibility assumptions, and accepted tradeoffs to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

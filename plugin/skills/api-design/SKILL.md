@@ -9,6 +9,10 @@ description: Use when creating or changing an HTTP, RPC, event, webhook, library
 
 Define a consumer-centered contract with precise semantics, failure behavior, authorization, compatibility, and operability before or alongside implementation.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Consumer use cases, domain language, invariants, and quality constraints
@@ -33,7 +37,7 @@ Define a consumer-centered contract with precise semantics, failure behavior, au
 ## Decision-log updates
 
 Record public contract choices, compatibility policy, naming or semantic decisions likely to recur, idempotency and consistency guarantees, and rejected alternatives with consumer impact.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

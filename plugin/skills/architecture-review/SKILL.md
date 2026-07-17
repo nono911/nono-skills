@@ -9,6 +9,10 @@ description: Use when architecture is the primary review objective for boundarie
 
 Evaluate whether system structure supports the stated product and operational needs, using repository evidence rather than generic pattern scoring.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Goals, constraints, quality attributes, diagrams or proposals
@@ -33,7 +37,7 @@ Evaluate whether system structure supports the stated product and operational ne
 ## Decision-log updates
 
 Record accepted boundaries, ownership, technology choices, quality-attribute priorities, and deliberately accepted coupling or debt. Capture alternatives and migration consequences.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append structural tradeoffs or accepted architecture risk to the selected work item's decisions.md and track actionable defects in findings.md; otherwise report them in the final response.
 
 ## Escalate to the human
 

@@ -9,6 +9,10 @@ description: Use for a general objective code, diff, PR, or fix review without e
 
 Find actionable correctness, compatibility, security, reliability, and maintainability defects in the requested change or scope. Review is read-only.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Review baseline and target: diff, commit, branch, files, or stated behavior
@@ -31,8 +35,8 @@ Find actionable correctness, compatibility, security, reliability, and maintaina
 
 ## Decision-log updates
 
-Record only review-scope interpretations or accepted risk decisions that future work must preserve. Put individual defects in an existing `docs/agent/findings.md`; otherwise report them in the final response.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+Record only review-scope interpretations or accepted risk decisions that future work must preserve.
+When durable state is approved, track defects and their lifecycle in the selected work item's findings.md and append only review-scope or accepted-risk decisions to decisions.md; otherwise report them in the final response.
 
 ## Escalate to the human
 

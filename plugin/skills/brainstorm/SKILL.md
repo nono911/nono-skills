@@ -9,6 +9,10 @@ description: Use when a product, feature, technical approach, workflow, or probl
 
 Turn an unclear opportunity into a small set of distinct, evidence-aware options and a recommended direction without prematurely implementing one.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Desired outcome, users, constraints, known pain, and prior attempts
@@ -34,7 +38,7 @@ Turn an unclear opportunity into a small set of distinct, evidence-aware options
 ## Decision-log updates
 
 Record the selected direction, rejected alternatives when the tradeoff may recur, key assumptions to validate, and the next experiment. Keep unselected raw ideas out of the durable log unless they explain a decision.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append the accepted direction, recurring tradeoffs, assumptions, and next experiment to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

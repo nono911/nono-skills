@@ -9,6 +9,10 @@ description: Use when software behavior needs new or improved unit, integration,
 
 Create the smallest reliable test set that proves important behavior and failure modes through stable public seams.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Behavioral contract, bug report, acceptance criteria, or changed code
@@ -33,7 +37,7 @@ Create the smallest reliable test set that proves important behavior and failure
 ## Decision-log updates
 
 Record material test-boundary choices, intentionally excluded coverage, chosen substitutes for unavailable dependencies, and risk accepted because a scenario cannot be automated. Routine test cases do not need entries.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

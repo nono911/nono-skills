@@ -9,6 +9,10 @@ description: Use when data, schema, API, dependency, platform, infrastructure, o
 
 Design or execute a staged, observable, reversible transition with explicit compatibility windows, validation, and cleanup.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Source and target states, invariants, data volume, traffic, and downtime tolerance
@@ -33,7 +37,7 @@ Design or execute a staged, observable, reversible transition with explicit comp
 ## Decision-log updates
 
 Record compatibility windows, cutover criteria, data ownership, transformation rules, rollback limits, accepted downtime, and irreversible checkpoints. Link evidence for completing each phase.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append compatibility, sequencing, rollback, and point-of-no-return choices to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

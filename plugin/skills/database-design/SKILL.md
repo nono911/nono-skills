@@ -9,6 +9,10 @@ description: Use when designing or changing persistent data models, schemas, con
 
 Create a data model that enforces domain invariants, serves proven access patterns, evolves safely, and has explicit consistency and lifecycle semantics.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Domain concepts, invariants, lifecycle, ownership, and access patterns
@@ -33,7 +37,7 @@ Create a data model that enforces domain invariants, serves proven access patter
 ## Decision-log updates
 
 Record data ownership, normalization tradeoffs, identifiers, consistency model, transaction boundaries, retention, tenant isolation, and irreversible schema choices. Link migration and rollback implications.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append invariant, consistency, migration, and operational choices to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

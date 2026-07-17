@@ -9,6 +9,10 @@ description: Use when security is the primary assessment objective for code, con
 
 Identify plausible, evidence-backed security weaknesses across trust boundaries, attacker-controlled inputs, identities, secrets, data, and operational controls. Review is read-only.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Defined scope, threat assumptions, and deployment context
@@ -31,8 +35,8 @@ Identify plausible, evidence-backed security weaknesses across trust boundaries,
 
 ## Decision-log updates
 
-Keep vulnerabilities in an existing `docs/agent/findings.md`; otherwise report sanitized findings in the final response. Log only accepted security tradeoffs, threat-model assumptions, compensating controls, or risk acceptance decisions.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+Log only accepted security tradeoffs, threat-model assumptions, compensating controls, or risk acceptance decisions.
+When durable state is approved, track sanitized vulnerabilities in the selected work item's findings.md and append accepted security tradeoffs, threat assumptions, compensating controls, or risk acceptance to decisions.md; otherwise report them in the final response.
 
 ## Escalate to the human
 

@@ -9,6 +9,10 @@ description: Use when behavior is wrong, failing, flaky, slow, inconsistent, or 
 
 Reproduce the symptom, trace the failing path, falsify competing hypotheses, isolate root cause, and verify the requested resolution.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Exact symptom, error, payload, timing, environment, and expected behavior
@@ -33,7 +37,7 @@ Reproduce the symptom, trace the failing path, falsify competing hypotheses, iso
 ## Decision-log updates
 
 Record confirmed root cause, discarded high-likelihood hypotheses, material diagnostic pivots, chosen remediation tradeoffs, and remaining uncertainty. Avoid logging every command.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; otherwise include them in the final response.
 
 ## Escalate to the human
 

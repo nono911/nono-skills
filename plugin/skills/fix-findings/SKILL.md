@@ -9,6 +9,10 @@ description: Use when validated review, audit, QA, or security findings must be 
 
 Resolve accepted findings at their root cause, preserve intended behavior, and produce evidence that each fix closes the reported failure.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Findings with evidence, severity, and expected outcome
@@ -33,7 +37,7 @@ Resolve accepted findings at their root cause, preserve intended behavior, and p
 ## Decision-log updates
 
 Record chosen remediations when alternatives have meaningful compatibility, security, performance, or operational tradeoffs. Link the decision to finding IDs and record any accepted residual risk.
-Use existing `docs/agent/findings.md` and `decision-log.md` files when present. If they are absent, report state changes and decisions in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, update the selected work item's findings.md with status and verification evidence, and append material remediation tradeoffs to decisions.md; otherwise report state changes and decisions in the final response.
 
 ## Escalate to the human
 

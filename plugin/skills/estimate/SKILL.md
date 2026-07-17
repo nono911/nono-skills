@@ -9,6 +9,10 @@ description: Use when software work needs an evidence-based range for effort, du
 
 Provide a transparent range derived from scope, dependencies, uncertainty, and comparable work rather than a false-precision point value.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - Goal, acceptance criteria, proposed plan, and definition of done
@@ -33,7 +37,7 @@ Provide a transparent range derived from scope, dependencies, uncertainty, and c
 ## Decision-log updates
 
 Record the committed estimation basis, major assumptions, exclusions, selected scenario, and later changes that materially move the range. Do not log exploratory arithmetic.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append scope interpretations, estimation model changes, and accepted schedule tradeoffs to the selected work item's decisions.md; otherwise include them in the final response.
 
 ## Escalate to the human
 

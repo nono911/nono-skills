@@ -56,7 +56,7 @@ test('adaptive workspace protocol defines persistence and consent boundaries', a
   }
 });
 
-test('every skill has specific UI metadata and safe artifact fallback', async () => {
+test('every skill has specific UI metadata and uses the workspace protocol', async () => {
   for (const name of expectedSkills) {
     const skillRoot = path.join(root, 'plugin', 'skills', name);
     const skill = await readFile(path.join(skillRoot, 'SKILL.md'), 'utf8');
@@ -68,11 +68,8 @@ test('every skill has specific UI metadata and safe artifact fallback', async ()
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    assert.ok(
-      skill.includes('Read `../../references/workspaces.md`')
-        || skill.includes('create workflow artifacts only when the user requests them'),
-      `${name} must use the adaptive protocol or the legacy fallback during migration`,
-    );
+    assert.match(skill, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
+    assert.doesNotMatch(skill, /docs\/agent\/(?:spec|plan|decision-log|findings|handoff)\.md/);
   }
 });
 
