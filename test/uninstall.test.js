@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { lstat, mkdtemp, mkdir, readFile, stat, symlink, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -56,6 +56,16 @@ test('purge deletes unchanged project files and preserves modified files', async
   assert.deepEqual(result.preserved, ['changed.md']);
   await assert.rejects(stat(path.join(targetRoot, 'same.md')), { code: 'ENOENT' });
   assert.equal(await readFile(path.join(targetRoot, 'changed.md'), 'utf8'), 'changed');
+});
+
+test('purge omits an already-missing recorded file from both result lists', async () => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-'));
+  const digest = createHash('sha256').update('missing generated state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { 'missing.md': digest } });
+
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, []);
 });
 
 test('purge always preserves user-owned work-item artifacts', async () => {
@@ -149,6 +159,61 @@ test('purge preserves root-escaping recorded paths without touching external fil
   assert.deepEqual(result.removed, []);
   assert.deepEqual(result.preserved, [relative]);
   assert.equal(await readFile(external, 'utf8'), 'external durable state');
+});
+
+test('purge preserves a recorded file reached through an intermediate symlink', async () => {
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-symlink-'));
+  const targetRoot = path.join(sandbox, 'project');
+  const externalRoot = path.join(sandbox, 'external');
+  const external = path.join(externalRoot, 'generated.md');
+  const relative = 'linked/generated.md';
+  await mkdir(targetRoot);
+  await mkdir(externalRoot);
+  await writeFile(external, 'external durable state');
+  await symlink(externalRoot, path.join(targetRoot, 'linked'));
+  const digest = createHash('sha256').update('external durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.equal(await readFile(external, 'utf8'), 'external durable state');
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+});
+
+test('purge preserves a lexical alias into the user-owned work-item tree', async () => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-symlink-'));
+  const workItem = path.join(targetRoot, 'docs', 'agent', 'work', '2026-07-16-user-auth');
+  const artifact = path.join(workItem, 'spec.md');
+  const alias = path.join(targetRoot, 'docs', 'agent', 'active-work');
+  const relative = 'docs/agent/active-work/spec.md';
+  await mkdir(workItem, { recursive: true });
+  await writeFile(artifact, 'approved durable state');
+  await symlink(workItem, alias);
+  const digest = createHash('sha256').update('approved durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+  assert.equal(await readFile(artifact, 'utf8'), 'approved durable state');
+});
+
+test('purge preserves a symlink used as the final recorded component', async () => {
+  const sandbox = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-symlink-'));
+  const targetRoot = path.join(sandbox, 'project');
+  const external = path.join(sandbox, 'external.md');
+  const relative = 'generated.md';
+  await mkdir(targetRoot);
+  await writeFile(external, 'external durable state');
+  await symlink(external, path.join(targetRoot, relative));
+  const digest = createHash('sha256').update('external durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+  assert.equal(await readFile(external, 'utf8'), 'external durable state');
+  assert.equal((await lstat(path.join(targetRoot, relative))).isSymbolicLink(), true);
 });
 
 test('purge recognizes canonical work-item artifacts with backslash separators', async () => {

@@ -1,7 +1,8 @@
-import { readFile, rm, stat } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { constants } from 'node:fs';
+import { lstat, open, readFile, realpath, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 
-import { sha256File } from './fs-safe.js';
 import { readMarketplace, removeMarketplaceEntry, verifyOwnership, writeJsonAtomic } from './plugin-state.js';
 
 async function exists(file) {
@@ -48,23 +49,147 @@ function recordedPathPolicy(relative) {
   };
 }
 
+function isStrictDescendant(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative !== ''
+    && relative !== '..'
+    && !relative.startsWith(`..${path.sep}`)
+    && !path.isAbsolute(relative);
+}
+
+function sameFileSnapshot(left, right) {
+  return left.dev === right.dev
+    && left.ino === right.ino
+    && left.mode === right.mode
+    && left.size === right.size
+    && left.mtimeNs === right.mtimeNs
+    && left.ctimeNs === right.ctimeNs;
+}
+
+function isUnsafePathError(error) {
+  return error.code === 'ELOOP' || error.code === 'ENOTDIR';
+}
+
+async function inspectDescendant(root, candidate) {
+  if (!isStrictDescendant(root, candidate)) return { status: 'unsafe' };
+  const relative = path.relative(root, candidate);
+  let current = root;
+  let snapshot;
+  for (const component of relative.split(path.sep)) {
+    current = path.join(current, component);
+    try {
+      snapshot = await lstat(current, { bigint: true });
+    } catch (error) {
+      if (error.code === 'ENOENT') return { status: 'missing' };
+      if (isUnsafePathError(error)) return { status: 'unsafe' };
+      throw error;
+    }
+    if (snapshot.isSymbolicLink()) return { status: 'unsafe' };
+  }
+  return { status: 'safe', snapshot };
+}
+
+async function validatePhysicalCandidate({ lexicalRoot, physicalRoot, candidate, expected }) {
+  const lexical = await inspectDescendant(lexicalRoot, candidate);
+  if (lexical.status !== 'safe') {
+    return expected && lexical.status === 'missing' ? { status: 'unsafe' } : lexical;
+  }
+
+  let physical;
+  try {
+    physical = await realpath(candidate);
+  } catch (error) {
+    if (error.code === 'ENOENT' || isUnsafePathError(error)) return { status: 'unsafe' };
+    throw error;
+  }
+  if (!isStrictDescendant(physicalRoot, physical)) return { status: 'unsafe' };
+
+  const physicalInspection = await inspectDescendant(physicalRoot, physical);
+  const lexicalConfirmation = await inspectDescendant(lexicalRoot, candidate);
+  if (physicalInspection.status !== 'safe' || lexicalConfirmation.status !== 'safe') {
+    return { status: 'unsafe' };
+  }
+
+  let physicalConfirmation;
+  try {
+    physicalConfirmation = await realpath(candidate);
+  } catch (error) {
+    if (error.code === 'ENOENT' || isUnsafePathError(error)) return { status: 'unsafe' };
+    throw error;
+  }
+  if (physicalConfirmation !== physical
+    || !sameFileSnapshot(lexical.snapshot, physicalInspection.snapshot)
+    || !sameFileSnapshot(lexical.snapshot, lexicalConfirmation.snapshot)) {
+    return { status: 'unsafe' };
+  }
+  if (expected && (expected.physical !== physical || !sameFileSnapshot(expected.snapshot, lexical.snapshot))) {
+    return { status: 'unsafe' };
+  }
+  return { status: 'safe', physical, snapshot: lexical.snapshot };
+}
+
+async function hashValidatedFile(file, expectedSnapshot) {
+  let handle;
+  try {
+    handle = await open(file, constants.O_RDONLY | constants.O_NOFOLLOW);
+  } catch (error) {
+    if (error.code === 'ENOENT' || isUnsafePathError(error)) return { status: 'unsafe' };
+    throw error;
+  }
+  try {
+    const before = await handle.stat({ bigint: true });
+    if (!sameFileSnapshot(before, expectedSnapshot)) return { status: 'unsafe' };
+    const content = await handle.readFile();
+    const after = await handle.stat({ bigint: true });
+    if (!sameFileSnapshot(before, after)) return { status: 'unsafe' };
+    return { status: 'safe', digest: createHash('sha256').update(content).digest('hex') };
+  } finally {
+    await handle.close();
+  }
+}
+
 export async function purgeProject({ targetRoot, recordedChecksums }) {
   const removed = [];
   const preserved = [];
+  const lexicalRoot = path.resolve(targetRoot);
+  let physicalRoot;
+  try {
+    physicalRoot = await realpath(lexicalRoot);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   for (const [relative, expected] of Object.entries(recordedChecksums).sort(([a], [b]) => a.localeCompare(b))) {
     const policy = recordedPathPolicy(relative);
     if (!policy.safe || policy.isWorkItem) {
       preserved.push(relative);
       continue;
     }
-    const file = path.join(targetRoot, policy.canonical);
+    if (!physicalRoot) continue;
+    const file = path.resolve(lexicalRoot, ...policy.canonical.split('/'));
     try {
-      if (await sha256File(file) === expected) {
-        await rm(file);
-        removed.push(relative);
-      } else preserved.push(relative);
+      const beforeHash = await validatePhysicalCandidate({ lexicalRoot, physicalRoot, candidate: file });
+      if (beforeHash.status === 'missing') continue;
+      if (beforeHash.status !== 'safe') {
+        preserved.push(relative);
+        continue;
+      }
+      const hash = await hashValidatedFile(beforeHash.physical, beforeHash.snapshot);
+      if (hash.status !== 'safe' || hash.digest !== expected) {
+        preserved.push(relative);
+        continue;
+      }
+      const beforeRemoval = await validatePhysicalCandidate({
+        lexicalRoot, physicalRoot, candidate: file, expected: beforeHash,
+      });
+      if (beforeRemoval.status !== 'safe') {
+        preserved.push(relative);
+        continue;
+      }
+      await rm(beforeRemoval.physical);
+      removed.push(relative);
     } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
+      if (error.code === 'ENOENT') preserved.push(relative);
+      else throw error;
     }
   }
   return { removed, preserved };
