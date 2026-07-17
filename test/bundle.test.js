@@ -6,7 +6,10 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { listFiles } from '../src/fs-safe.js';
-import { assertSkillWorkspaceContract } from '../src/skill-contract.js';
+import {
+  assertSkillWorkspaceContract,
+  expectedDurableEndings,
+} from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const expectedSkills = [
@@ -19,6 +22,12 @@ const workspaceSection = `## Workspace protocol
 Read \`../../references/workspaces.md\` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.`;
 const apiDesignEnding = "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.";
 const planDurableOutput = '- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory';
+const scopedPlanMaintenanceEndings = Object.freeze({
+  debug: "When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed debugging scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+  refactor: "When durable state is approved, append boundary changes, compatibility assumptions, and accepted tradeoffs to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed refactoring scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+  test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+});
+const releaseReadResponsibility = '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.';
 
 function runPackageValidation(fixtureRoot) {
   return spawnSync(process.execPath, ['scripts/validate.mjs'], {
@@ -128,6 +137,21 @@ test('adaptive workspace protocol defines persistence and consent boundaries', a
     const skill = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
     assert.match(skill, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
   }
+});
+
+test('adaptive workspace protocol defines authoritative lifecycle transitions', async () => {
+  const protocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+
+  assert.match(protocol, /Start every new approved work item with `status: active`; set both `created` and `updated` when creating its anchor\./);
+  assert.match(protocol, /Refresh `updated` on every authoritative work-item artifact or status mutation\./);
+  assert.match(protocol, /Use `blocked` only when in-scope progress cannot continue because of a concrete unresolved dependency, missing input or authority, or required external change\./);
+  assert.match(protocol, /Record the blocker and resumption condition in `plan\.md` or `handoff\.md` as applicable; return the status to `active` and refresh `updated` when the blocker is resolved\./);
+  assert.match(protocol, /Use `completed` only when all in-scope acceptance criteria and tracked plan items are satisfied, required verification evidence is recorded, and no unresolved blocking findings or work remain\./);
+  assert.match(protocol, /Set the status to `completed` and refresh `updated`; do not move or delete the work-item directory\./);
+  assert.match(protocol, /Use `superseded` only when the work is intentionally replaced\./);
+  assert.match(protocol, /Record the reason and successor or reference as a material decision, set the status to `superseded`, and refresh `updated`; do not move or delete the work-item directory\./);
+  assert.match(protocol, /Reopening completed work changes its status to `active`, refreshes `updated`, and records the material reason\./);
+  assert.match(protocol, /Keep the current status truthful so work-item resolution never relies on stale `active` metadata\./);
 });
 
 test('README documents adaptive consent-aware workspaces', async () => {
@@ -327,6 +351,80 @@ test('contract accepts every current public allowlisted artifact line', async ()
     const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
     assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
   }
+});
+
+test('test, debug, and refactor have exact scoped plan-maintenance endings', async () => {
+  for (const [name, ending] of Object.entries(scopedPlanMaintenanceEndings)) {
+    const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
+    assert.equal(expectedDurableEndings[name], ending);
+    assert.equal(content.split(ending).length - 1, 1, `${name} must include its exact scoped ending once`);
+    assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
+  }
+});
+
+test('contract rejects deleted scoped plan-maintenance responsibilities', async () => {
+  for (const [name, ending] of Object.entries(scopedPlanMaintenanceEndings)) {
+    const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
+    const mutated = content.replace(`${ending}\n`, '');
+    assert.notEqual(mutated, content, `${name} deletion mutation must change the skill`);
+    assert.throws(
+      () => assertSkillWorkspaceContract(name, mutated),
+      /must end Decision-log updates with its durable-state contract/,
+    );
+  }
+});
+
+test('contract rejects wrong scoped plan-maintenance endings', async () => {
+  for (const [name, ending] of Object.entries(scopedPlanMaintenanceEndings)) {
+    const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
+    const mutated = content.replace(
+      ending,
+      ending.replace('update only relevant plan-item status', 'update every plan-item status'),
+    );
+    assert.notEqual(mutated, content, `${name} wrong-ending mutation must change the skill`);
+    assert.throws(
+      () => assertSkillWorkspaceContract(name, mutated),
+      /must end Decision-log updates with its durable-state contract/,
+    );
+  }
+});
+
+test('release-readiness has an exact selected-work-item read responsibility', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'release-readiness', 'SKILL.md'),
+    'utf8',
+  );
+  assert.equal(content.split(releaseReadResponsibility).length - 1, 1);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('release-readiness', content));
+});
+
+test('contract rejects a deleted release-readiness read responsibility', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'release-readiness', 'SKILL.md'),
+    'utf8',
+  );
+  const mutated = content.replace(`${releaseReadResponsibility}\n`, '');
+  assert.notEqual(mutated, content, 'release-readiness deletion mutation must change the skill');
+  assert.throws(
+    () => assertSkillWorkspaceContract('release-readiness', mutated),
+    /must include each required responsibility line exactly once/,
+  );
+});
+
+test('contract rejects a wrong release-readiness read responsibility', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'release-readiness', 'SKILL.md'),
+    'utf8',
+  );
+  const mutated = content.replace(
+    releaseReadResponsibility,
+    releaseReadResponsibility.replace('read its acceptance criteria', 'skip its acceptance criteria'),
+  );
+  assert.notEqual(mutated, content, 'release-readiness wrong-line mutation must change the skill');
+  assert.throws(
+    () => assertSkillWorkspaceContract('release-readiness', mutated),
+    /must include each required responsibility line exactly once/,
+  );
 });
 
 test('contract rejects a duplicate allowed durable ending outside its final section', async () => {

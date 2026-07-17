@@ -37,7 +37,7 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 ## Decision-log updates
 
 Record confirmed root cause, discarded high-likelihood hypotheses, material diagnostic pivots, chosen remediation tradeoffs, and remaining uncertainty. Avoid logging every command.
-When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; otherwise include them in the final response.
+When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed debugging scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.
 
 ## Escalate to the human
 

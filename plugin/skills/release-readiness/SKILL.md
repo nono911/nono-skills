@@ -27,6 +27,7 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 
 ## Rules
 
+- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.
 - Inspect current state; do not rely on stale claims that checks passed.
 - Run the strongest safe local checks and distinguish local proof from CI, staging, and production proof.
 - Treat code complete, merge ready, deploy ready, deployed, and verified in production as separate states.

@@ -37,7 +37,7 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 ## Decision-log updates
 
 Record material test-boundary choices, intentionally excluded coverage, chosen substitutes for unavailable dependencies, and risk accepted because a scenario cannot be automated. Routine test cases do not need entries.
-When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.
+When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.
 
 ## Escalate to the human
 

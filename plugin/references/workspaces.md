@@ -34,7 +34,15 @@ For new work, prefer `issue-<number>-<slug>` when an issue exists; otherwise use
 
 The anchor is `docs/agent/work/<work-id>/spec.md` with YAML front matter containing `work_id`, `title`, `status`, optional `issue`, optional `branch`, `created`, and `updated`. Status is `active`, `blocked`, `completed`, or `superseded`.
 
-Reopening completed work changes its status to `active` and records the reason as a material decision.
+Start every new approved work item with `status: active`; set both `created` and `updated` when creating its anchor. Refresh `updated` on every authoritative work-item artifact or status mutation. Keep the current status truthful so work-item resolution never relies on stale `active` metadata.
+
+Use `blocked` only when in-scope progress cannot continue because of a concrete unresolved dependency, missing input or authority, or required external change. Record the blocker and resumption condition in `plan.md` or `handoff.md` as applicable; return the status to `active` and refresh `updated` when the blocker is resolved.
+
+Use `completed` only when all in-scope acceptance criteria and tracked plan items are satisfied, required verification evidence is recorded, and no unresolved blocking findings or work remain. Set the status to `completed` and refresh `updated`; do not move or delete the work-item directory.
+
+Use `superseded` only when the work is intentionally replaced. Record the reason and successor or reference as a material decision, set the status to `superseded`, and refresh `updated`; do not move or delete the work-item directory.
+
+Reopening completed work changes its status to `active`, refreshes `updated`, and records the material reason.
 
 Create files lazily:
 
