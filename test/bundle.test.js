@@ -18,6 +18,7 @@ const workspaceSection = `## Workspace protocol
 
 Read \`../../references/workspaces.md\` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.`;
 const apiDesignEnding = "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.";
+const planDurableOutput = '- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory';
 
 function runPackageValidation(fixtureRoot) {
   return spawnSync(process.execPath, ['scripts/validate.mjs'], {
@@ -73,6 +74,10 @@ function assertValidationFails(result, expectedDiagnostic) {
 
 async function readApiDesignSkill() {
   return readFile(path.join(root, 'plugin', 'skills', 'api-design', 'SKILL.md'), 'utf8');
+}
+
+async function readPlanSkill() {
+  return readFile(path.join(root, 'plugin', 'skills', 'plan', 'SKILL.md'), 'utf8');
 }
 
 function addDecisionLine(content, line) {
@@ -187,6 +192,14 @@ test('contract normalizes rendered-equivalent ATX section headings', async () =>
   assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
 });
 
+test('contract parses normalized required headings with trailing HTML comments', async () => {
+  const content = (await readApiDesignSkill())
+    .replace('## Purpose\n', '## Purpose ### <!-- purpose -->\n')
+    .replace('## Workspace protocol\n', '## Workspace protocol ## <!-- workspace -->\n')
+    .replace('## Decision-log updates\n', '## Decision-log updates #### <!-- decisions -->\n');
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
 test('contract ignores headings and artifact references in fenced examples', async () => {
   const fencedExample = `\`\`\`markdown
 ## Workspace protocol ###
@@ -204,6 +217,14 @@ Use the current spec.md and decision-log.md.
 
 test('contract rejects a duplicate normalized Purpose heading', async () => {
   const content = `${await readApiDesignSkill()}\n## Purpose ###  \n\nDuplicate purpose.\n`;
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /exactly one normalized Purpose section/,
+  );
+});
+
+test('contract rejects a duplicate Purpose heading with a trailing HTML comment', async () => {
+  const content = `${await readApiDesignSkill()}\n## Purpose <!-- duplicate -->\n\nDuplicate purpose.\n`;
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
     /exactly one normalized Purpose section/,
@@ -237,6 +258,36 @@ test('contract accepts every current public allowlisted artifact line', async ()
     const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
     assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
   }
+});
+
+test('contract rejects a duplicate allowed durable ending outside its final section', async () => {
+  const content = (await readApiDesignSkill()).replace(
+    '## Inputs\n\n',
+    `## Inputs\n\n${apiDesignEnding}\n\n`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must include each allowed authoritative workflow artifact line exactly once/,
+  );
+});
+
+test('contract rejects a missing required plan output line', async () => {
+  const content = (await readPlanSkill()).replace(`${planDurableOutput}\n`, '');
+  assert.throws(
+    () => assertSkillWorkspaceContract('plan', content),
+    /must include each allowed authoritative workflow artifact line exactly once/,
+  );
+});
+
+test('contract rejects a duplicate required plan output line', async () => {
+  const content = (await readPlanSkill()).replace(
+    planDurableOutput,
+    `${planDurableOutput}\n${planDurableOutput}`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('plan', content),
+    /must include each allowed authoritative workflow artifact line exactly once/,
+  );
 });
 
 const scopedArtifactCases = [
@@ -323,6 +374,29 @@ test('contract rejects a link-formatted legacy docs/agent singleton path', async
   const content = addDecisionLine(
     await readApiDesignSkill(),
     "Use the selected work item's docs/agent/[findings.md](https://example.test/findings).",
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must not reference legacy singleton workflow artifacts/,
+  );
+});
+
+test('contract rejects a legacy singleton path in a Markdown link destination', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Use [the legacy findings](docs/agent/findings.md).',
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must not reference legacy singleton workflow artifacts/,
+  );
+});
+
+test('contract reports a later legacy path before an earlier allowlist violation', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `Use global spec.md.
+Use docs/agent/findings.md.`,
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),

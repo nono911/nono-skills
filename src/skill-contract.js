@@ -108,7 +108,6 @@ function authoritativeLines(content) {
             text: visible.text,
             start,
             end,
-            canBeHeading: !visible.hadComment,
           });
         }
       }
@@ -132,7 +131,6 @@ function normalizedLevelTwoHeading(line) {
 function markdownSections(lines) {
   const sections = [];
   for (const line of lines) {
-    if (!line.canBeHeading) continue;
     const name = normalizedLevelTwoHeading(line.text);
     if (name) sections.push({ name, start: line.start, bodyStart: line.end });
   }
@@ -158,28 +156,41 @@ function sectionBody(content, sections, index) {
 
 function normalizeInlineMarkdown(text) {
   return text
-    .replace(/!?\[([^\]\n]*)\]\((?:\\.|[^\\)\n])*\)/g, '$1')
+    .replace(/!?\[([^\]\n]*)\]\(((?:\\.|[^\\)\n])*)\)/g, '$1 $2')
     .replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1')
     .replace(/[`*_~]/g, '');
 }
 
 function assertArtifactLines(name, lines) {
   const allowedLines = allowedArtifactLines[name];
-  for (const { text } of lines) {
-    const normalized = normalizeInlineMarkdown(text);
+  const normalizedLines = lines.map(({ text }) => ({
+    normalized: normalizeInlineMarkdown(text),
+    text,
+  }));
 
+  for (const { normalized } of normalizedLines) {
     assert.doesNotMatch(
       normalized,
       legacySingletonReference,
       `${name} must not reference legacy singleton workflow artifacts`,
     );
+  }
 
+  for (const { normalized, text } of normalizedLines) {
     if (workflowArtifactReference.test(normalized)) {
       assert.ok(
         allowedLines.includes(text.trim()),
         `${name} must use only allowed authoritative workflow artifact lines`,
       );
     }
+  }
+
+  for (const allowedLine of allowedLines) {
+    assert.equal(
+      normalizedLines.filter(({ text }) => text.trim() === allowedLine).length,
+      1,
+      `${name} must include each allowed authoritative workflow artifact line exactly once`,
+    );
   }
 }
 
