@@ -32,10 +32,19 @@ export async function uninstallPlugin({ home, runCodex }) {
   return { status: 'uninstalled', projectArtifactsPreserved: true };
 }
 
+function isWorkItemArtifact(relative) {
+  const normalized = relative.replaceAll('\\', '/');
+  return normalized.startsWith('docs/agent/work/');
+}
+
 export async function purgeProject({ targetRoot, recordedChecksums }) {
   const removed = [];
   const preserved = [];
   for (const [relative, expected] of Object.entries(recordedChecksums).sort(([a], [b]) => a.localeCompare(b))) {
+    if (isWorkItemArtifact(relative)) {
+      preserved.push(relative);
+      continue;
+    }
     const file = path.join(targetRoot, relative);
     try {
       if (await sha256File(file) === expected) {

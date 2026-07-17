@@ -57,3 +57,33 @@ test('purge deletes unchanged project files and preserves modified files', async
   await assert.rejects(stat(path.join(targetRoot, 'same.md')), { code: 'ENOENT' });
   assert.equal(await readFile(path.join(targetRoot, 'changed.md'), 'utf8'), 'changed');
 });
+
+test('purge always preserves user-owned work-item artifacts', async () => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-'));
+  const relative = 'docs/agent/work/2026-07-16-user-auth/spec.md';
+  const file = path.join(targetRoot, relative);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, 'approved durable state');
+  const digest = createHash('sha256').update('approved durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+  assert.equal(await readFile(file, 'utf8'), 'approved durable state');
+});
+
+test('purge recognizes work-item artifacts with backslash separators', async () => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-'));
+  const relative = 'docs\\agent\\work\\2026-07-16-user-auth\\spec.md';
+  const file = path.join(targetRoot, relative);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, 'approved durable state');
+  const digest = createHash('sha256').update('approved durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+  assert.equal(await readFile(file, 'utf8'), 'approved durable state');
+});
