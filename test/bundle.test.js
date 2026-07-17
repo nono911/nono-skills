@@ -7,15 +7,35 @@ import test from 'node:test';
 
 import { listFiles } from '../src/fs-safe.js';
 import {
+  assertWorkspaceProtocolContract,
+  canonicalSkillNames,
+  workspaceProtocolClauses,
+} from '../src/plugin-contract.js';
+import {
   assertSkillWorkspaceContract,
   expectedDurableEndings,
 } from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
-const expectedSkills = [
-  'api-design', 'architecture-review', 'brainstorm', 'database-design', 'debug',
-  'estimate', 'fix-findings', 'implement', 'migration', 'plan', 'refactor',
-  'release-readiness', 'review', 'security-review', 'test',
+const expectedSkills = canonicalSkillNames;
+const representativeProtocolClauseIds = [
+  'classification.transient-durable',
+  'classification.transient-default',
+  'consent.explicit',
+  'consent.proposed',
+  'consent.decline',
+  'resolution.precedence',
+  'resolution.recency-ambiguity',
+  'workspace.anchor',
+  'workspace.creation-updated',
+  'lifecycle.blocked',
+  'lifecycle.completed',
+  'lifecycle.superseded',
+  'lifecycle.reopen',
+  'artifacts.lazy',
+  'artifacts.no-global-index',
+  'scope.authority',
+  'legacy.preservation',
 ];
 const workspaceSection = `## Workspace protocol
 
@@ -48,9 +68,21 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
+  assert.equal(result.stdout, 'Validated engineering plugin 0.2.0 with 15 skills.\n');
+  assert.equal(result.stderr, '');
 }
 
 async function validateMutatedSkill(name, mutate) {
+  return validateMutatedFixture(async (fixtureRoot) => {
+    const skillPath = path.join(fixtureRoot, 'plugin', 'skills', name, 'SKILL.md');
+    const content = await readFile(skillPath, 'utf8');
+    const mutated = mutate(content);
+    assert.notEqual(mutated, content, `${name} test mutation must change the skill`);
+    await writeFile(skillPath, mutated, 'utf8');
+  });
+}
+
+async function withValidationFixture(run) {
   const fixtureRoot = await mkdtemp(path.join(tmpdir(), 'nono-skills-validate-'));
   try {
     await Promise.all(['package.json', 'plugin', 'scripts', 'src'].map((relative) => cp(
@@ -58,17 +90,22 @@ async function validateMutatedSkill(name, mutate) {
       path.join(fixtureRoot, relative),
       { recursive: true },
     )));
-    assertValidationPasses(runPackageValidation(fixtureRoot));
-
-    const skillPath = path.join(fixtureRoot, 'plugin', 'skills', name, 'SKILL.md');
-    const content = await readFile(skillPath, 'utf8');
-    const mutated = mutate(content);
-    assert.notEqual(mutated, content, `${name} test mutation must change the skill`);
-    await writeFile(skillPath, mutated, 'utf8');
-    return runPackageValidation(fixtureRoot);
+    return await run(fixtureRoot);
   } finally {
     await rm(fixtureRoot, { recursive: true, force: true });
   }
+}
+
+async function validateUnmodifiedFixture() {
+  return withValidationFixture((fixtureRoot) => runPackageValidation(fixtureRoot));
+}
+
+async function validateMutatedFixture(mutate) {
+  return withValidationFixture(async (fixtureRoot) => {
+    assertValidationPasses(runPackageValidation(fixtureRoot));
+    await mutate(fixtureRoot);
+    return runPackageValidation(fixtureRoot);
+  });
 }
 
 function assertValidationFails(result, expectedDiagnostic) {
@@ -78,7 +115,25 @@ function assertValidationFails(result, expectedDiagnostic) {
     1,
     `validation unexpectedly passed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.match(result.stderr, expectedDiagnostic);
+  assert.equal(result.stdout, '');
+  if (typeof expectedDiagnostic === 'string') {
+    const actualDiagnostic = result.stderr.match(
+      /AssertionError \[ERR_ASSERTION\]: ([^\n]+)/,
+    )?.[1];
+    assert.equal(actualDiagnostic, expectedDiagnostic);
+  } else {
+    assert.match(result.stderr, expectedDiagnostic);
+  }
+}
+
+async function validateMutatedProtocol(clause) {
+  return validateMutatedFixture(async (fixtureRoot) => {
+    const protocolPath = path.join(fixtureRoot, 'plugin', 'references', 'workspaces.md');
+    const content = await readFile(protocolPath, 'utf8');
+    const mutated = content.replace(`${clause.text}\n`, '');
+    assert.notEqual(mutated, content, `${clause.id} test mutation must change the protocol`);
+    await writeFile(protocolPath, mutated, 'utf8');
+  });
 }
 
 async function readApiDesignSkill() {
@@ -120,39 +175,30 @@ test('bundle contains exactly the validated 15-skill set', async () => {
   }
 });
 
-test('adaptive workspace protocol defines persistence and consent boundaries', async () => {
+test('shared workspace protocol contract accepts the released protocol', async () => {
   const protocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
-  assert.match(protocol, /Classify the task as transient or durable/);
-  assert.match(protocol, /Keep localized one-shot work transient/);
-  assert.match(protocol, /Explicit requests for a spec, plan, progress log/);
-  assert.match(protocol, /ask once before creating the workspace/);
-  assert.match(protocol, /Recency alone is never sufficient/);
-  assert.match(protocol, /Ask the user when multiple items remain plausible/);
-  assert.match(protocol, /docs\/agent\/work\/<work-id>\/spec\.md/);
-  assert.match(protocol, /If the user declines/);
-  assert.match(protocol, /Reopening completed work changes its status to `active`/);
-  assert.match(protocol, /never move, merge, or delete them automatically/);
+  assert.doesNotThrow(() => assertWorkspaceProtocolContract(protocol));
 
-  for (const name of ['plan', 'implement']) {
-    const skill = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
-    assert.match(skill, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
+  for (const id of representativeProtocolClauseIds) {
+    const clause = workspaceProtocolClauses.find((candidate) => candidate.id === id);
+    assert.ok(clause, `workspace protocol contract must expose ${id}`);
+    const mutated = protocol.replace(`${clause.text}\n`, '');
+    assert.notEqual(mutated, protocol, `${id} deletion mutation must change the protocol`);
+    assert.throws(
+      () => assertWorkspaceProtocolContract(mutated),
+      new RegExp(`workspace protocol must include ${id.replaceAll('.', '\\.')} exactly once`),
+    );
   }
 });
 
-test('adaptive workspace protocol defines authoritative lifecycle transitions', async () => {
-  const protocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
-
-  assert.match(protocol, /Start every new approved work item with `status: active`; set both `created` and `updated` when creating its anchor\./);
-  assert.match(protocol, /Refresh `updated` on every authoritative work-item artifact or status mutation\./);
-  assert.match(protocol, /Use `blocked` only when in-scope progress cannot continue because of a concrete unresolved dependency, missing input or authority, or required external change\./);
-  assert.match(protocol, /Record the blocker and resumption condition in `plan\.md` or `handoff\.md` as applicable; return the status to `active` and refresh `updated` when the blocker is resolved\./);
-  assert.match(protocol, /Use `completed` only when all in-scope acceptance criteria and tracked plan items are satisfied, required verification evidence is recorded, and no unresolved blocking findings or work remain\./);
-  assert.match(protocol, /Set the status to `completed` and refresh `updated`; do not move or delete the work-item directory\./);
-  assert.match(protocol, /Use `superseded` only when the work is intentionally replaced\./);
-  assert.match(protocol, /Record the reason and successor or reference as a material decision, set the status to `superseded`, and refresh `updated`; do not move or delete the work-item directory\./);
-  assert.match(protocol, /Reopening completed work changes its status to `active`, refreshes `updated`, and records the material reason\./);
-  assert.match(protocol, /Keep the current status truthful so work-item resolution never relies on stale `active` metadata\./);
-});
+for (const id of representativeProtocolClauseIds) {
+  test(`package validation rejects removal of workspace protocol clause ${id}`, async () => {
+    const clause = workspaceProtocolClauses.find((candidate) => candidate.id === id);
+    assert.ok(clause, `workspace protocol contract must expose ${id}`);
+    const result = await validateMutatedProtocol(clause);
+    assertValidationFails(result, `workspace protocol must include ${id} exactly once`);
+  });
+}
 
 test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
@@ -235,6 +281,28 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
     assertSkillWorkspaceContract(name, skill);
   }
+});
+
+test('package validation accepts an unmodified standalone fixture with exact output', async () => {
+  assertValidationPasses(await validateUnmodifiedFixture());
+});
+
+test('package validation rejects deletion from inventory, ending map, and derived allowlist', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    await rm(path.join(fixtureRoot, 'plugin', 'skills', 'api-design'), {
+      recursive: true,
+      force: true,
+    });
+    const contractPath = path.join(fixtureRoot, 'src', 'skill-contract.js');
+    const content = await readFile(contractPath, 'utf8');
+    const mutated = content.replace(/^  'api-design': .+\n/m, '');
+    assert.notEqual(mutated, content, 'expected-ending mutation must change the contract');
+    await writeFile(contractPath, mutated, 'utf8');
+  });
+  assertValidationFails(
+    result,
+    'plugin skill inventory must contain exactly the 15 canonical skills',
+  );
 });
 
 test('package validation rejects a negated workspace instruction', async () => {

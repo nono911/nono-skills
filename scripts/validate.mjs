@@ -4,6 +4,10 @@ import path from 'node:path';
 
 import { listFiles } from '../src/fs-safe.js';
 import {
+  assertCanonicalSkillInventory,
+  assertWorkspaceProtocolContract,
+} from '../src/plugin-contract.js';
+import {
   assertSkillWorkspaceContract,
   expectedDurableEndings,
 } from '../src/skill-contract.js';
@@ -16,13 +20,14 @@ assert.equal(plugin.version, packageJson.version);
 
 const skillRoot = path.join(root, 'plugin', 'skills');
 const skillFiles = (await listFiles(skillRoot)).filter((file) => file.endsWith('/SKILL.md'));
+const skillNames = skillFiles.map((file) => file.split(path.sep)[0]);
+assertCanonicalSkillInventory(skillNames);
 assert.deepEqual(
-  skillFiles.map((file) => file.split(path.sep)[0]).sort(),
+  skillNames.sort(),
   Object.keys(expectedDurableEndings).sort(),
 );
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
-assert.match(workspaceProtocol, /Classify the task as transient or durable/);
-assert.match(workspaceProtocol, /ask once before creating the workspace/);
+assertWorkspaceProtocolContract(workspaceProtocol);
 for (const relative of skillFiles) {
   const expectedName = relative.split(path.sep)[0];
   const content = await readFile(path.join(skillRoot, relative), 'utf8');

@@ -4,11 +4,11 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
 
-import { expectedDurableEndings } from '../src/skill-contract.js';
+import { canonicalSkillNames } from '../src/plugin-contract.js';
 
 const exec = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
-const expectedSkills = Object.keys(expectedDurableEndings).sort();
+const expectedSkills = canonicalSkillNames;
 
 test('npm package includes runtime assets and excludes development state', async () => {
   const { stdout } = await exec('npm', ['pack', '--json', '--dry-run'], { cwd: root });
