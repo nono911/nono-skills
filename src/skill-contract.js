@@ -22,53 +22,132 @@ export const expectedDurableEndings = Object.freeze({
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.",
 });
 
-const legacySingletonReference = /docs\/agent\/(?:spec|plan|decision-log|findings|handoff)\.md|(?:^|[^A-Za-z0-9_/-])decision-log\.md(?=$|[^A-Za-z0-9_-])|\b(?:existing|global|singleton)\s+`?(?:spec|plan|findings|handoff)\.md`?/im;
+const workspaceBody = workspaceSection.slice(workspaceSection.indexOf('\n\n') + 2);
+const legacySingletonReference = /\bdecision-log\.md\b|\bdocs\/agent\/(?:spec|plan|decisions|decision-log|findings|handoff)\.md\b/i;
+const workflowArtifactReference = /\b(?:spec|plan|decisions|findings|handoff)\.md\b/i;
+const selectedWorkItemReference = /\bselected[ \t]+work(?:[ \t]+|-)item(?:['’]s)?\b/i;
 
-function markdownSections(content) {
-  return [...content.matchAll(/^## ([^\n]+)$/gm)].map((match) => ({
-    name: match[1],
-    start: match.index,
-  }));
+function openingFence(line) {
+  const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+  if (!match || (match[1][0] === '`' && match[2].includes('`'))) return null;
+  return { character: match[1][0], length: match[1].length };
 }
 
-function sectionText(content, sections, index) {
+function closesFence(line, fence) {
+  const match = line.match(/^ {0,3}(`+|~+)[ \t]*$/);
+  return Boolean(
+    match
+      && match[1][0] === fence.character
+      && match[1].length >= fence.length,
+  );
+}
+
+function authoritativeLines(content) {
+  const sourceLines = content.split('\n');
+  const lines = [];
+  let fence = null;
+  let start = 0;
+
+  for (let index = 0; index < sourceLines.length; index += 1) {
+    const text = sourceLines[index];
+    const hasLineEnding = index < sourceLines.length - 1;
+    const end = start + text.length + (hasLineEnding ? 1 : 0);
+
+    if (fence) {
+      if (closesFence(text, fence)) fence = null;
+    } else {
+      const openedFence = openingFence(text);
+      if (openedFence) {
+        fence = openedFence;
+      } else {
+        lines.push({ text, start, end });
+      }
+    }
+    start = end;
+  }
+
+  return lines;
+}
+
+function normalizedLevelTwoHeading(line) {
+  const match = line.match(/^ {0,3}##(?!#)(?:[ \t]+(.*))?[ \t]*$/);
+  if (!match) return null;
+  const name = (match[1] ?? '')
+    .trimEnd()
+    .replace(/[ \t]+#+$/, '')
+    .trim();
+  return name || null;
+}
+
+function markdownSections(lines) {
+  const sections = [];
+  for (const line of lines) {
+    const name = normalizedLevelTwoHeading(line.text);
+    if (name) sections.push({ name, start: line.start, bodyStart: line.end });
+  }
+  return sections;
+}
+
+function uniqueSectionIndex(name, sections, skillName) {
+  const indexes = sections
+    .map((section, index) => (section.name === name ? index : -1))
+    .filter((index) => index !== -1);
+  assert.equal(
+    indexes.length,
+    1,
+    `${skillName} must define exactly one normalized ${name} section`,
+  );
+  return indexes[0];
+}
+
+function sectionBody(content, sections, index) {
   const end = sections[index + 1]?.start ?? content.length;
-  return content.slice(sections[index].start, end).trimEnd();
+  return content.slice(sections[index].bodyStart, end);
+}
+
+function assertArtifactScope(name, lines) {
+  for (const { text } of lines) {
+    assert.doesNotMatch(
+      text,
+      legacySingletonReference,
+      `${name} must not reference legacy singleton workflow artifacts`,
+    );
+    if (workflowArtifactReference.test(text)) {
+      assert.match(
+        text,
+        selectedWorkItemReference,
+        `${name} must scope workflow artifact references to the selected work item`,
+      );
+    }
+  }
 }
 
 export function assertSkillWorkspaceContract(name, content) {
   const expectedEnding = expectedDurableEndings[name];
   assert.ok(expectedEnding, `${name} must be in the expected skill inventory`);
 
-  const sections = markdownSections(content);
-  const purposeIndex = sections.findIndex((section) => section.name === 'Purpose');
-  assert.notEqual(purposeIndex, -1, `${name} must define a Purpose section`);
+  const lines = authoritativeLines(content);
+  const sections = markdownSections(lines);
+  const purposeIndex = uniqueSectionIndex('Purpose', sections, name);
+  const workspaceIndex = uniqueSectionIndex('Workspace protocol', sections, name);
+  const decisionIndex = uniqueSectionIndex('Decision-log updates', sections, name);
   assert.equal(
-    sections[purposeIndex + 1]?.name,
-    'Workspace protocol',
+    workspaceIndex,
+    purposeIndex + 1,
     `${name} must place the Workspace protocol section immediately after Purpose`,
   );
-
-  const workspaceSections = sections.filter((section) => section.name === 'Workspace protocol');
-  assert.equal(workspaceSections.length, 1, `${name} must define exactly one Workspace protocol section`);
   assert.equal(
-    sectionText(content, sections, purposeIndex + 1),
-    workspaceSection,
+    sectionBody(content, sections, workspaceIndex).replace(/\n+$/, ''),
+    `\n${workspaceBody}`,
     `${name} must use the exact Workspace protocol section`,
   );
 
-  const decisionIndex = sections.findIndex((section) => section.name === 'Decision-log updates');
-  assert.notEqual(decisionIndex, -1, `${name} must define a Decision-log updates section`);
-  const decisionLines = sectionText(content, sections, decisionIndex).split('\n');
+  const decisionLines = sectionBody(content, sections, decisionIndex).trimEnd().split('\n');
   assert.equal(
     decisionLines.at(-1),
     expectedEnding,
     `${name} must end Decision-log updates with its durable-state contract`,
   );
 
-  assert.doesNotMatch(
-    content,
-    legacySingletonReference,
-    `${name} must not reference legacy singleton workflow artifacts`,
-  );
+  assertArtifactScope(name, lines);
 }
