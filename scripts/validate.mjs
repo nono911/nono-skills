@@ -3,6 +3,10 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { listFiles } from '../src/fs-safe.js';
+import {
+  assertSkillWorkspaceContract,
+  expectedDurableEndings,
+} from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
@@ -12,7 +16,10 @@ assert.equal(plugin.version, packageJson.version);
 
 const skillRoot = path.join(root, 'plugin', 'skills');
 const skillFiles = (await listFiles(skillRoot)).filter((file) => file.endsWith('/SKILL.md'));
-assert.equal(skillFiles.length, 15);
+assert.deepEqual(
+  skillFiles.map((file) => file.split(path.sep)[0]).sort(),
+  Object.keys(expectedDurableEndings).sort(),
+);
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
 assert.match(workspaceProtocol, /Classify the task as transient or durable/);
 assert.match(workspaceProtocol, /ask once before creating the workspace/);
@@ -23,8 +30,7 @@ for (const relative of skillFiles) {
   const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
   assert.match(content, new RegExp(`^---\\nname: ${expectedName}\\ndescription: .+\\n---`, 's'));
   assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
-  assert.match(content, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
-  assert.doesNotMatch(content, /docs\/agent\/(?:spec|plan|decision-log|findings|handoff)\.md/);
+  assertSkillWorkspaceContract(expectedName, content);
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
   assert.match(metadata, new RegExp(`default_prompt: ".*\\$${expectedName.replaceAll('-', '\\-')}\\b`));

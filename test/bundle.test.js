@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
 import { listFiles } from '../src/fs-safe.js';
+import { assertSkillWorkspaceContract } from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const expectedSkills = [
@@ -11,6 +14,40 @@ const expectedSkills = [
   'estimate', 'fix-findings', 'implement', 'migration', 'plan', 'refactor',
   'release-readiness', 'review', 'security-review', 'test',
 ];
+const workspaceSection = `## Workspace protocol
+
+Read \`../../references/workspaces.md\` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.`;
+const apiDesignEnding = "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.";
+
+async function validateMutatedSkill(name, mutate) {
+  const fixtureRoot = await mkdtemp(path.join(tmpdir(), 'nono-skills-validate-'));
+  try {
+    await Promise.all(['package.json', 'plugin', 'scripts', 'src'].map((relative) => cp(
+      path.join(root, relative),
+      path.join(fixtureRoot, relative),
+      { recursive: true },
+    )));
+    const skillPath = path.join(fixtureRoot, 'plugin', 'skills', name, 'SKILL.md');
+    const content = await readFile(skillPath, 'utf8');
+    const mutated = mutate(content);
+    assert.notEqual(mutated, content, `${name} test mutation must change the skill`);
+    await writeFile(skillPath, mutated, 'utf8');
+    return spawnSync(process.execPath, ['scripts/validate.mjs'], {
+      cwd: fixtureRoot,
+      encoding: 'utf8',
+    });
+  } finally {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
+function assertValidationFails(result) {
+  assert.notEqual(
+    result.status,
+    0,
+    `validation unexpectedly passed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+  );
+}
 
 test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
@@ -68,9 +105,48 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    assert.match(skill, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
-    assert.doesNotMatch(skill, /docs\/agent\/(?:spec|plan|decision-log|findings|handoff)\.md/);
+    assertSkillWorkspaceContract(name, skill);
   }
+});
+
+test('package validation rejects a negated workspace instruction', async () => {
+  const result = await validateMutatedSkill('api-design', (content) => content.replace(
+    'Read `../../references/workspaces.md`',
+    'Do not Read `../../references/workspaces.md`',
+  ));
+  assertValidationFails(result);
+});
+
+test('package validation rejects a misplaced workspace section', async () => {
+  const result = await validateMutatedSkill('api-design', (content) => content
+    .replace(`${workspaceSection}\n\n`, '')
+    .replace('\n## Outputs\n', `\n${workspaceSection}\n\n## Outputs\n`));
+  assertValidationFails(result);
+});
+
+test('package validation rejects a missing skill-specific durable-state ending', async () => {
+  const result = await validateMutatedSkill('api-design', (content) => content.replace(
+    `${apiDesignEnding}\n`,
+    '',
+  ));
+  assertValidationFails(result);
+});
+
+test('package validation rejects the wrong skill-specific durable-state ending', async () => {
+  const wrongEnding = "When durable state is approved, append boundary changes, compatibility assumptions, and accepted tradeoffs to the selected work item's decisions.md; otherwise include them in the final response.";
+  const result = await validateMutatedSkill('api-design', (content) => content.replace(
+    apiDesignEnding,
+    wrongEnding,
+  ));
+  assertValidationFails(result);
+});
+
+test('package validation rejects a contextual bare legacy singleton filename', async () => {
+  const result = await validateMutatedSkill('api-design', (content) => content.replace(
+    apiDesignEnding,
+    `Use an existing decision-log.md when durable state is approved.\n${apiDesignEnding}`,
+  ));
+  assertValidationFails(result);
 });
 
 test('plan uses selected work-item artifacts and repository guidance stays concise', async () => {
