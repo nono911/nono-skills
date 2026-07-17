@@ -1,6 +1,7 @@
 # Adaptive Workspaces Forward-Test Report
 
-Date: 2026-07-16
+Plan date: 2026-07-16
+Executed: 2026-07-17
 Protocol: `plugin/references/workspaces.md`
 Result: pass
 
