@@ -60,7 +60,7 @@ export async function run(argv, context) {
     return 1;
   }
   if (options.version) {
-    stdout.write(`${context.version ?? '0.1.0'}\n`);
+    stdout.write(`${context.packageVersion ?? context.version ?? '0.1.0'}\n`);
     return 0;
   }
   if (options.help) {

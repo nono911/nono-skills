@@ -88,6 +88,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
+  assert.equal(packageJson.version, '0.2.0');
+  assert.equal(plugin.version, '0.2.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);

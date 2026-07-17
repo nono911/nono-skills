@@ -13,8 +13,10 @@ test('npm package includes runtime assets and excludes development state', async
   const names = files.map((file) => file.path);
   for (const required of [
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
-    'plugin/skills/plan/SKILL.md', 'templates/AGENTS.md', 'README.md', 'LICENSE',
+    'plugin/references/workspaces.md', 'plugin/skills/plan/SKILL.md',
+    'templates/AGENTS.md', 'README.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
+  assert.equal(names.some((name) => name.startsWith('templates/docs/agent/')), false);
   assert.equal(names.some((name) => name.startsWith('test/')), false);
   assert.equal(names.some((name) => name.startsWith('docs/')), false);
   assert.equal(names.some((name) => name.includes('.installer-state')), false);

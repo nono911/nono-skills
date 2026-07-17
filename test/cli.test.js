@@ -46,6 +46,15 @@ test('run prints version without dispatching', async () => {
   assert.equal(stdout.read(), '1.2.3\n');
 });
 
+test('run prints the package version supplied by the executable', async () => {
+  const stdout = output();
+  const code = await run(['--version'], {
+    stdout: stdout.stream, stderr: output().stream, packageVersion: '0.2.0', handlers: {},
+  });
+  assert.equal(code, 0);
+  assert.equal(stdout.read(), '0.2.0\n');
+});
+
 test('run dispatches parsed options to a command handler', async () => {
   let received;
   const code = await run(['init', 'repo', '--dry-run'], {
