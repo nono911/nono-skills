@@ -42,10 +42,39 @@ function closesFence(line, fence) {
   );
 }
 
+function stripHtmlComments(line, commentOpen) {
+  let cursor = 0;
+  let text = '';
+  let hadComment = commentOpen;
+
+  while (cursor < line.length) {
+    if (commentOpen) {
+      const close = line.indexOf('-->', cursor);
+      if (close === -1) return { commentOpen: true, hadComment: true, text };
+      cursor = close + 3;
+      commentOpen = false;
+      hadComment = true;
+    } else {
+      const open = line.indexOf('<!--', cursor);
+      if (open === -1) {
+        text += line.slice(cursor);
+        break;
+      }
+      text += line.slice(cursor, open);
+      cursor = open + 4;
+      commentOpen = true;
+      hadComment = true;
+    }
+  }
+
+  return { commentOpen, hadComment, text };
+}
+
 function authoritativeLines(content) {
   const sourceLines = content.split('\n');
   const lines = [];
   let fence = null;
+  let htmlCommentOpen = false;
   let start = 0;
 
   for (let index = 0; index < sourceLines.length; index += 1) {
@@ -56,11 +85,24 @@ function authoritativeLines(content) {
     if (fence) {
       if (closesFence(text, fence)) fence = null;
     } else {
-      const openedFence = openingFence(text);
-      if (openedFence) {
-        fence = openedFence;
-      } else {
-        lines.push({ text, start, end });
+      const visible = stripHtmlComments(text, htmlCommentOpen);
+      htmlCommentOpen = visible.commentOpen;
+      if (!(visible.hadComment && visible.text.trim() === '')) {
+        if (/^(?: {4}|\t)/.test(visible.text)) {
+          start = end;
+          continue;
+        }
+        const openedFence = openingFence(visible.text);
+        if (openedFence) {
+          fence = openedFence;
+        } else {
+          lines.push({
+            text: visible.text,
+            start,
+            end,
+            canBeHeading: !visible.hadComment,
+          });
+        }
       }
     }
     start = end;
@@ -82,6 +124,7 @@ function normalizedLevelTwoHeading(line) {
 function markdownSections(lines) {
   const sections = [];
   for (const line of lines) {
+    if (!line.canBeHeading) continue;
     const name = normalizedLevelTwoHeading(line.text);
     if (name) sections.push({ name, start: line.start, bodyStart: line.end });
   }
@@ -105,21 +148,81 @@ function sectionBody(content, sections, index) {
   return content.slice(sections[index].bodyStart, end);
 }
 
+function normalizeInlineMarkdown(text) {
+  return text
+    .replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1')
+    .replace(/[`*_~]/g, '');
+}
+
+function semanticUnits(text) {
+  return text
+    .split(/[;:]|[.!?](?=[ \t]|$)|,[ \t]+(?=(?:but|however|instead)\b)/i)
+    .map((unit) => unit.trim())
+    .filter(Boolean);
+}
+
+function isListItem(text) {
+  return /^ {0,3}(?:[-+*]|\d+[.)])[ \t]+/.test(text);
+}
+
+function declaresSelectedWorkItemList(text) {
+  return /^(?:use|update|write|create|append|track|store|maintain|record)\b/i.test(text)
+    && selectedWorkItemReference.test(text)
+    && text.endsWith(':');
+}
+
 function assertArtifactScope(name, lines) {
+  let pendingListScope = false;
+  let scopedList = false;
+
   for (const { text } of lines) {
+    const normalized = normalizeInlineMarkdown(text);
+    const trimmed = normalized.trim();
+
+    if (trimmed === '') {
+      pendingListScope = false;
+      scopedList = false;
+      continue;
+    }
+
+    const listItem = isListItem(text);
+    const inheritedListScope = listItem && (pendingListScope || scopedList);
+    if (listItem) {
+      scopedList = inheritedListScope;
+      pendingListScope = false;
+    } else {
+      pendingListScope = false;
+      scopedList = false;
+    }
+
     assert.doesNotMatch(
-      text,
+      normalized,
       legacySingletonReference,
       `${name} must not reference legacy singleton workflow artifacts`,
     );
-    if (workflowArtifactReference.test(text)) {
-      assert.match(
-        text,
-        selectedWorkItemReference,
-        `${name} must scope workflow artifact references to the selected work item`,
-      );
+
+    for (const unit of semanticUnits(normalized)) {
+      if (workflowArtifactReference.test(unit)) {
+        assert.ok(
+          inheritedListScope || selectedWorkItemReference.test(unit),
+          `${name} must scope workflow artifact references to the selected work item`,
+        );
+      }
+    }
+
+    if (declaresSelectedWorkItemList(trimmed)) {
+      pendingListScope = true;
+      scopedList = false;
     }
   }
+}
+
+function finalAuthoritativeSectionLine(lines, sections, index) {
+  const start = sections[index].bodyStart;
+  const end = sections[index + 1]?.start ?? Number.POSITIVE_INFINITY;
+  return lines
+    .filter((line) => line.start >= start && line.start < end && line.text.trim() !== '')
+    .at(-1)?.text;
 }
 
 export function assertSkillWorkspaceContract(name, content) {
@@ -142,9 +245,8 @@ export function assertSkillWorkspaceContract(name, content) {
     `${name} must use the exact Workspace protocol section`,
   );
 
-  const decisionLines = sectionBody(content, sections, decisionIndex).trimEnd().split('\n');
   assert.equal(
-    decisionLines.at(-1),
+    finalAuthoritativeSectionLine(lines, sections, decisionIndex),
     expectedEnding,
     `${name} must end Decision-log updates with its durable-state contract`,
   );

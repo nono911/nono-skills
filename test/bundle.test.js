@@ -287,6 +287,177 @@ test('contract unconditionally rejects a legacy docs/agent singleton path', asyn
   );
 });
 
+test('contract rejects an emphasized legacy docs/agent singleton path', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    "Use the selected work item's `docs/agent/`**findings.md**.",
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must not reference legacy singleton workflow artifacts/,
+  );
+});
+
+test('contract rejects an inline-formatted decision-log filename', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    "Use the selected work item's decision-**log.md**.",
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must not reference legacy singleton workflow artifacts/,
+  );
+});
+
+test('contract requires scope in the artifact occurrence semicolon clause', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Do not use global spec.md; use the selected work item instead.',
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('contract requires scope in the artifact occurrence sentence', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Do not use global findings.md. Use the selected work item instead.',
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('contract requires scope in a comma-separated contrast clause', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Do not use global spec.md, but use the selected work item instead.',
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('contract accepts selected-work-item scope in the same clause', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Use spec.md from the selected work item; report failures in chat.',
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
+test('contract accepts an immediately wrapped selected-work-item list', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `Use the selected work item:
+- spec.md
+- \`plan.md\``,
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
+test('wrapped selected-work-item scope supports star list markers', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `Use the selected work item:
+* findings.md`,
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
+test('a negated wrapped declaration does not grant selected-work-item scope', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `Do not use the selected work item:
+- spec.md`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('wrapped selected-work-item scope ends with its contiguous list', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `Use the selected work item:
+- spec.md
+
+Use global findings.md.`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('contract rejects a durable ending hidden in an unclosed fence', async () => {
+  const original = await readApiDesignSkill();
+  const content = `${original.slice(0, original.indexOf(apiDesignEnding))}\`\`\`markdown
+${apiDesignEnding}
+`;
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must end Decision-log updates with its durable-state contract/,
+  );
+});
+
+test('contract ignores indented code as non-authoritative', async () => {
+  const indentedExample = `    ## Workspace protocol
+    Use global spec.md and decision-log.md.
+
+`;
+  const content = (await readApiDesignSkill()).replace(
+    '## Workspace protocol\n',
+    `${indentedExample}## Workspace protocol\n`,
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
+test('indented code does not hide following authoritative prose', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `    Use the selected work item's spec.md.
+Use global findings.md.`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
+test('contract ignores multiline HTML comments as non-authoritative', async () => {
+  const commentedExample = `<!--
+## Workspace protocol
+Use global spec.md and decision-log.md.
+-->
+
+`;
+  const content = (await readApiDesignSkill()).replace(
+    '## Workspace protocol\n',
+    `${commentedExample}## Workspace protocol\n`,
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+});
+
+test('a closed HTML comment does not hide following authoritative prose', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    `<!--
+Use the selected work item's spec.md.
+-->
+Use global handoff.md.`,
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must scope workflow artifact references to the selected work item/,
+  );
+});
+
 test('plan uses selected work-item artifacts and repository guidance stays concise', async () => {
   const plan = await readFile(path.join(root, 'plugin', 'skills', 'plan', 'SKILL.md'), 'utf8');
   const agents = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
