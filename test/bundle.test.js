@@ -130,11 +130,69 @@ test('adaptive workspace protocol defines persistence and consent boundaries', a
 
 test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  assert.match(
+    readme,
+    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration\./,
+  );
+  assert.match(
+    readme,
+    /The only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
+  );
+  assert.doesNotMatch(readme, /They do not impose mandatory approval gates/);
   assert.match(readme, /Small tasks stay artifact-free/);
   assert.match(readme, /docs\/agent\/work\/<work-id>\//);
   assert.match(readme, /asks once before creating it/);
+  assert.match(
+    readme,
+    /An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope/,
+  );
+  assert.match(
+    readme,
+    /Codex asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority/,
+  );
   assert.match(readme, /`init` is optional/);
-  assert.doesNotMatch(readme, /Project artifacts include.*docs\/agent\/.*templates/);
+  assert.match(readme, /Initialization no longer creates task artifacts/);
+  assert.match(readme, /Existing 0\.1\.0 singleton files under `docs\/agent\/` are preserved/);
+  assert.match(
+    readme,
+    /Purge never removes user-owned `docs\/agent\/work\/<work-id>\/` directories/,
+  );
+
+  const readmeSkills = [...new Set(
+    [...readme.matchAll(/\$engineering:([a-z][a-z0-9-]*)/g)].map((match) => match[1]),
+  )].sort();
+  assert.deepEqual(readmeSkills, expectedSkills);
+
+  const lines = readme.split('\n');
+  for (const command of [
+    'npx nono-skills doctor',
+    'npx nono-skills update',
+    'npx nono-skills uninstall',
+  ]) {
+    assert.ok(lines.includes(command), `README must document ${command}`);
+  }
+
+  const verifySkills = readme.indexOf('verify the `engineering:*` skills first');
+  const disableReversibly = readme.indexOf('disable it reversibly');
+  const uninstallSuperpowers = readme.indexOf('uninstall Superpowers from the plugin browser');
+  assert.ok(verifySkills >= 0, 'README must verify engineering skills before removing Superpowers');
+  assert.ok(disableReversibly > verifySkills, 'README must disable Superpowers reversibly after verification');
+  assert.ok(uninstallSuperpowers > disableReversibly, 'README must uninstall Superpowers only after disabling it');
+  assert.match(readme, /The CLI never disables or removes Superpowers automatically/);
+
+  for (const stalePhrase of ['Project artifacts include', 'Without initialization']) {
+    assert.equal(readme.includes(stalePhrase), false, `README must not contain ${stalePhrase}`);
+  }
+  for (const legacyPath of [
+    'docs/agent/spec.md',
+    'docs/agent/plan.md',
+    'docs/agent/decisions.md',
+    'docs/agent/decision-log.md',
+    'docs/agent/findings.md',
+    'docs/agent/handoff.md',
+  ]) {
+    assert.equal(readme.includes(legacyPath), false, `README must not recommend ${legacyPath}`);
+  }
 });
 
 test('every skill has specific UI metadata and uses the workspace protocol', async () => {

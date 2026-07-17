@@ -2,7 +2,7 @@
 
 A lightweight, reasoning-first engineering workflow pack for Codex. It provides 15 namespaced skills built around outcomes, evidence, verification, material decisions, and human escalation.
 
-The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory approval gates, worktrees, test-first development, or subagent orchestration.
+The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration. The only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
 
 ## How it works
 
