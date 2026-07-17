@@ -587,15 +587,12 @@ test('plan uses selected work-item artifacts and repository guidance stays conci
   const agents = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
 
   assert.match(plan, /selected work item's spec, plan, and decisions/);
-  assert.match(agents, /Do not create missing workflow artifacts unless the user requests/);
+  assert.match(agents, /docs\/agent\/work\/<work-id>\//);
+  assert.match(agents, /ask before creating a new durable workspace/);
   assert.match(agents, /\$engineering:<skill>/);
   assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');
 });
 
-test('bundle contains every project artifact template', async () => {
-  const expected = [
-    'AGENTS.md', 'docs/agent/decision-log.md', 'docs/agent/findings.md',
-    'docs/agent/handoff.md', 'docs/agent/plan.md', 'docs/agent/spec.md',
-  ];
-  assert.deepEqual(await listFiles(path.join(root, 'templates')), expected);
+test('project initialization bundles repository guidance only', async () => {
+  assert.deepEqual(await listFiles(path.join(root, 'templates')), ['AGENTS.md']);
 });

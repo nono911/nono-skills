@@ -18,19 +18,11 @@ Keep this file specific to the repository. Replace placeholders with commands an
 - Keep external writes, commits, pushes, merges, releases, deployments, and production mutations behind explicit user authorization.
 - Verify changed behavior with the strongest safe repository checks available. Report what ran and what remains unverified.
 
-## Task artifacts
+## Durable task state
 
-Use existing files under `docs/agent/` only when they help the current task:
+Keep simple, one-shot work artifact-free; ask before creating a new durable workspace unless the user explicitly requested durable artifacts or named an existing work item.
 
-- `spec.md`: goal, scope, constraints, acceptance criteria, and unresolved product choices
-- `plan.md`: current execution map, status, dependencies, and verification targets
-- `decision-log.md`: material decisions, evidence, alternatives, and consequences
-- `findings.md`: review findings and their lifecycle
-- `handoff.md`: resumable state when work remains or ownership changes
-
-Do not create missing workflow artifacts unless the user requests durable artifacts or runs `npx nono-skills init`. Without them, put the same material information in the final response.
-
-Append a decision only when it changes a contract, resolves meaningful ambiguity, accepts risk or a costly tradeoff, changes the plan materially, or records an assumption future work must preserve. Supersede accepted entries instead of rewriting history. Do not log routine edits or shell commands.
+Approved work lives under `docs/agent/work/<work-id>/`. Keep each feature isolated, let its `spec.md` define scope and status, record only material decisions, and never select another work item by recency alone. Repository-specific instructions override the default location.
 
 ## Definition of done
 

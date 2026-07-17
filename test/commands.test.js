@@ -11,20 +11,27 @@ function writer() {
   return { stream: { write(chunk) { value += chunk; } }, read: () => value };
 }
 
-test('init command creates templates and records project ownership', async () => {
+test('init creates only repository guidance and preserves legacy artifacts', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
   const packageRoot = path.join(root, 'package');
   const target = path.join(root, 'project');
-  await mkdir(path.join(packageRoot, 'templates', 'docs', 'agent'), { recursive: true });
+  await mkdir(path.join(packageRoot, 'templates'), { recursive: true });
+  await mkdir(path.join(target, 'docs', 'agent'), { recursive: true });
   await writeFile(path.join(packageRoot, 'templates', 'AGENTS.md'), 'rules');
-  await writeFile(path.join(packageRoot, 'templates', 'docs', 'agent', 'plan.md'), 'plan');
+  await writeFile(path.join(target, 'docs', 'agent', 'spec.md'), 'legacy spec');
+
   const stdout = writer();
-  const handlers = createHandlers({ packageRoot, home: path.join(root, 'home'), cwd: root, packageVersion: '0.1.0', stdout: stdout.stream, stderr: writer().stream });
+  const handlers = createHandlers({
+    packageRoot, home: path.join(root, 'home'), cwd: root,
+    packageVersion: '0.2.0', stdout: stdout.stream, stderr: writer().stream,
+  });
+
   assert.equal(await handlers.init({ target, force: false, dryRun: false }), 0);
   assert.equal(await readFile(path.join(target, 'AGENTS.md'), 'utf8'), 'rules');
+  assert.equal(await readFile(path.join(target, 'docs', 'agent', 'spec.md'), 'utf8'), 'legacy spec');
   const state = JSON.parse(await readFile(path.join(target, '.codex-engineering-skills.json'), 'utf8'));
-  assert.deepEqual(Object.keys(state.files).sort(), ['AGENTS.md', 'docs/agent/plan.md']);
-  assert.match(stdout.read(), /Created 2/);
+  assert.deepEqual(Object.keys(state.files), ['AGENTS.md']);
+  assert.match(stdout.read(), /Created 1/);
 });
 
 test('init command refuses all writes when a conflict exists', async () => {
