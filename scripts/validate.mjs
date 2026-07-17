@@ -13,6 +13,9 @@ assert.equal(plugin.version, packageJson.version);
 const skillRoot = path.join(root, 'plugin', 'skills');
 const skillFiles = (await listFiles(skillRoot)).filter((file) => file.endsWith('/SKILL.md'));
 assert.equal(skillFiles.length, 15);
+const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+assert.match(workspaceProtocol, /Classify the task as transient or durable/);
+assert.match(workspaceProtocol, /ask once before creating the workspace/);
 for (const relative of skillFiles) {
   const expectedName = relative.split(path.sep)[0];
   const content = await readFile(path.join(skillRoot, relative), 'utf8');
@@ -20,7 +23,11 @@ for (const relative of skillFiles) {
   const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
   assert.match(content, new RegExp(`^---\\nname: ${expectedName}\\ndescription: .+\\n---`, 's'));
   assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
-  assert.match(content, /create workflow artifacts only when the user requests them/);
+  assert.ok(
+    content.includes('Read `../../references/workspaces.md`')
+      || content.includes('create workflow artifacts only when the user requests them'),
+    `${expectedName} must use the adaptive protocol or the legacy fallback during migration`,
+  );
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
   assert.match(metadata, new RegExp(`default_prompt: ".*\\$${expectedName.replaceAll('-', '\\-')}\\b`));

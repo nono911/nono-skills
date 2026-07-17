@@ -37,6 +37,24 @@ test('bundle contains exactly the validated 15-skill set', async () => {
   }
 });
 
+test('adaptive workspace protocol defines persistence and consent boundaries', async () => {
+  const protocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+  assert.match(protocol, /Classify the task as transient or durable/);
+  assert.match(protocol, /Keep localized one-shot work transient/);
+  assert.match(protocol, /Explicit requests for a spec, plan, progress log/);
+  assert.match(protocol, /ask once before creating the workspace/);
+  assert.match(protocol, /Recency alone is never sufficient/);
+  assert.match(protocol, /Ask the user when multiple items remain plausible/);
+  assert.match(protocol, /docs\/agent\/work\/<work-id>\/spec\.md/);
+  assert.match(protocol, /If the user declines/);
+  assert.match(protocol, /Reopening completed work changes its status to `active`/);
+
+  for (const name of ['plan', 'implement']) {
+    const skill = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
+    assert.match(skill, /Read `\.\.\/\.\.\/references\/workspaces\.md`/);
+  }
+});
+
 test('every skill has specific UI metadata and safe artifact fallback', async () => {
   for (const name of expectedSkills) {
     const skillRoot = path.join(root, 'plugin', 'skills', name);
@@ -49,15 +67,19 @@ test('every skill has specific UI metadata and safe artifact fallback', async ()
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    assert.match(skill, /create workflow artifacts only when the user requests them/);
+    assert.ok(
+      skill.includes('Read `../../references/workspaces.md`')
+        || skill.includes('create workflow artifacts only when the user requests them'),
+      `${name} must use the adaptive protocol or the legacy fallback during migration`,
+    );
   }
 });
 
-test('plan artifacts are conditional and repository guidance stays concise', async () => {
+test('plan uses selected work-item artifacts and repository guidance stays concise', async () => {
   const plan = await readFile(path.join(root, 'plugin', 'skills', 'plan', 'SKILL.md'), 'utf8');
   const agents = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
 
-  assert.match(plan, /artifact files already exist or the user requests durable planning/);
+  assert.match(plan, /selected work item's spec, plan, and decisions/);
   assert.match(agents, /Do not create missing workflow artifacts unless the user requests/);
   assert.match(agents, /\$engineering:<skill>/);
   assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');

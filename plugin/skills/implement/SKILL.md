@@ -9,6 +9,10 @@ description: Use for general software implementation from a requirement, spec, i
 
 Deliver the smallest complete change that satisfies the contract, preserves unrelated behavior, and is verified in proportion to risk.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - User request and acceptance criteria
@@ -33,7 +37,7 @@ Deliver the smallest complete change that satisfies the contract, preserves unre
 ## Decision-log updates
 
 Record material implementation choices, deviations from the plan, assumptions that affect behavior, accepted tradeoffs, and why a simpler or established pattern was not used. Include verification or follow-up consequences.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append the decision to the selected work item's `decisions.md` and update its plan or handoff when applicable; otherwise include it in the final response.
 
 ## Escalate to the human
 

@@ -9,16 +9,20 @@ description: Use when a software direction is defined enough to map multi-step, 
 
 Turn the request and repository evidence into a decision-ready spec and a concise, verifiable execution map. Plan to the level warranted by risk; do not add ceremony to trivial work.
 
+## Workspace protocol
+
+Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+
 ## Inputs
 
 - User goal, constraints, and expected behavior
 - Applicable `AGENTS.md`, current code, tests, docs, issues, and runtime evidence
-- Existing `docs/agent/spec.md`, `plan.md`, and `decision-log.md`
+- The selected work item's spec, plan, and decisions when durable state is active
 
 ## Outputs
 
 - A decision-ready spec and concise execution map with testable acceptance criteria
-- When the artifact files already exist or the user requests durable planning, updated `docs/agent/spec.md` and `docs/agent/plan.md`
+- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory
 - A short summary of assumptions and human decisions needed
 
 ## Rules
@@ -33,7 +37,7 @@ Turn the request and repository evidence into a decision-ready spec and a concis
 ## Decision-log updates
 
 Record scope interpretations, contract choices, rejected approaches with non-obvious tradeoffs, and material re-plans. Link each entry to the affected plan item.
-Use an existing `docs/agent/decision-log.md`. If it is absent, include the decision in the final response; create workflow artifacts only when the user requests them.
+When durable state is approved, append the decision to the selected work item's `decisions.md`; otherwise include it in the final response.
 
 ## Escalate to the human
 
