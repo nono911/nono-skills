@@ -6,11 +6,12 @@ The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills de
 
 ## How it works
 
-- Codex can select a skill implicitly from its focused trigger description, or you can invoke one explicitly.
-- Each skill defines its purpose, inputs, outputs, rules, decision-log updates, and conditions that require human judgment.
-- Workflow artifacts are optional. Skills update existing artifacts but do not create missing `docs/agent/` files unless you request durable artifacts or run `init`.
-- Decision logs capture costly, contractual, ambiguous, or risk-bearing choices—not routine edits or shell commands.
-- Overlapping intents have explicit boundaries: brainstorm before direction, plan after direction, implement general changes, fix-findings for validated findings, review for general defects, and security-review when security is the primary objective.
+- Install once, start a new Codex task, and ask for engineering work naturally. Explicit `$engineering:<skill>` invocation remains optional.
+- Small tasks stay artifact-free.
+- For work worth resuming or tracking, Codex proposes an isolated `docs/agent/work/<work-id>/` workspace and asks once before creating it.
+- An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope.
+- After approval, Codex maintains that work item's spec, plan, material decisions, findings, and handoff as needed without asking for every file update.
+- Codex asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority.
 
 ## Install
 
@@ -20,7 +21,23 @@ Requires Node.js 20 or newer and Codex CLI with plugin support.
 npx nono-skills install
 ```
 
-Start a new Codex task after installation. Skills appear under the `engineering` namespace:
+Then work normally:
+
+```text
+Implement user authentication and keep me updated.
+```
+
+For a durable task, Codex may propose:
+
+```text
+This work has multiple stages and should remain resumable. I propose
+docs/agent/work/2026-07-16-user-auth/ for its spec, plan, and material
+decisions. Approve this workspace?
+```
+
+Declining keeps the work in the current conversation and creates no workflow files.
+
+Skills appear under the `engineering` namespace when you want to invoke one explicitly:
 
 ```text
 $engineering:plan
@@ -60,13 +77,15 @@ $engineering:database-design
 | Design a stable consumer contract | `$engineering:api-design` |
 | Design persistent data around invariants | `$engineering:database-design` |
 
-## Initialize a project
+## Optional repository guidance
 
-Initialization is optional. Add concise repository guidance and shared agent artifacts to the current project with:
+`init` is optional. The plugin works without it. Run this only when the repository needs a starter `AGENTS.md` for its setup commands, architecture rules, verification commands, and local conventions:
 
 ```bash
 npx nono-skills init
 ```
+
+Initialization no longer creates task artifacts. Existing 0.1.0 singleton files under `docs/agent/` are preserved and new durable work uses per-work-item directories.
 
 Preview changes or target another repository:
 
@@ -81,8 +100,6 @@ Existing differing files are reported as conflicts and no files are written. To 
 npx nono-skills init --force
 ```
 
-Project artifacts include a repository-focused `AGENTS.md` and `docs/agent/` templates for specs, plans, decisions, findings, and handoffs. Without initialization, skills return the same material information in their final response instead of creating workflow files.
-
 ## Maintain the installation
 
 ```bash
@@ -93,13 +110,13 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Uninstall preserves project files. Remove only project files that still match their installed checksums with:
+Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
 ```bash
 npx nono-skills uninstall --purge-project /path/to/project
 ```
 
-Modified project files are always preserved.
+Modified project files are always preserved. Purge never removes user-owned `docs/agent/work/<work-id>/` directories.
 
 ## Moving away from Superpowers
 
@@ -113,7 +130,8 @@ This pack intentionally does not reproduce strict test-first enforcement, automa
 - Marketplace edits preserve unrelated entries and metadata.
 - Install and update roll back plugin source and marketplace changes when Codex registration fails.
 - Project files are never overwritten without `--force` and a backup.
-- Skills do not create missing workflow artifacts implicitly.
+- Codex-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
+- Work-item directories are user-owned, and uninstall purge never removes them.
 - The CLI never disables or removes Superpowers automatically.
 
 ## Development

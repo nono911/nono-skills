@@ -128,6 +128,15 @@ test('adaptive workspace protocol defines persistence and consent boundaries', a
   }
 });
 
+test('README documents adaptive consent-aware workspaces', async () => {
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  assert.match(readme, /Small tasks stay artifact-free/);
+  assert.match(readme, /docs\/agent\/work\/<work-id>\//);
+  assert.match(readme, /asks once before creating it/);
+  assert.match(readme, /`init` is optional/);
+  assert.doesNotMatch(readme, /Project artifacts include.*docs\/agent\/.*templates/);
+});
+
 test('every skill has specific UI metadata and uses the workspace protocol', async () => {
   for (const name of expectedSkills) {
     const skillRoot = path.join(root, 'plugin', 'skills', name);
