@@ -45,7 +45,7 @@ function recordedPathPolicy(relative) {
   return {
     safe: true,
     canonical,
-    isWorkItem: canonical.startsWith('docs/agent/work/'),
+    isWorkItem: canonical.toLowerCase().startsWith('docs/agent/work/'),
   };
 }
 

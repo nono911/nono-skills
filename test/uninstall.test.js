@@ -83,6 +83,21 @@ test('purge always preserves user-owned work-item artifacts', async () => {
   assert.equal(await readFile(file, 'utf8'), 'approved durable state');
 });
 
+test('purge conservatively preserves uppercase work-item path variants', async () => {
+  const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-'));
+  const relative = 'DOCS/AGENT/WORK/item/spec.md';
+  const file = path.join(targetRoot, ...relative.split('/'));
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, 'approved durable state');
+  const digest = createHash('sha256').update('approved durable state').digest('hex');
+
+  const result = await purgeProject({ targetRoot, recordedChecksums: { [relative]: digest } });
+
+  assert.equal(await readFile(file, 'utf8'), 'approved durable state');
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.preserved, [relative]);
+});
+
 test('purge protects a work-item artifact reached through dot segments', async () => {
   const targetRoot = await mkdtemp(path.join(os.tmpdir(), 'engineering-purge-'));
   const relative = 'docs/agent/./work/2026-07-16-user-auth/spec.md';
