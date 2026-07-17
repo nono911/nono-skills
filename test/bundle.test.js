@@ -232,6 +232,13 @@ test('contract rejects a duplicate normalized Decision-log updates heading', asy
   );
 });
 
+test('contract accepts every current public allowlisted artifact line', async () => {
+  for (const name of expectedSkills) {
+    const content = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');
+    assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
+  }
+});
+
 const scopedArtifactCases = [
   ['spec.md', "Use the selected work item's existing **spec.md**."],
   ['plan.md', "Use the selected work item's existing plan.md."],
@@ -241,9 +248,12 @@ const scopedArtifactCases = [
 ];
 
 for (const [filename, line] of scopedArtifactCases) {
-  test(`contract accepts selected-work-item scope for ${filename}`, async () => {
+  test(`contract rejects unallowlisted selected-work-item prose for ${filename}`, async () => {
     const content = addDecisionLine(await readApiDesignSkill(), line);
-    assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+    assert.throws(
+      () => assertSkillWorkspaceContract('api-design', content),
+      /must use only allowed authoritative workflow artifact lines/,
+    );
   });
 }
 
@@ -260,7 +270,7 @@ for (const [filename, line] of singletonArtifactCases) {
     const content = addDecisionLine(await readApiDesignSkill(), line);
     assert.throws(
       () => assertSkillWorkspaceContract('api-design', content),
-      /must scope workflow artifact references to the selected work item/,
+      /must use only allowed authoritative workflow artifact lines/,
     );
   });
 }
@@ -309,67 +319,97 @@ test('contract rejects an inline-formatted decision-log filename', async () => {
   );
 });
 
-test('contract requires scope in the artifact occurrence semicolon clause', async () => {
+test('contract rejects a link-formatted legacy docs/agent singleton path', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    "Use the selected work item's docs/agent/[findings.md](https://example.test/findings).",
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must not reference legacy singleton workflow artifacts/,
+  );
+});
+
+test('contract rejects unallowlisted artifact prose with semicolon context', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     'Do not use global spec.md; use the selected work item instead.',
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
-test('contract requires scope in the artifact occurrence sentence', async () => {
+test('contract rejects unallowlisted artifact prose with later sentence context', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     'Do not use global findings.md. Use the selected work item instead.',
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
-test('contract requires scope in a comma-separated contrast clause', async () => {
+test('contract rejects unallowlisted artifact prose with comma-contrast context', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     'Do not use global spec.md, but use the selected work item instead.',
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
-test('contract accepts selected-work-item scope in the same clause', async () => {
+test('contract rejects an unpunctuated scoped/global contrast', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    'Do not use global spec.md but use the selected work item instead',
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must use only allowed authoritative workflow artifact lines/,
+  );
+});
+
+test('contract rejects mixed scoped and global artifacts on one line', async () => {
+  const content = addDecisionLine(
+    await readApiDesignSkill(),
+    "Use the selected work item's spec.md and global findings.md.",
+  );
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must use only allowed authoritative workflow artifact lines/,
+  );
+});
+
+test('contract rejects same-clause selected-work-item artifact prose outside the allowlist', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     'Use spec.md from the selected work item; report failures in chat.',
   );
-  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must use only allowed authoritative workflow artifact lines/,
+  );
 });
 
-test('contract accepts an immediately wrapped selected-work-item list', async () => {
+test('contract rejects an unapproved wrapped selected-work-item artifact list', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     `Use the selected work item:
 - spec.md
 - \`plan.md\``,
   );
-  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
-});
-
-test('wrapped selected-work-item scope supports star list markers', async () => {
-  const content = addDecisionLine(
-    await readApiDesignSkill(),
-    `Use the selected work item:
-* findings.md`,
+  assert.throws(
+    () => assertSkillWorkspaceContract('api-design', content),
+    /must use only allowed authoritative workflow artifact lines/,
   );
-  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
 });
 
-test('a negated wrapped declaration does not grant selected-work-item scope', async () => {
+test('contract rejects a negated wrapped artifact list outside the allowlist', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     `Do not use the selected work item:
@@ -377,21 +417,23 @@ test('a negated wrapped declaration does not grant selected-work-item scope', as
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
-test('wrapped selected-work-item scope ends with its contiguous list', async () => {
+test('contract rejects an artifact list separated by an ignored region', async () => {
   const content = addDecisionLine(
     await readApiDesignSkill(),
     `Use the selected work item:
+<!--
+ignored separator
+-->
 - spec.md
-
-Use global findings.md.`,
+`,
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
@@ -404,6 +446,14 @@ ${apiDesignEnding}
     () => assertSkillWorkspaceContract('api-design', content),
     /must end Decision-log updates with its durable-state contract/,
   );
+});
+
+test('contract accepts the exact durable ending followed by an inline HTML comment', async () => {
+  const content = (await readApiDesignSkill()).replace(
+    apiDesignEnding,
+    `${apiDesignEnding} <!-- ignored -->`,
+  );
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('api-design', content));
 });
 
 test('contract ignores indented code as non-authoritative', async () => {
@@ -426,7 +476,7 @@ Use global findings.md.`,
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 
@@ -454,7 +504,7 @@ Use global handoff.md.`,
   );
   assert.throws(
     () => assertSkillWorkspaceContract('api-design', content),
-    /must scope workflow artifact references to the selected work item/,
+    /must use only allowed authoritative workflow artifact lines/,
   );
 });
 

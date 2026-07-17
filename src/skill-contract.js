@@ -22,10 +22,18 @@ export const expectedDurableEndings = Object.freeze({
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.",
 });
 
+const planDurableOutput = '- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory';
+
+export const allowedArtifactLines = Object.freeze(Object.fromEntries(
+  Object.entries(expectedDurableEndings).map(([name, ending]) => [
+    name,
+    Object.freeze(name === 'plan' ? [ending, planDurableOutput] : [ending]),
+  ]),
+));
+
 const workspaceBody = workspaceSection.slice(workspaceSection.indexOf('\n\n') + 2);
 const legacySingletonReference = /\bdecision-log\.md\b|\bdocs\/agent\/(?:spec|plan|decisions|decision-log|findings|handoff)\.md\b/i;
 const workflowArtifactReference = /\b(?:spec|plan|decisions|findings|handoff)\.md\b/i;
-const selectedWorkItemReference = /\bselected[ \t]+work(?:[ \t]+|-)item(?:['’]s)?\b/i;
 
 function openingFence(line) {
   const match = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
@@ -150,50 +158,15 @@ function sectionBody(content, sections, index) {
 
 function normalizeInlineMarkdown(text) {
   return text
+    .replace(/!?\[([^\]\n]*)\]\((?:\\.|[^\\)\n])*\)/g, '$1')
     .replace(/\\([\\`*_{}\[\]()#+\-.!])/g, '$1')
     .replace(/[`*_~]/g, '');
 }
 
-function semanticUnits(text) {
-  return text
-    .split(/[;:]|[.!?](?=[ \t]|$)|,[ \t]+(?=(?:but|however|instead)\b)/i)
-    .map((unit) => unit.trim())
-    .filter(Boolean);
-}
-
-function isListItem(text) {
-  return /^ {0,3}(?:[-+*]|\d+[.)])[ \t]+/.test(text);
-}
-
-function declaresSelectedWorkItemList(text) {
-  return /^(?:use|update|write|create|append|track|store|maintain|record)\b/i.test(text)
-    && selectedWorkItemReference.test(text)
-    && text.endsWith(':');
-}
-
-function assertArtifactScope(name, lines) {
-  let pendingListScope = false;
-  let scopedList = false;
-
+function assertArtifactLines(name, lines) {
+  const allowedLines = allowedArtifactLines[name];
   for (const { text } of lines) {
     const normalized = normalizeInlineMarkdown(text);
-    const trimmed = normalized.trim();
-
-    if (trimmed === '') {
-      pendingListScope = false;
-      scopedList = false;
-      continue;
-    }
-
-    const listItem = isListItem(text);
-    const inheritedListScope = listItem && (pendingListScope || scopedList);
-    if (listItem) {
-      scopedList = inheritedListScope;
-      pendingListScope = false;
-    } else {
-      pendingListScope = false;
-      scopedList = false;
-    }
 
     assert.doesNotMatch(
       normalized,
@@ -201,18 +174,11 @@ function assertArtifactScope(name, lines) {
       `${name} must not reference legacy singleton workflow artifacts`,
     );
 
-    for (const unit of semanticUnits(normalized)) {
-      if (workflowArtifactReference.test(unit)) {
-        assert.ok(
-          inheritedListScope || selectedWorkItemReference.test(unit),
-          `${name} must scope workflow artifact references to the selected work item`,
-        );
-      }
-    }
-
-    if (declaresSelectedWorkItemList(trimmed)) {
-      pendingListScope = true;
-      scopedList = false;
+    if (workflowArtifactReference.test(normalized)) {
+      assert.ok(
+        allowedLines.includes(text.trim()),
+        `${name} must use only allowed authoritative workflow artifact lines`,
+      );
     }
   }
 }
@@ -222,7 +188,7 @@ function finalAuthoritativeSectionLine(lines, sections, index) {
   const end = sections[index + 1]?.start ?? Number.POSITIVE_INFINITY;
   return lines
     .filter((line) => line.start >= start && line.start < end && line.text.trim() !== '')
-    .at(-1)?.text;
+    .at(-1)?.text.trim();
 }
 
 export function assertSkillWorkspaceContract(name, content) {
@@ -251,5 +217,5 @@ export function assertSkillWorkspaceContract(name, content) {
     `${name} must end Decision-log updates with its durable-state contract`,
   );
 
-  assertArtifactScope(name, lines);
+  assertArtifactLines(name, lines);
 }
