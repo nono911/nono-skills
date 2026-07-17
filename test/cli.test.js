@@ -55,6 +55,17 @@ test('run prints the package version supplied by the executable', async () => {
   assert.equal(stdout.read(), '0.2.0\n');
 });
 
+test('run rejects a version request when the package version is unavailable', async () => {
+  const stdout = output();
+  const stderr = output();
+  const code = await run(['--version'], {
+    stdout: stdout.stream, stderr: stderr.stream, handlers: {},
+  });
+  assert.equal(code, 1);
+  assert.equal(stdout.read(), '');
+  assert.equal(stderr.read(), 'Package version is unavailable\n');
+});
+
 test('run dispatches parsed options to a command handler', async () => {
   let received;
   const code = await run(['init', 'repo', '--dry-run'], {

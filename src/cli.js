@@ -60,7 +60,12 @@ export async function run(argv, context) {
     return 1;
   }
   if (options.version) {
-    stdout.write(`${context.packageVersion ?? context.version ?? '0.1.0'}\n`);
+    const version = context.packageVersion ?? context.version;
+    if (version === undefined) {
+      stderr.write('Package version is unavailable\n');
+      return 1;
+    }
+    stdout.write(`${version}\n`);
     return 0;
   }
   if (options.help) {
