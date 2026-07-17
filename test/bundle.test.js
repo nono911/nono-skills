@@ -48,6 +48,7 @@ test('adaptive workspace protocol defines persistence and consent boundaries', a
   assert.match(protocol, /docs\/agent\/work\/<work-id>\/spec\.md/);
   assert.match(protocol, /If the user declines/);
   assert.match(protocol, /Reopening completed work changes its status to `active`/);
+  assert.match(protocol, /never move, merge, or delete them automatically/);
 
   for (const name of ['plan', 'implement']) {
     const skill = await readFile(path.join(root, 'plugin', 'skills', name, 'SKILL.md'), 'utf8');

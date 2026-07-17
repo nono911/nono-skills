@@ -50,4 +50,4 @@ Do not create a global mutable index or move completed work-item directories. Lo
 
 The original request controls implementation authority: an implementation request permits ordinary in-repository edits, while a planning request stops after planning. Ask again for material scope expansion, breaking or destructive behavior, production or external-system mutation, or significant spend.
 
-Repository instructions override the default artifact location. If creation fails, report exactly what exists and continue in chat when safe. Never silently create artifacts at another path. Treat existing 0.1.0 singleton files as legacy user content: read them only when explicitly named or unambiguously relevant, and never move or delete them automatically.
+Repository instructions override the default artifact location. If creation fails, report exactly what exists and continue in chat when safe. Never silently create artifacts at another path. Treat existing 0.1.0 singleton files as legacy user content: read them only when explicitly named or unambiguously relevant, and never move, merge, or delete them automatically.
