@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Loop"
+  short_description: "Implement, review, fix, and re-review until clean"
+  default_prompt: "Use $review-loop to implement this feature, commit it, run independent read-only review rounds until clean, and commit the final fixes."

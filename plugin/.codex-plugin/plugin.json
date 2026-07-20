@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Lightweight, reasoning-first engineering workflows for Codex.",
   "author": {
     "name": "thitikorn.j"
@@ -20,7 +20,8 @@
     "defaultPrompt": [
       "Plan this engineering task.",
       "Implement this change and verify it.",
-      "Review the current change for defects."
+      "Review the current change for defects.",
+      "Implement, commit, and review this feature until clean."
     ]
   }
 }

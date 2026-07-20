@@ -6,8 +6,9 @@ import test from 'node:test';
 
 import { diagnose } from '../src/doctor.js';
 import { createOwnershipManifest, writeJsonAtomic } from '../src/plugin-state.js';
+import { canonicalSkillNames } from '../src/plugin-contract.js';
 
-async function installedFixture({ skills = 15, packageVersion = '0.1.0' } = {}) {
+async function installedFixture({ skills = canonicalSkillNames.length, packageVersion = '0.1.0' } = {}) {
   const home = await mkdtemp(path.join(os.tmpdir(), 'engineering-doctor-'));
   const pluginRoot = path.join(home, 'plugins', 'engineering');
   await mkdir(path.join(pluginRoot, '.codex-plugin'), { recursive: true });
@@ -26,7 +27,7 @@ const codexOk = async (args) => args[0] === '--version'
   ? { code: 0, stdout: 'codex-cli 0.144.4', stderr: '' }
   : { code: 0, stdout: 'engineering@personal installed, enabled', stderr: '' };
 
-test('doctor passes a healthy 15-skill installation', async () => {
+test('doctor passes a healthy 16-skill installation', async () => {
   const { home } = await installedFixture();
   const checks = await diagnose({ home, packageVersion: '0.1.0', runCodex: codexOk });
   assert.equal(checks.every((check) => check.status === 'pass'), true);

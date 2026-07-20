@@ -14,6 +14,7 @@ export const canonicalSkillNames = Object.freeze([
   'refactor',
   'release-readiness',
   'review',
+  'review-loop',
   'security-review',
   'test',
 ]);
@@ -64,7 +65,7 @@ export function assertCanonicalSkillInventory(actualNames) {
   assert.deepEqual(
     [...actualNames].sort(),
     [...canonicalSkillNames].sort(),
-    'plugin skill inventory must contain exactly the 15 canonical skills',
+    'plugin skill inventory must contain exactly the 16 canonical skills',
   );
 }
 

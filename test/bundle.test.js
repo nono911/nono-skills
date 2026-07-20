@@ -68,7 +68,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.2.0 with 15 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.3.0 with 16 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -152,8 +152,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.2.0');
-  assert.equal(plugin.version, '0.2.0');
+  assert.equal(packageJson.version, '0.3.0');
+  assert.equal(plugin.version, '0.3.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -163,7 +163,7 @@ test('plugin manifest matches the npm package', async () => {
   assert.equal(plugin.repository, 'https://github.com/nono911/nono-skills');
 });
 
-test('bundle contains exactly the validated 15-skill set', async () => {
+test('bundle contains exactly the validated 16-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   assert.deepEqual(skillFiles.map((file) => file.split(path.sep)[0]).sort(), expectedSkills);
@@ -204,7 +204,7 @@ test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
   assert.match(
     readme,
-    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration\./,
+    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `\$engineering:review-loop` workflow\./,
   );
   assert.match(
     readme,
@@ -301,7 +301,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 15 canonical skills',
+    'plugin skill inventory must contain exactly the 16 canonical skills',
   );
 });
 

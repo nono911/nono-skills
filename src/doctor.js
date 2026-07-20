@@ -2,6 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { listFiles } from './fs-safe.js';
+import { canonicalSkillNames } from './plugin-contract.js';
 import { verifyOwnership } from './plugin-state.js';
 
 async function exists(file) {
@@ -30,7 +31,7 @@ export async function diagnose({ home, packageVersion, runCodex }) {
     checks.push({ name: 'version', status: state.packageVersion === packageVersion ? 'pass' : 'warn', detail: `installed ${state.packageVersion}; package ${packageVersion}` });
     const files = await listFiles(path.join(pluginRoot, 'skills'));
     const count = files.filter((file) => file.endsWith('/SKILL.md') || file === 'SKILL.md').length;
-    checks.push({ name: 'skills', status: count === 15 ? 'pass' : 'fail', detail: `${count} skills found` });
+    checks.push({ name: 'skills', status: count === canonicalSkillNames.length ? 'pass' : 'fail', detail: `${count} skills found` });
   }
 
   const registration = codex.code === 0 ? await runCodex(['plugin', 'list']) : codex;
