@@ -79,6 +79,42 @@ $engineering:database-design
 | Design a stable consumer contract | `$engineering:api-design` |
 | Design persistent data around invariants | `$engineering:database-design` |
 
+## Two-commit review loop
+
+Use `$engineering:review-loop` when a feature should pass through implementation, an independent code review, and verified remediation before it is considered complete.
+
+Start from the intended feature branch with a clean working tree, then open a new Codex task and invoke the skill explicitly:
+
+```text
+$engineering:review-loop
+
+Implement feature: add booking cancellation.
+
+Acceptance criteria:
+- only the booking owner can cancel
+- started bookings cannot be cancelled
+- return not found for an unknown booking
+- add regression tests
+
+You may create the implementation commit and the final review-fix commit.
+Do not push.
+```
+
+The workflow runs in this order:
+
+1. Record the starting revision, implement the feature, and run the repository's required checks.
+2. Create the implementation commit after explicit commit authorization.
+3. Spawn a fresh reviewer subagent that cannot edit, stage, commit, revert, or delegate work.
+4. Validate actionable findings, fix them with the original agent, and run the relevant checks.
+5. Review the complete feature diff again with a new reviewer. Repeat until the result is `CLEAN` or the bounded loop requires human input.
+6. Run final verification and create a review-fix commit when review produced code changes.
+
+The reviewer reports evidence-backed correctness, compatibility, security, reliability, maintainability, and test-coverage defects. Style preferences and unsupported speculation do not block completion. The default limit is five review rounds; repeated or disputed findings are escalated instead of being silently closed.
+
+Commit authorization is deliberate. A general request such as `Implement this feature` normally uses `$engineering:implement` and does not authorize commits. Invoking `$engineering:review-loop` without granting commit permission causes Codex to ask before the first commit. If permission is included in the initial prompt, the workflow continues without asking again for the final review-fix commit. Pushes, deployments, and external writes always require separate authorization.
+
+If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. Ask explicitly and confirm your audit convention if an empty second commit is required.
+
 ## Optional repository guidance
 
 `init` is optional. The plugin works without it. Run this only when the repository needs a starter `AGENTS.md` for its setup commands, architecture rules, verification commands, and local conventions:
