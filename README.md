@@ -2,11 +2,11 @@
 
 A lightweight, reasoning-first engineering workflow pack for Codex. It provides 16 namespaced skills built around outcomes, evidence, verification, material decisions, and human escalation.
 
-The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `$engineering:review-loop` workflow. The only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
+The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `$engineering:delivery-loop` workflow. Outside that workflow, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
 
 ## How it works
 
-- Install once, start a new Codex task, and ask for engineering work naturally. Explicit `$engineering:<skill>` invocation remains optional.
+- Install once, start a new Codex task, and ask for engineering work naturally. Explicit `$engineering:<skill>` invocation remains optional except for the intentionally explicit-only `$engineering:delivery-loop`.
 - Small tasks stay artifact-free.
 - For work worth resuming or tracking, Codex proposes an isolated `docs/agent/work/<work-id>/` workspace and asks once before creating it.
 - An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope.
@@ -43,7 +43,7 @@ Skills appear under the `engineering` namespace when you want to invoke one expl
 $engineering:plan
 $engineering:implement
 $engineering:review
-$engineering:review-loop
+$engineering:delivery-loop
 $engineering:fix-findings
 $engineering:architecture-review
 $engineering:security-review
@@ -67,7 +67,7 @@ $engineering:database-design
 | Build a general software change | `$engineering:implement` |
 | Correct validated findings | `$engineering:fix-findings` |
 | Review a change without editing it | `$engineering:review` |
-| Implement, commit, and independently re-review until clean | `$engineering:review-loop` |
+| Deliver in an approved worktree through independent review | `$engineering:delivery-loop` |
 | Assess security as the primary objective | `$engineering:security-review` |
 | Evaluate system structure and change cost | `$engineering:architecture-review` |
 | Isolate a root cause from runtime evidence | `$engineering:debug` |
@@ -79,14 +79,14 @@ $engineering:database-design
 | Design a stable consumer contract | `$engineering:api-design` |
 | Design persistent data around invariants | `$engineering:database-design` |
 
-## Two-commit review loop
+## Isolated delivery loop
 
-Use `$engineering:review-loop` when a feature should pass through implementation, an independent code review, and verified remediation before it is considered complete.
+Use `$engineering:delivery-loop` when a feature should be isolated in a Git worktree, implemented, independently reviewed, and remediated before it is considered complete. This workflow is explicit-only and is not selected automatically.
 
-Start from the intended feature branch with a clean working tree, then open a new Codex task and invoke the skill explicitly:
+Start from the intended base checkout, open a new Codex task, and invoke the skill explicitly. The current checkout may contain unrelated changes because the approved feature worktree isolates them:
 
 ```text
-$engineering:review-loop
+$engineering:delivery-loop
 
 Implement feature: add booking cancellation.
 
@@ -96,24 +96,25 @@ Acceptance criteria:
 - return not found for an unknown booking
 - add regression tests
 
-You may create the implementation commit and the final review-fix commit.
 Do not push.
 ```
 
-The workflow runs in this order:
+Unless the initial prompt already authorizes every local action, Codex first proposes the exact base revision, branch, and worktree path, then asks once for approval to create the worktree and branch plus up to two local commits. The workflow then runs in this order:
 
-1. Record the starting revision, implement the feature, and run the repository's required checks.
-2. Create the implementation commit after explicit commit authorization.
-3. Spawn a fresh reviewer subagent that cannot edit, stage, commit, revert, or delegate work.
-4. Validate actionable findings, fix them with the original agent, and run the relevant checks.
-5. Review the complete feature diff again with a new reviewer. Repeat until the result is `CLEAN` or the bounded loop requires human input.
-6. Run final verification and create a review-fix commit when review produced code changes.
+1. Reuse an existing dedicated feature worktree or create the approved worktree and branch from the recorded base SHA.
+2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` for the feature.
+3. Run the repository's required checks and create the authorized implementation commit.
+4. Spawn a fresh read-only reviewer subagent and explicitly instruct it to use `$engineering:review`.
+5. Validate actionable findings, then have the original agent explicitly use `$engineering:fix-findings`.
+6. Review the complete feature diff again with a fresh reviewer. Repeat until required reviewers return `CLEAN` or the bounded loop requires human input.
+7. Add a separate read-only security, architecture, or migration review only when the changed risk makes it relevant.
+8. Run final verification and create a review-fix commit when review produced code changes.
 
-The reviewer reports evidence-backed correctness, compatibility, security, reliability, maintainability, and test-coverage defects. Style preferences and unsupported speculation do not block completion. The default limit is five review rounds; repeated or disputed findings are escalated instead of being silently closed.
+Each reviewer receives the worktree path, baseline and target revisions, acceptance criteria, repository guidance, verification evidence, complete diff, and prior finding dispositions. It reviews the full diff independently before reconciling earlier findings. Implementer conclusions are not passed as review evidence. Style preferences and unsupported speculation do not block completion. The default limit is five review rounds; repeated or disputed findings are escalated instead of being silently closed.
 
-Commit authorization is deliberate. A general request such as `Implement this feature` normally uses `$engineering:implement` and does not authorize commits. Invoking `$engineering:review-loop` without granting commit permission causes Codex to ask before the first commit. If permission is included in the initial prompt, the workflow continues without asking again for the final review-fix commit. Pushes, deployments, and external writes always require separate authorization.
+Approval is scoped. Invoking `$engineering:delivery-loop` alone does not authorize worktree creation or commits; Codex asks once unless both were already authorized in the initial prompt. If worktree creation is declined, Codex does not silently continue in the current checkout. Push, merge, deploy, production mutation, worktree removal, and branch deletion always require separate authorization.
 
-If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. Ask explicitly and confirm your audit convention if an empty second commit is required.
+If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. The feature worktree and branch remain available for inspection by default.
 
 ## Optional repository guidance
 
@@ -148,6 +149,8 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
+Version 0.4.0 replaces the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the new explicit-only name.
+
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
 ```bash
@@ -160,7 +163,7 @@ Modified project files are always preserved. Purge never removes user-owned `doc
 
 Install this plugin, start a new task, and verify the `engineering:*` skills first. Then open `/plugins`, select Superpowers, and press Space to disable it reversibly. After normal work succeeds without it, uninstall Superpowers from the plugin browser. Do not delete Codex plugin cache directories manually.
 
-This pack intentionally does not reproduce strict test-first enforcement, automatic worktrees, mandatory design approval gates, or general subagent-driven execution. The focused `$engineering:review-loop` skill uses reviewer subagents only when explicitly invoked for the two-commit review workflow.
+This pack intentionally does not impose strict test-first enforcement, automatic worktrees, mandatory design approval gates, or general subagent-driven execution on normal engineering work. The focused `$engineering:delivery-loop` workflow is the exception: when explicitly invoked, it asks before creating an isolated worktree and uses fresh reviewer subagents with the dedicated review skill.
 
 ## Safety model
 
@@ -169,6 +172,7 @@ This pack intentionally does not reproduce strict test-first enforcement, automa
 - Install and update roll back plugin source and marketplace changes when Codex registration fails.
 - Project files are never overwritten without `--force` and a backup.
 - Codex-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
+- Delivery-loop worktrees require approval for the exact base, branch, and path, and are preserved until separately authorized for removal.
 - Work-item directories are user-owned, and uninstall purge never removes them.
 - The CLI never disables or removes Superpowers automatically.
 

@@ -39,6 +39,13 @@ for (const relative of skillFiles) {
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
   assert.match(metadata, new RegExp(`default_prompt: ".*\\$${expectedName.replaceAll('-', '\\-')}\\b`));
+  if (expectedName === 'delivery-loop') {
+    assert.match(
+      metadata,
+      /^policy:\n  allow_implicit_invocation: false$/m,
+      'delivery-loop must require explicit invocation',
+    );
+  }
 }
 
 console.log(`Validated engineering plugin ${plugin.version} with ${skillFiles.length} skills.`);

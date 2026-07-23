@@ -10,6 +10,7 @@ export const expectedDurableEndings = Object.freeze({
   brainstorm: "When durable state is approved, append the accepted direction, recurring tradeoffs, assumptions, and next experiment to the selected work item's decisions.md; otherwise include them in the final response.",
   'database-design': "When durable state is approved, append invariant, consistency, migration, and operational choices to the selected work item's decisions.md; otherwise include them in the final response.",
   debug: "When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed debugging scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+  'delivery-loop': "When durable state is approved, update the selected work item's findings.md with review-round status and verification evidence and append material remediation or accepted-risk decisions to decisions.md; otherwise report loop state and decisions in the final response.",
   estimate: "When durable state is approved, append scope interpretations, estimation model changes, and accepted schedule tradeoffs to the selected work item's decisions.md; otherwise include them in the final response.",
   'fix-findings': "When durable state is approved, update the selected work item's findings.md with status and verification evidence, and append material remediation tradeoffs to decisions.md; otherwise report state changes and decisions in the final response.",
   implement: "When durable state is approved, append the decision to the selected work item's `decisions.md` and update its plan or handoff when applicable; otherwise include it in the final response.",
@@ -18,7 +19,6 @@ export const expectedDurableEndings = Object.freeze({
   refactor: "When durable state is approved, append boundary changes, compatibility assumptions, and accepted tradeoffs to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed refactoring scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
   'release-readiness': "When durable state is approved, append only accepted release risk, waivers, rollback choices, and readiness-scope decisions to the selected work item's decisions.md; otherwise include them in the final response.",
   review: "When durable state is approved, track defects and their lifecycle in the selected work item's findings.md and append only review-scope or accepted-risk decisions to decisions.md; otherwise report them in the final response.",
-  'review-loop': "When durable state is approved, update the selected work item's findings.md with review-round status and verification evidence and append material remediation or accepted-risk decisions to decisions.md; otherwise report loop state and decisions in the final response.",
   'security-review': "When durable state is approved, track sanitized vulnerabilities in the selected work item's findings.md and append accepted security tradeoffs, threat assumptions, compensating controls, or risk acceptance to decisions.md; otherwise report them in the final response.",
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
 });
@@ -27,11 +27,15 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
   'release-readiness': Object.freeze([
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
   ]),
-  'review-loop': Object.freeze([
-    '- Require explicit user authorization before creating either commit; invoking the skill without a commit request does not authorize commits.',
-    '1. Use a fresh reviewer subagent for every round. Instruct it not to delegate or modify, stage, commit, or revert files; use a read-only sandbox when the client supports one, and verify the worktree is unchanged after review.',
-    '5. Keep the original agent as the default fixer and orchestrator; delegate fixes only when they are independent, non-overlapping, and safe in the shared worktree.',
-    '- Never push, deploy, or mutate external systems unless separately authorized.',
+  'delivery-loop': Object.freeze([
+    '- Before implementation, confirm explicit authority for up to two local commits. Combine it with new-worktree approval when needed; when reusing an existing worktree, request only missing commit authority.',
+    '- Otherwise propose the exact base revision, branch, and worktree path, then request one scoped approval covering worktree and branch creation plus up to two local commits unless the initial request already authorizes every action.',
+    '- If the user declines worktree creation, do not silently fall back to the current checkout; ask whether to continue there with explicit commit authority or stop.',
+    '- Worktree approval does not authorize push, merge, deploy, production mutation, worktree removal, or branch deletion.',
+    '2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` to deliver the smallest complete feature with appropriate tests.',
+    '1. Use a fresh reviewer subagent for every round and explicitly instruct it to use `$engineering:review`. Keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.',
+    '6. Keep the original agent as fixer and explicitly use `$engineering:fix-findings` for validated findings. Do not let reviewer agents modify the feature.',
+    '- Never push, merge, deploy, remove the worktree, delete the branch, or mutate external systems unless separately authorized.',
   ]),
 });
 

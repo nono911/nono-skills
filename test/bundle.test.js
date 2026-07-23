@@ -14,6 +14,7 @@ import {
 import {
   assertSkillWorkspaceContract,
   expectedDurableEndings,
+  expectedRequiredResponsibilityLines,
 } from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -68,7 +69,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.3.0 with 16 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.4.0 with 16 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -152,8 +153,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.3.0');
-  assert.equal(plugin.version, '0.3.0');
+  assert.equal(packageJson.version, '0.4.0');
+  assert.equal(plugin.version, '0.4.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -204,11 +205,11 @@ test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
   assert.match(
     readme,
-    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `\$engineering:review-loop` workflow\./,
+    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `\$engineering:delivery-loop` workflow\./,
   );
   assert.match(
     readme,
-    /The only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
+    /Outside that workflow, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
   );
   assert.doesNotMatch(readme, /They do not impose mandatory approval gates/);
   assert.match(readme, /Small tasks stay artifact-free/);
@@ -279,8 +280,61 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
+    if (name === 'delivery-loop') {
+      assert.match(
+        metadata,
+        /^policy:\n  allow_implicit_invocation: false$/m,
+        'delivery-loop must require explicit invocation',
+      );
+    }
     assertSkillWorkspaceContract(name, skill);
   }
+});
+
+test('delivery-loop owns isolation approval and explicit child-skill composition', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'SKILL.md'),
+    'utf8',
+  );
+  for (const responsibility of expectedRequiredResponsibilityLines['delivery-loop']) {
+    assert.equal(
+      content.split(responsibility).length - 1,
+      1,
+      'delivery-loop must include each workflow responsibility exactly once',
+    );
+  }
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
+});
+
+test('contract rejects deleted delivery-loop workflow responsibilities', async () => {
+  for (const responsibility of expectedRequiredResponsibilityLines['delivery-loop']) {
+    const result = await validateMutatedSkill('delivery-loop', (content) => content.replace(
+      `${responsibility}\n`,
+      '',
+    ));
+    assertValidationFails(result, /must include each required responsibility line exactly once/);
+  }
+});
+
+test('package validation rejects implicit delivery-loop metadata', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    const metadataPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'delivery-loop',
+      'agents',
+      'openai.yaml',
+    );
+    const content = await readFile(metadataPath, 'utf8');
+    const mutated = content.replace(
+      'allow_implicit_invocation: false',
+      'allow_implicit_invocation: true',
+    );
+    assert.notEqual(mutated, content, 'delivery-loop policy mutation must change metadata');
+    await writeFile(metadataPath, mutated, 'utf8');
+  });
+  assertValidationFails(result, 'delivery-loop must require explicit invocation');
 });
 
 test('package validation accepts an unmodified standalone fixture with exact output', async () => {

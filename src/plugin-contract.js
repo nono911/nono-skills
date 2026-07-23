@@ -6,6 +6,7 @@ export const canonicalSkillNames = Object.freeze([
   'brainstorm',
   'database-design',
   'debug',
+  'delivery-loop',
   'estimate',
   'fix-findings',
   'implement',
@@ -14,7 +15,6 @@ export const canonicalSkillNames = Object.freeze([
   'refactor',
   'release-readiness',
   'review',
-  'review-loop',
   'security-review',
   'test',
 ]);

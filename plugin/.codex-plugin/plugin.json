@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Lightweight, reasoning-first engineering workflows for Codex.",
   "author": {
     "name": "thitikorn.j"
@@ -21,7 +21,7 @@
       "Plan this engineering task.",
       "Implement this change and verify it.",
       "Review the current change for defects.",
-      "Implement, commit, and review this feature until clean."
+      "Use $engineering:delivery-loop to deliver this feature in an approved worktree through independent review."
     ]
   }
 }
