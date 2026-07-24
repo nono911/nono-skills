@@ -71,7 +71,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.5.0 with 16 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.6.0 with 17 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -155,8 +155,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.5.0');
-  assert.equal(plugin.version, '0.5.0');
+  assert.equal(packageJson.version, '0.6.0');
+  assert.equal(plugin.version, '0.6.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -166,7 +166,7 @@ test('plugin manifest matches the npm package', async () => {
   assert.equal(plugin.repository, 'https://github.com/nono911/nono-skills');
 });
 
-test('bundle contains exactly the validated 16-skill set', async () => {
+test('bundle contains exactly the validated 17-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -212,11 +212,11 @@ test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
   assert.match(
     readme,
-    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `\$engineering:delivery-loop` workflow\./,
+    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `\$engineering:delivery-loop` or `\$engineering:bugfix-loop`\./,
   );
   assert.match(
     readme,
-    /Outside that workflow, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
+    /Outside those focused workflows, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
   );
   assert.doesNotMatch(readme, /They do not impose mandatory approval gates/);
   assert.match(readme, /Small tasks stay artifact-free/);
@@ -287,11 +287,11 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    if (name === 'delivery-loop') {
+    if (name === 'delivery-loop' || name === 'bugfix-loop') {
       assert.match(
         metadata,
         /^policy:\n  allow_implicit_invocation: false$/m,
-        'delivery-loop must require explicit invocation',
+        `${name} must require explicit invocation`,
       );
     }
     assertSkillWorkspaceContract(name, skill);
@@ -327,26 +327,58 @@ test('contract rejects deleted delivery-loop workflow responsibilities', async (
   }
 });
 
-test('package validation rejects implicit delivery-loop metadata', async () => {
-  const result = await validateMutatedFixture(async (fixtureRoot) => {
-    const metadataPath = path.join(
-      fixtureRoot,
-      'plugin',
-      'skills',
-      'delivery-loop',
-      'agents',
-      'openai.yaml',
+test('bugfix-loop requires evidence-first diagnosis and sequential review', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'bugfix-loop', 'SKILL.md'),
+    'utf8',
+  );
+  for (const responsibility of expectedRequiredResponsibilityLines['bugfix-loop']) {
+    assert.equal(
+      content.split(responsibility).length - 1,
+      1,
+      'bugfix-loop must include each workflow responsibility exactly once',
     );
-    const content = await readFile(metadataPath, 'utf8');
-    const mutated = content.replace(
-      'allow_implicit_invocation: false',
-      'allow_implicit_invocation: true',
-    );
-    assert.notEqual(mutated, content, 'delivery-loop policy mutation must change metadata');
-    await writeFile(metadataPath, mutated, 'utf8');
-  });
-  assertValidationFails(result, 'delivery-loop must require explicit invocation');
+  }
+  assert.match(content, /support a root cause before changing production code/);
+  assert.match(content, /fails because of the supported causal path/);
+  assert.match(content, /Run rounds sequentially\. Never start future review rounds in advance/);
+  assert.match(content, /fifth reviewer batch still finds an actionable defect/);
+  assert.match(content, /Do not claim a clean loop or create the final review-fix commit/);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
 });
+
+test('contract rejects deleted bugfix-loop workflow responsibilities', async () => {
+  for (const responsibility of expectedRequiredResponsibilityLines['bugfix-loop']) {
+    const result = await validateMutatedSkill('bugfix-loop', (content) => content.replace(
+      `${responsibility}\n`,
+      '',
+    ));
+    assertValidationFails(result, /must include each required responsibility line exactly once/);
+  }
+});
+
+for (const name of ['bugfix-loop', 'delivery-loop']) {
+  test(`package validation rejects implicit ${name} metadata`, async () => {
+    const result = await validateMutatedFixture(async (fixtureRoot) => {
+      const metadataPath = path.join(
+        fixtureRoot,
+        'plugin',
+        'skills',
+        name,
+        'agents',
+        'openai.yaml',
+      );
+      const content = await readFile(metadataPath, 'utf8');
+      const mutated = content.replace(
+        'allow_implicit_invocation: false',
+        'allow_implicit_invocation: true',
+      );
+      assert.notEqual(mutated, content, `${name} policy mutation must change metadata`);
+      await writeFile(metadataPath, mutated, 'utf8');
+    });
+    assertValidationFails(result, `${name} must require explicit invocation`);
+  });
+}
 
 test('package validation accepts an unmodified standalone fixture with exact output', async () => {
   assertValidationPasses(await validateUnmodifiedFixture());
@@ -366,7 +398,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 16 canonical skills',
+    'plugin skill inventory must contain exactly the 17 canonical skills',
   );
 });
 

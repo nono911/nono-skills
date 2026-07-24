@@ -1,12 +1,12 @@
 # Nono Skills
 
-A lightweight, reasoning-first engineering workflow pack for Codex. It provides 16 namespaced skills built around outcomes, evidence, verification, material decisions, and human escalation.
+A lightweight, reasoning-first engineering workflow pack for Codex. It provides 17 namespaced skills built around outcomes, evidence, verification, material decisions, and human escalation.
 
-The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes the focused `$engineering:delivery-loop` workflow. Outside that workflow, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
+The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `$engineering:delivery-loop` or `$engineering:bugfix-loop`. Outside those focused workflows, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
 
 ## How it works
 
-- Install once, start a new Codex task, and ask for engineering work naturally. Explicit `$engineering:<skill>` invocation remains optional except for the intentionally explicit-only `$engineering:delivery-loop`.
+- Install once, start a new Codex task, and ask for engineering work naturally. Explicit `$engineering:<skill>` invocation remains optional except for the intentionally explicit-only `$engineering:delivery-loop` and `$engineering:bugfix-loop`.
 - Small tasks stay artifact-free.
 - For work worth resuming or tracking, Codex proposes an isolated `docs/agent/work/<work-id>/` workspace and asks once before creating it.
 - An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope.
@@ -44,6 +44,7 @@ $engineering:plan
 $engineering:implement
 $engineering:review
 $engineering:delivery-loop
+$engineering:bugfix-loop
 $engineering:fix-findings
 $engineering:architecture-review
 $engineering:security-review
@@ -68,6 +69,7 @@ $engineering:database-design
 | Correct validated findings | `$engineering:fix-findings` |
 | Review a change without editing it | `$engineering:review` |
 | Deliver in an approved worktree through independent review | `$engineering:delivery-loop` |
+| Prove and fix a bug with regression evidence and independent review | `$engineering:bugfix-loop` |
 | Assess security as the primary objective | `$engineering:security-review` |
 | Evaluate system structure and change cost | `$engineering:architecture-review` |
 | Isolate a root cause from runtime evidence | `$engineering:debug` |
@@ -118,6 +120,35 @@ Approval is scoped. Invoking `$engineering:delivery-loop` alone does not authori
 
 If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. CLI-created and permanent feature worktrees remain available for inspection by default; Codex-managed worktree lifecycle stays under the desktop app.
 
+## Isolated bugfix loop
+
+Use `$engineering:bugfix-loop` when a defect should be reproduced, traced to a supported root cause, regression-protected, minimally fixed, and independently reviewed before completion. This workflow is explicit-only and is not selected automatically for ordinary diagnosis or implementation.
+
+It uses the same Codex-managed, dedicated, or approved CLI worktree rules and the same two-local-commit authority boundary as `delivery-loop`. The bug-specific sequence is:
+
+1. Explicitly use `$engineering:debug` to reproduce the symptom and support the causal chain before changing production code.
+2. Explicitly use `$engineering:test` to create the smallest stable regression proof and confirm it fails for the expected pre-fix reason.
+3. Explicitly use `$engineering:implement` for the minimal compatible root-cause fix.
+4. Re-run the regression proof, original reproduction when safe, and adjacent verification; then create the authorized bugfix commit.
+5. Run a fresh read-only `$engineering:review` batch over the complete diff.
+6. Validate findings and explicitly use `$engineering:fix-findings`; verify before starting the next fresh batch.
+7. Stop when the required reviewers return `CLEAN`, or escalate after at most five sequential review rounds.
+8. Create one consolidated review-fix commit only when a clean review follows review-driven code changes.
+
+Review rounds are never launched five times in advance. Each round completes against one HEAD, then any findings are validated, fixed, and verified before the next round begins. If round five still finds an actionable defect, Codex may safely fix and verify it within existing authority, but it stops without claiming a clean loop or creating the final fix commit because a sixth independent review needs new direction.
+
+Example:
+
+```text
+$engineering:bugfix-loop
+
+Checkout sometimes loses the authenticated session after refresh.
+Expected: the session remains valid for 24 hours.
+Do not push.
+```
+
+If the symptom cannot be reproduced safely or no pre-fix failure can be demonstrated, the workflow discloses the evidence gap and escalates before committing a claimed fix. Push, merge, deploy, production mutation, worktree removal, and branch deletion remain separately authorized actions.
+
 ## Optional repository guidance
 
 `init` is optional. The plugin works without it. Run it when the repository needs a starter `AGENTS.md` and a project-scoped read-only `engineering_reviewer` agent:
@@ -156,7 +187,7 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.5.0 adds Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
+Version 0.6.0 adds the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
@@ -170,7 +201,7 @@ Modified project files are always preserved. Purge never removes user-owned `doc
 
 Install this plugin, start a new task, and verify the `engineering:*` skills first. Then open `/plugins`, select Superpowers, and press Space to disable it reversibly. After normal work succeeds without it, uninstall Superpowers from the plugin browser. Do not delete Codex plugin cache directories manually.
 
-This pack intentionally does not impose strict test-first enforcement, automatic worktrees, mandatory design approval gates, or general subagent-driven execution on normal engineering work. The focused `$engineering:delivery-loop` workflow is the exception: when explicitly invoked, it asks before creating an isolated worktree and uses fresh reviewer subagents with the dedicated review skill.
+This pack intentionally does not impose strict test-first enforcement, automatic worktrees, mandatory design approval gates, or general subagent-driven execution on normal engineering work. The focused `$engineering:delivery-loop` and `$engineering:bugfix-loop` workflows are exceptions: when explicitly invoked, they ask before creating an isolated worktree and use fresh reviewer agents with the dedicated review skill.
 
 ## Safety model
 
@@ -180,6 +211,7 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 - Project files are never overwritten without `--force` and a backup.
 - Codex-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
 - Delivery loop reuses an active Codex-managed worktree without nesting. New CLI worktrees require approval for the exact base, branch, and path and are preserved until separately authorized for removal.
+- Bugfix loop applies the same isolation and authority rules, requires pre-fix evidence, and never treats unreviewed round-five fixes as a clean result.
 - Work-item directories are user-owned, and uninstall purge never removes them.
 - The CLI never disables or removes Superpowers automatically.
 

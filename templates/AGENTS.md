@@ -36,4 +36,4 @@ Add architecture boundaries, naming rules, generated-file policy, release proced
 
 ## Skills
 
-Let Codex select the smallest applicable set, or invoke one explicitly as `$engineering:<skill>` such as `$engineering:plan` or `$engineering:review`. Use the project-scoped `engineering_reviewer` agent for independent delivery-loop review when available. Skills provide task-specific process; this file provides repository-specific truth.
+Let Codex select the smallest applicable set, or invoke one explicitly as `$engineering:<skill>` such as `$engineering:plan` or `$engineering:review`. Use the project-scoped `engineering_reviewer` agent for independent delivery-loop and bugfix-loop review when available. Skills provide task-specific process; this file provides repository-specific truth.

@@ -18,7 +18,7 @@ test('npm package includes runtime assets and excludes development state', async
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
     'plugin/references/workspaces.md', 'templates/AGENTS.md', 'README.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
-  assert.equal(expectedSkills.length, 16);
+  assert.equal(expectedSkills.length, 17);
   for (const name of expectedSkills) {
     for (const required of [
       `plugin/skills/${name}/SKILL.md`,

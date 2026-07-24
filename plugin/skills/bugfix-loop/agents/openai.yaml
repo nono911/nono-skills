@@ -1,0 +1,7 @@
+interface:
+  display_name: "Bugfix Loop"
+  short_description: "Diagnose and fix bugs with regression proof"
+  default_prompt: "Use $bugfix-loop to isolate, prove, fix, and independently review this bug."
+
+policy:
+  allow_implicit_invocation: false
