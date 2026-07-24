@@ -15,7 +15,7 @@ The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills de
 
 ## Install
 
-Requires Node.js 20 or newer and Codex CLI with plugin support.
+Requires Node.js 20 or newer and Codex with plugin support. Codex CLI 0.145.0 or newer is recommended for the current multi-agent behavior and diagnostics.
 
 ```bash
 npx nono-skills install
@@ -83,7 +83,7 @@ $engineering:database-design
 
 Use `$engineering:delivery-loop` when a feature should be isolated in a Git worktree, implemented, independently reviewed, and remediated before it is considered complete. This workflow is explicit-only and is not selected automatically.
 
-Start from the intended base checkout, open a new Codex task, and invoke the skill explicitly. The current checkout may contain unrelated changes because the approved feature worktree isolates them:
+In the ChatGPT desktop app, start the task in Worktree when practical; the workflow reuses that Codex-managed worktree and never creates a nested one. In CLI, IDE, or a Local task, start from the intended base checkout and invoke the skill explicitly. The current local checkout may contain unrelated changes because a separately approved feature worktree isolates them:
 
 ```text
 $engineering:delivery-loop
@@ -99,32 +99,39 @@ Acceptance criteria:
 Do not push.
 ```
 
-Unless the initial prompt already authorizes every local action, Codex first proposes the exact base revision, branch, and worktree path, then asks once for approval to create the worktree and branch plus up to two local commits. The workflow then runs in this order:
+When the task already runs in a Codex-managed worktree, Codex reuses it and requests only missing commit authority. Otherwise, unless the initial prompt already authorizes every local action, Codex proposes the exact base revision, branch, and worktree path, then asks once for approval to create them plus up to two local commits. The workflow then runs in this order:
 
-1. Reuse an existing dedicated feature worktree or create the approved worktree and branch from the recorded base SHA.
+1. Reuse the current Codex-managed or dedicated feature worktree, or create the approved CLI worktree and branch from the recorded base SHA.
 2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` for the feature.
 3. Run the repository's required checks and create the authorized implementation commit.
-4. Spawn a fresh read-only reviewer subagent and explicitly instruct it to use `$engineering:review`.
+4. Prefer a fresh project-scoped `engineering_reviewer`; otherwise spawn a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review`.
 5. Validate actionable findings, then have the original agent explicitly use `$engineering:fix-findings`.
 6. Review the complete feature diff again with a fresh reviewer. Repeat until required reviewers return `CLEAN` or the bounded loop requires human input.
 7. Add a separate read-only security, architecture, or migration review only when the changed risk makes it relevant.
 8. Run final verification and create a review-fix commit when review produced code changes.
 
-Each reviewer receives the worktree path, baseline and target revisions, acceptance criteria, repository guidance, verification evidence, complete diff, and prior finding dispositions. It reviews the full diff independently before reconciling earlier findings. Implementer conclusions are not passed as review evidence. Style preferences and unsupported speculation do not block completion. The default limit is five review rounds; repeated or disputed findings are escalated instead of being silently closed.
+Each reviewer receives the worktree path, baseline and target revisions, acceptance criteria, repository guidance, verification evidence, complete diff, and prior finding dispositions. It reviews the full diff independently before reconciling earlier findings. Implementer conclusions are not passed as review evidence. Style preferences and unsupported speculation do not block completion.
+
+One review round is one complete batch over the same HEAD: the general reviewer plus any security, architecture, or migration specialists required by the current risk. The default limit is five complete review rounds, not two; repeated or disputed findings are escalated instead of being silently closed.
 
 Approval is scoped. Invoking `$engineering:delivery-loop` alone does not authorize worktree creation or commits; Codex asks once unless both were already authorized in the initial prompt. If worktree creation is declined, Codex does not silently continue in the current checkout. Push, merge, deploy, production mutation, worktree removal, and branch deletion always require separate authorization.
 
-If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. The feature worktree and branch remain available for inspection by default.
+If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. CLI-created and permanent feature worktrees remain available for inspection by default; Codex-managed worktree lifecycle stays under the desktop app.
 
 ## Optional repository guidance
 
-`init` is optional. The plugin works without it. Run this only when the repository needs a starter `AGENTS.md` for its setup commands, architecture rules, verification commands, and local conventions:
+`init` is optional. The plugin works without it. Run it when the repository needs a starter `AGENTS.md` and a project-scoped read-only `engineering_reviewer` agent:
 
 ```bash
 npx nono-skills init
 ```
 
-Initialization no longer creates task artifacts. Existing 0.1.0 singleton files under `docs/agent/` are preserved and new durable work uses per-work-item directories.
+Without an explicit directory, initialization targets the current Git repository root. In a desktop multi-folder project, run it from the primary folder because Git operations and automatic discovery use that folder. Initialization creates:
+
+- `AGENTS.md` for repository facts, commands, and conventions
+- `.codex/agents/engineering-reviewer.toml` for independent read-only review
+
+It does not pin the reviewer model or reasoning level, so the role inherits the user's current Codex configuration. Initialization no longer creates task artifacts. Existing 0.1.0 singleton files under `docs/agent/` are preserved and new durable work uses per-work-item directories.
 
 Preview changes or target another repository:
 
@@ -149,7 +156,7 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.4.0 replaces the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the new explicit-only name.
+Version 0.5.0 adds Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
@@ -172,7 +179,7 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 - Install and update roll back plugin source and marketplace changes when Codex registration fails.
 - Project files are never overwritten without `--force` and a backup.
 - Codex-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
-- Delivery-loop worktrees require approval for the exact base, branch, and path, and are preserved until separately authorized for removal.
+- Delivery loop reuses an active Codex-managed worktree without nesting. New CLI worktrees require approval for the exact base, branch, and path and are preserved until separately authorized for removal.
 - Work-item directories are user-owned, and uninstall purge never removes them.
 - The CLI never disables or removes Superpowers automatically.
 

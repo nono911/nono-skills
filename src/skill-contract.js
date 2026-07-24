@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 export const workspaceSection = `## Workspace protocol
 
-Read \`../../references/workspaces.md\` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.`;
+Read \`../../references/workspaces.md\` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.`;
 
 export const expectedDurableEndings = Object.freeze({
   'api-design': "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.",
@@ -28,14 +28,16 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
   ]),
   'delivery-loop': Object.freeze([
-    '- Before implementation, confirm explicit authority for up to two local commits. Combine it with new-worktree approval when needed; when reusing an existing worktree, request only missing commit authority.',
-    '- Otherwise propose the exact base revision, branch, and worktree path, then request one scoped approval covering worktree and branch creation plus up to two local commits unless the initial request already authorizes every action.',
+    '- If the task already runs in a Codex-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses Create branch or Handoff; do not move the chat or check the same branch out elsewhere.',
+    '- If neither reuse case applies, propose the exact base revision, branch, and worktree path, then request one scoped approval covering their creation and up to two local commits unless the initial request already authorizes every action.',
+    '- When reusing any worktree, request only missing authority for up to two local commits.',
     '- If the user declines worktree creation, do not silently fall back to the current checkout; ask whether to continue there with explicit commit authority or stop.',
-    '- Worktree approval does not authorize push, merge, deploy, production mutation, worktree removal, or branch deletion.',
+    '- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, Handoff, worktree removal, and branch deletion remain separate actions.',
     '2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` to deliver the smallest complete feature with appropriate tests.',
-    '1. Use a fresh reviewer subagent for every round and explicitly instruct it to use `$engineering:review`. Keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.',
+    '1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.',
     '6. Keep the original agent as fixer and explicitly use `$engineering:fix-findings` for validated findings. Do not let reviewer agents modify the feature.',
-    '- Never push, merge, deploy, remove the worktree, delete the branch, or mutate external systems unless separately authorized.',
+    '- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.',
+    '- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.',
   ]),
 });
 

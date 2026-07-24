@@ -4,7 +4,7 @@ export const HELP = `nono-skills <command> [options]
 
 Commands:
   install                 Install the engineering Codex plugin
-  init [directory]        Add optional repository guidance
+  init [directory]        Add repository guidance and a reviewer agent
   update                  Update an owned plugin installation
   doctor                  Diagnose the plugin installation
   uninstall               Remove the owned plugin installation

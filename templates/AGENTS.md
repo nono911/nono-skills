@@ -15,7 +15,6 @@ Keep this file specific to the repository. Replace placeholders with commands an
 
 - Treat executable code, configuration, tests, migrations, and observed behavior as stronger evidence than stale prose.
 - Preserve unrelated behavior and backward compatibility unless the requirement changes it.
-- Keep external writes, commits, pushes, merges, releases, deployments, and production mutations behind explicit user authorization.
 - Verify changed behavior with the strongest safe repository checks available. Report what ran and what remains unverified.
 
 ## Durable task state
@@ -37,4 +36,4 @@ Add architecture boundaries, naming rules, generated-file policy, release proced
 
 ## Skills
 
-Let Codex select the smallest applicable set, or invoke one explicitly as `$engineering:<skill>` such as `$engineering:plan` or `$engineering:review`. Skills provide task-specific process; this file provides repository-specific truth.
+Let Codex select the smallest applicable set, or invoke one explicitly as `$engineering:<skill>` such as `$engineering:plan` or `$engineering:review`. Use the project-scoped `engineering_reviewer` agent for independent delivery-loop review when available. Skills provide task-specific process; this file provides repository-specific truth.

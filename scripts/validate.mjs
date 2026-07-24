@@ -5,6 +5,7 @@ import path from 'node:path';
 import { listFiles } from '../src/fs-safe.js';
 import {
   assertCanonicalSkillInventory,
+  assertSkillDiscoveryContract,
   assertWorkspaceProtocolContract,
 } from '../src/plugin-contract.js';
 import {
@@ -26,6 +27,7 @@ assert.deepEqual(
   skillNames.sort(),
   Object.keys(expectedDurableEndings).sort(),
 );
+const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
 assertWorkspaceProtocolContract(workspaceProtocol);
 for (const relative of skillFiles) {
@@ -33,7 +35,10 @@ for (const relative of skillFiles) {
   const content = await readFile(path.join(skillRoot, relative), 'utf8');
   const metadata = await readFile(path.join(skillRoot, expectedName, 'agents', 'openai.yaml'), 'utf8');
   const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
+  const description = content.match(/^description:\s*"?(.+?)"?$/m)?.[1]?.trim();
   assert.match(content, new RegExp(`^---\\nname: ${expectedName}\\ndescription: .+\\n---`, 's'));
+  assert.ok(description, `${expectedName} must define a description`);
+  discoveryMetadata.push({ name: expectedName, description, relative });
   assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
   assertSkillWorkspaceContract(expectedName, content);
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
@@ -47,5 +52,6 @@ for (const relative of skillFiles) {
     );
   }
 }
+assertSkillDiscoveryContract(discoveryMetadata);
 
 console.log(`Validated engineering plugin ${plugin.version} with ${skillFiles.length} skills.`);

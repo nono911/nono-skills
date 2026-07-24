@@ -11,7 +11,7 @@ Resolve accepted findings at their root cause, preserve intended behavior, and p
 
 ## Workspace protocol
 
-Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
 ## Inputs
 
@@ -41,4 +41,4 @@ When durable state is approved, update the selected work item's findings.md with
 
 ## Escalate to the human
 
-Escalate when a finding is disputed and evidence is inconclusive, remediation changes a public contract, fixes conflict, the safe fix requires migration or downtime, or residual risk needs acceptance. Do not broaden authority from “fix” into deploy or production mutation.
+Escalate when a finding is disputed and evidence is inconclusive, remediation changes a public contract, fixes conflict, the safe fix requires migration or downtime, or residual risk needs acceptance.

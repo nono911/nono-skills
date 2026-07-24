@@ -7,11 +7,11 @@ description: "Use only when explicitly invoked to deliver a feature in an approv
 
 ## Purpose
 
-Deliver a feature through an isolated, auditable implement-review-fix cycle while keeping implementation, independent review, and external actions under clear authority.
+Deliver a feature through an isolated, auditable implement-review-fix cycle with independent review and bounded human escalation.
 
 ## Workspace protocol
 
-Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
 ## Inputs
 
@@ -21,35 +21,37 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 
 ## Outputs
 
-- One approved isolated worktree and feature branch, or an explicitly approved fallback
+- One approved isolated environment: the current Codex-managed worktree, an existing dedicated worktree, or a newly created CLI worktree
 - One verified implementation commit
-- Evidence-backed review rounds with finding dispositions
+- Up to five evidence-backed review rounds with finding dispositions
 - One final review-fix commit when review produced code changes
-- Final verification evidence, worktree path, branch, commit identifiers, and residual risks
+- Final verification evidence, environment kind, worktree path, branch or detached HEAD, commit identifiers, and residual risks
 
 ## Preconditions
 
-- Inspect the repository root, current checkout, worktree list, base ref and SHA, staged, unstaged, and untracked changes before editing.
-- Reuse the current checkout only when it is already an isolated worktree dedicated to this feature and its base is unambiguous.
-- Before implementation, confirm explicit authority for up to two local commits. Combine it with new-worktree approval when needed; when reusing an existing worktree, request only missing commit authority.
-- Otherwise propose the exact base revision, branch, and worktree path, then request one scoped approval covering worktree and branch creation plus up to two local commits unless the initial request already authorizes every action.
+- Inspect the repository root, primary-folder context when available, current checkout, worktree list, base ref and SHA, HEAD state, and staged, unstaged, and untracked changes before editing.
+- If the task already runs in a Codex-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses Create branch or Handoff; do not move the chat or check the same branch out elsewhere.
+- Otherwise reuse the current checkout only when it is an existing dedicated worktree for this feature with an unambiguous base.
+- If neither reuse case applies, propose the exact base revision, branch, and worktree path, then request one scoped approval covering their creation and up to two local commits unless the initial request already authorizes every action.
+- When reusing any worktree, request only missing authority for up to two local commits.
 - If the user declines worktree creation, do not silently fall back to the current checkout; ask whether to continue there with explicit commit authority or stop.
-- Worktree approval does not authorize push, merge, deploy, production mutation, worktree removal, or branch deletion.
+- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, Handoff, worktree removal, and branch deletion remain separate actions.
 - Preserve unrelated user changes in every checkout. Never stash, reset, move, include, or delete them to prepare this workflow.
+- If a managed worktree lacks ignored setup files, identify the minimum requirement. Do not edit `.worktreeinclude` or copy ignored files or secrets without explicit authorization.
 - Follow applicable repository instructions and verify any required Git remote or identity conditions immediately before each commit.
 - Establish the required test, lint, typecheck, build, and review commands before implementation.
 
 ## Phase 1: Isolate, implement, and commit
 
-1. After approval, create the proposed worktree and branch from the recorded base SHA. Perform every workflow write and check in that isolated path.
+1. After approval, create a CLI worktree and branch only when required. Otherwise remain in the approved current worktree and perform every workflow write and check there.
 2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` to deliver the smallest complete feature with appropriate tests.
 3. Run verification in proportion to risk and resolve failures caused by the feature.
 4. Inspect the complete feature diff against the base SHA and confirm commit scope.
-5. Create the authorized implementation commit using the repository's commit convention. Do not push.
+5. Create the authorized implementation commit using the repository's commit convention.
 
 ## Phase 2: Review until clean
 
-1. Use a fresh reviewer subagent for every round and explicitly instruct it to use `$engineering:review`. Keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.
+1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.
 2. Give the reviewer the exact worktree path, base SHA, current HEAD, acceptance criteria, repository guidance, verification evidence, complete current diff, and prior finding dispositions. Pass accepted decisions needed to interpret requirements, not the implementer's conclusions.
 3. Require an independent full-diff review before reconciling prior findings, followed by either `CLEAN` or findings ordered by severity. Each finding must include a stable ID, location, evidence, impact, and remediation direction.
 4. Add a separate read-only specialist round only when the change makes security, architecture, or migration risk material; explicitly use `$engineering:security-review`, `$engineering:architecture-review`, or `$engineering:migration` in assessment-only mode as appropriate and keep the same evidence boundary.
@@ -59,17 +61,17 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 
 ## Loop controls
 
+- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.
 - Treat `CLEAN` as no actionable correctness, compatibility, security, reliability, maintainability, or test-coverage defect; suggestions do not block completion unless the user makes them required.
 - Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.
 - Never hide, downgrade, or close a disputed finding merely to terminate the loop.
-- Never push, merge, deploy, remove the worktree, delete the branch, or mutate external systems unless separately authorized.
 
 ## Phase 3: Verify and commit final fixes
 
 1. Run the full required verification after the clean review.
 2. Inspect the isolated worktree and stage only validated delivery-loop fixes.
 3. If review caused code changes, create the final review-fix commit using the repository's commit convention. If review was clean before any fixes, do not create an empty commit unless the user explicitly requires one and confirms that audit convention.
-4. Preserve the worktree and branch for inspection by default. Report their paths, the baseline, both commit identifiers when present, review-round count, finding dispositions, verification evidence, and unresolved risks.
+4. Preserve permanent and CLI-created worktrees for inspection; leave Codex-managed worktree lifecycle to the app. Report the environment kind, worktree path, branch or detached HEAD, baseline, both commit identifiers when present, review-round count, finding dispositions, verification evidence, and unresolved risks.
 5. Do not claim completion when blocking findings or required checks remain.
 
 ## Decision-log updates
@@ -79,4 +81,4 @@ When durable state is approved, update the selected work item's findings.md with
 
 ## Escalate to the human
 
-Escalate when the base, branch, worktree path, or existing worktree ownership is ambiguous; isolation cannot be created safely; required approval, commit authority, remote, or Git identity is missing; acceptance criteria conflict with a finding; a fix changes a public contract; reviewers materially disagree; or the loop reaches its round limit with actionable findings remaining.
+Escalate when the primary folder, base, branch, worktree path, environment ownership, or existing worktree purpose is ambiguous; isolation cannot be created safely; required approval, commit authority, remote, or Git identity is missing; acceptance criteria conflict with a finding; a fix changes a public contract; reviewers materially disagree; or the fifth review round ends with actionable findings remaining.

@@ -24,7 +24,7 @@ async function installedFixture({ skills = canonicalSkillNames.length, packageVe
 }
 
 const codexOk = async (args) => args[0] === '--version'
-  ? { code: 0, stdout: 'codex-cli 0.144.4', stderr: '' }
+  ? { code: 0, stdout: 'codex-cli 0.145.0', stderr: '' }
   : { code: 0, stdout: 'engineering@personal installed, enabled', stderr: '' };
 
 test('doctor passes a healthy 16-skill installation', async () => {
@@ -46,4 +46,42 @@ test('doctor reports version mismatch and drift', async () => {
   const checks = await diagnose({ home, packageVersion: '0.1.0', runCodex: codexOk });
   assert.equal(checks.find((check) => check.name === 'version').status, 'warn');
   assert.equal(checks.find((check) => check.name === 'ownership').status, 'fail');
+});
+
+test('doctor warns when Codex is older than the recommended runtime', async () => {
+  const { home } = await installedFixture();
+  const checks = await diagnose({
+    home,
+    packageVersion: '0.1.0',
+    runCodex: async (args) => args[0] === '--version'
+      ? { code: 0, stdout: 'codex-cli 0.144.6', stderr: '' }
+      : { code: 0, stdout: 'engineering@personal installed, enabled', stderr: '' },
+  });
+  assert.equal(checks.find((check) => check.name === 'codex-version').status, 'warn');
+});
+
+test('doctor fails duplicate installed skill names', async () => {
+  const { home, pluginRoot } = await installedFixture();
+  await writeFile(
+    path.join(pluginRoot, 'skills', 'skill-1', 'SKILL.md'),
+    '---\nname: skill-0\ndescription: test\n---\n',
+  );
+  const statePath = path.join(pluginRoot, '.installer-state.json');
+  const files = [
+    '.codex-plugin/plugin.json',
+    ...Array.from(
+      { length: canonicalSkillNames.length },
+      (_, index) => `skills/skill-${index}/SKILL.md`,
+    ),
+  ];
+  const manifest = await createOwnershipManifest({
+    packageVersion: '0.1.0',
+    pluginVersion: '0.1.0+codex.test',
+    marketplaceName: 'personal',
+    root: pluginRoot,
+    files,
+  });
+  await writeJsonAtomic(statePath, manifest);
+  const checks = await diagnose({ home, packageVersion: '0.1.0', runCodex: codexOk });
+  assert.equal(checks.find((check) => check.name === 'skill-metadata').status, 'fail');
 });

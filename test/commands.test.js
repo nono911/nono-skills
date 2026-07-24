@@ -50,6 +50,30 @@ test('init command refuses all writes when a conflict exists', async () => {
   assert.match(stderr.read(), /Conflicts/);
 });
 
+test('init without a target writes to the discovered Git root and reports it', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-root-'));
+  const packageRoot = path.join(root, 'package');
+  const gitRoot = path.join(root, 'repo');
+  const nested = path.join(gitRoot, 'packages', 'api');
+  await mkdir(path.join(packageRoot, 'templates'), { recursive: true });
+  await mkdir(nested, { recursive: true });
+  await writeFile(path.join(packageRoot, 'templates', 'AGENTS.md'), 'rules');
+  const stdout = writer();
+  const handlers = createHandlers({
+    packageRoot,
+    home: path.join(root, 'home'),
+    cwd: nested,
+    packageVersion: '0.5.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    findGitRoot: async () => gitRoot,
+  });
+
+  assert.equal(await handlers.init({ target: undefined, force: false, dryRun: false }), 0);
+  assert.equal(await readFile(path.join(gitRoot, 'AGENTS.md'), 'utf8'), 'rules');
+  assert.match(stdout.read(), new RegExp(`Target: ${gitRoot.replaceAll('\\', '\\\\')}`));
+});
+
 test('doctor command returns failure when checks fail', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
   const stdout = writer();

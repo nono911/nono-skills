@@ -8,15 +8,19 @@ Classify the task as transient or durable using judgment, not fixed size thresho
 
 Durable state is justified when the user asks for it, work is likely to cross Codex tasks or owners, multiple outcomes need tracking, migration/security/release/compatibility risk is material, findings need a fix lifecycle, or decisions must survive the conversation. Keep localized one-shot work transient unless the user asks otherwise.
 
-## 2. Establish consent
+## 2. Resolve repository scope
+
+Anchor durable artifacts to the applicable repository root and repository instructions. In a desktop multi-folder project, use the primary folder for Git operations and automatic discovery of `AGENTS.md`, skills, and `config.toml`; never infer that a secondary folder is primary merely because its files are in scope.
+
+## 3. Establish consent
 
 Explicit requests for a spec, plan, progress log, decision log, findings tracker, handoff, or named existing work item already grant artifact consent for that scope.
 
-When Codex decides a new durable workspace would help, state why, the proposed path, scope, and initial files, then ask once before creating the workspace. Approval covers artifact maintenance inside that work-item scope; it does not authorize unrelated implementation, commits, pushes, deployments, production changes, destructive actions, external writes, or spend.
+When Codex decides a new durable workspace would help, state why, the proposed path, scope, and initial files, then ask once before creating the workspace. Approval covers only artifact maintenance inside that work-item scope.
 
 If the user declines, create no equivalent files elsewhere. Continue safely in chat and report material decisions and residual risk in the final response.
 
-## 3. Resolve or create the work item
+## 4. Resolve or create the work item
 
 Resolve in this order:
 
@@ -30,7 +34,7 @@ Recency alone is never sufficient. Ask the user when multiple items remain plaus
 
 For new work, prefer `issue-<number>-<slug>` when an issue exists; otherwise use `YYYY-MM-DD-<goal-slug>`. Add a numeric suffix on collision and never overwrite unrelated contents.
 
-## 4. Maintain the workspace
+## 5. Maintain the workspace
 
 The anchor is `docs/agent/work/<work-id>/spec.md` with YAML front matter containing `work_id`, `title`, `status`, optional `issue`, optional `branch`, `created`, and `updated`. Status is `active`, `blocked`, `completed`, or `superseded`.
 
@@ -54,8 +58,8 @@ Create files lazily:
 
 Do not create a global mutable index or move completed work-item directories. Log only contractual choices, meaningful ambiguity resolutions, accepted risks or tradeoffs, material re-plans, and assumptions future work must preserve.
 
-## 5. Respect scope and failures
+## 6. Respect scope and failures
 
-The original request controls implementation authority: an implementation request permits ordinary in-repository edits, while a planning request stops after planning. Ask again for material scope expansion, breaking or destructive behavior, production or external-system mutation, or significant spend.
+The original request controls authority. A local implementation request permits in-scope repository edits and non-destructive validation, while a planning, review, or diagnostic request stops before implementation. Commits, pushes, merges, deployments, production or external-system mutation, destructive actions, significant spend, breaking behavior, and material scope expansion require explicit authorization.
 
 Repository instructions override the default artifact location. If creation fails, report exactly what exists and continue in chat when safe. Never silently create artifacts at another path. Treat existing 0.1.0 singleton files as legacy user content: read them only when explicitly named or unambiguously relevant, and never move, merge, or delete them automatically.

@@ -4,7 +4,11 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { applyProjectInit, planProjectInit } from '../src/project-init.js';
+import {
+  applyProjectInit,
+  planProjectInit,
+  resolveProjectTarget,
+} from '../src/project-init.js';
 
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-init-'));
@@ -53,4 +57,30 @@ test('force backs up conflicts before replacing them', async () => {
   await applyProjectInit(actions);
   assert.equal(await readFile(path.join(targetRoot, 'AGENTS.md'), 'utf8'), 'rules\n');
   assert.equal(await readFile(replacement.backup, 'utf8'), 'custom\n');
+});
+
+test('defaults project initialization to the Git root', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-init-root-'));
+  const nested = path.join(root, 'packages', 'api');
+  await mkdir(nested, { recursive: true });
+  const target = await resolveProjectTarget({
+    cwd: nested,
+    target: undefined,
+    findRoot: async () => root,
+  });
+  assert.equal(target, root);
+});
+
+test('explicit project target overrides Git-root discovery', async () => {
+  let discoveryCalls = 0;
+  const target = await resolveProjectTarget({
+    cwd: '/tmp/current',
+    target: '../chosen',
+    findRoot: async () => {
+      discoveryCalls += 1;
+      return '/tmp/repo';
+    },
+  });
+  assert.equal(target, '/tmp/chosen');
+  assert.equal(discoveryCalls, 0);
 });

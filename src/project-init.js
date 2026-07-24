@@ -1,7 +1,11 @@
+import { execFile } from 'node:child_process';
 import { copyFile, mkdir, stat } from 'node:fs/promises';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 import { filesEqual, listFiles } from './fs-safe.js';
+
+const execFileAsync = promisify(execFile);
 
 async function exists(file) {
   try {
@@ -11,6 +15,30 @@ async function exists(file) {
     if (error.code === 'ENOENT') return false;
     throw error;
   }
+}
+
+export async function findGitRoot(cwd) {
+  try {
+    const { stdout } = await execFileAsync(
+      'git',
+      ['-C', cwd, 'rev-parse', '--show-toplevel'],
+      { encoding: 'utf8' },
+    );
+    const root = stdout.trim();
+    return root || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveProjectTarget({
+  cwd,
+  target,
+  findRoot = findGitRoot,
+}) {
+  if (target !== undefined) return path.resolve(cwd, target);
+  const gitRoot = await findRoot(cwd);
+  return gitRoot ? path.resolve(gitRoot) : path.resolve(cwd);
 }
 
 export async function planProjectInit({ templateRoot, targetRoot, force = false, dryRun = false, clock = () => new Date().toISOString().replaceAll(/[-:.]/g, '') }) {

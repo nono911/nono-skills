@@ -6,7 +6,7 @@ import { diagnose } from './doctor.js';
 import { listFiles, sha256File } from './fs-safe.js';
 import { installPlugin, updatePlugin } from './plugin-install.js';
 import { writeJsonAtomic } from './plugin-state.js';
-import { applyProjectInit, planProjectInit } from './project-init.js';
+import { applyProjectInit, planProjectInit, resolveProjectTarget } from './project-init.js';
 import { purgeProject, uninstallPlugin } from './uninstall.js';
 
 async function exists(file) {
@@ -45,7 +45,11 @@ export function createHandlers(base) {
     },
 
     async init(options) {
-      const targetRoot = path.resolve(base.cwd, options.target ?? '.');
+      const targetRoot = await resolveProjectTarget({
+        cwd: base.cwd,
+        target: options.target,
+        findRoot: base.findGitRoot,
+      });
       const templateRoot = path.join(base.packageRoot, 'templates');
       const actions = await planProjectInit({
         templateRoot, targetRoot, force: options.force, dryRun: options.dryRun, clock: base.clock ?? timestamp,
@@ -65,6 +69,7 @@ export function createHandlers(base) {
         });
       }
       const count = (type) => results.filter((result) => result.type === type).length;
+      stdout.write(`Target: ${targetRoot}\n`);
       stdout.write(`${options.dryRun ? 'Would create' : 'Created'} ${count('create')}, replaced ${count('replace')}, skipped ${count('skip')}.\n`);
       return 0;
     },

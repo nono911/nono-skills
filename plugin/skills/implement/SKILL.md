@@ -11,7 +11,7 @@ Deliver the smallest complete change that satisfies the contract, preserves unre
 
 ## Workspace protocol
 
-Read `../../references/workspaces.md` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.
+Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
 ## Inputs
 
@@ -32,7 +32,6 @@ Read `../../references/workspaces.md` before selecting or creating workflow arti
 - Keep compatibility unless a breaking change is explicitly authorized.
 - Add or update tests for changed behavior when a viable harness exists.
 - Do not silently weaken tests, validation, security, typing, or error handling to make checks pass.
-- Do not commit, push, deploy, or mutate external systems without explicit authorization.
 
 ## Decision-log updates
 
@@ -41,4 +40,4 @@ When durable state is approved, append the decision to the selected work item's 
 
 ## Escalate to the human
 
-Escalate when acceptance criteria conflict, implementation requires a breaking or destructive change, credentials or production data are required, an external action needs new authority, or the only viable approach materially expands scope. Routine code-level choices do not require escalation.
+Escalate when acceptance criteria conflict, implementation requires a breaking or destructive change, credentials or production data are required, or the only viable approach materially expands scope. Routine code-level choices do not require escalation.

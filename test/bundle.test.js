@@ -8,6 +8,7 @@ import test from 'node:test';
 import { listFiles } from '../src/fs-safe.js';
 import {
   assertWorkspaceProtocolContract,
+  assertSkillDiscoveryContract,
   canonicalSkillNames,
   workspaceProtocolClauses,
 } from '../src/plugin-contract.js';
@@ -22,6 +23,7 @@ const expectedSkills = canonicalSkillNames;
 const representativeProtocolClauseIds = [
   'classification.transient-durable',
   'classification.transient-default',
+  'repository.primary-folder',
   'consent.explicit',
   'consent.proposed',
   'consent.decline',
@@ -40,7 +42,7 @@ const representativeProtocolClauseIds = [
 ];
 const workspaceSection = `## Workspace protocol
 
-Read \`../../references/workspaces.md\` before selecting or creating workflow artifacts. Follow it for persistence, consent, work-item resolution, and lifecycle; this skill owns only the task-specific behavior below.`;
+Read \`../../references/workspaces.md\` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.`;
 const apiDesignEnding = "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.";
 const planDurableOutput = '- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory';
 const scopedPlanMaintenanceEndings = Object.freeze({
@@ -69,7 +71,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.4.0 with 16 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.5.0 with 16 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -153,8 +155,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.4.0');
-  assert.equal(plugin.version, '0.4.0');
+  assert.equal(packageJson.version, '0.5.0');
+  assert.equal(plugin.version, '0.5.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -167,13 +169,18 @@ test('plugin manifest matches the npm package', async () => {
 test('bundle contains exactly the validated 16-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
+  const discoveryMetadata = [];
   assert.deepEqual(skillFiles.map((file) => file.split(path.sep)[0]).sort(), expectedSkills);
   for (const relative of skillFiles) {
     const content = await readFile(path.join(root, 'plugin', 'skills', relative), 'utf8');
     const name = relative.split(path.sep)[0];
+    const description = content.match(/^description:\s*"?(.+?)"?$/m)?.[1]?.trim();
     assert.match(content, new RegExp(`^---\\nname: ${name}\\ndescription: .+\\n---`, 's'));
+    assert.ok(description, `${name} must define a description`);
+    discoveryMetadata.push({ name, description, relative });
     assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
   }
+  assert.doesNotThrow(() => assertSkillDiscoveryContract(discoveryMetadata));
 });
 
 test('shared workspace protocol contract accepts the released protocol', async () => {
@@ -303,6 +310,10 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
       'delivery-loop must include each workflow responsibility exactly once',
     );
   }
+  assert.match(content, /Default to at most five review rounds\./);
+  assert.match(content, /One review round means one complete reviewer batch/);
+  assert.match(content, /reuse it and never create a nested worktree/);
+  assert.match(content, /project-scoped `engineering_reviewer` agent/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
 });
 
@@ -882,6 +893,18 @@ test('plan uses selected work-item artifacts and repository guidance stays conci
   assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');
 });
 
-test('project initialization bundles repository guidance only', async () => {
-  assert.deepEqual(await listFiles(path.join(root, 'templates')), ['AGENTS.md']);
+test('project initialization bundles repository guidance and a reviewer agent', async () => {
+  assert.deepEqual(await listFiles(path.join(root, 'templates')), [
+    '.codex/agents/engineering-reviewer.toml',
+    'AGENTS.md',
+  ]);
+  const reviewer = await readFile(
+    path.join(root, 'templates', '.codex', 'agents', 'engineering-reviewer.toml'),
+    'utf8',
+  );
+  assert.match(reviewer, /^name = "engineering_reviewer"$/m);
+  assert.match(reviewer, /^sandbox_mode = "read-only"$/m);
+  assert.match(reviewer, /\$engineering:review/);
+  assert.doesNotMatch(reviewer, /^model\s*=/m);
+  assert.doesNotMatch(reviewer, /^model_reasoning_effort\s*=/m);
 });
