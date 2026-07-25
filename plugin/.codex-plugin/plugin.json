@@ -1,19 +1,40 @@
 {
   "name": "engineering",
-  "version": "0.6.0",
-  "description": "Lightweight, reasoning-first engineering workflows for Codex.",
+  "version": "0.7.0",
+  "description": "Engineering Agent Skills and review-fix loops for OpenAI Codex CLI.",
   "author": {
     "name": "thitikorn.j"
   },
   "homepage": "https://github.com/nono911/nono-skills",
   "repository": "https://github.com/nono911/nono-skills",
   "license": "MIT",
-  "keywords": ["codex", "engineering", "skills", "workflow"],
+  "keywords": [
+    "codex",
+    "codex-cli",
+    "openai-codex",
+    "codex-skills",
+    "codex-plugin",
+    "agent-skills",
+    "ai-coding-agent",
+    "software-engineering",
+    "developer-tools",
+    "code-review",
+    "bug-fix",
+    "qa-testing",
+    "acceptance-testing",
+    "security-review",
+    "delivery-workflow",
+    "engineering-loop",
+    "review-fix-loop",
+    "agentic-workflow",
+    "coding-workflow",
+    "superpowers-alternative"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Engineering",
     "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "A concise reasoning-first engineering pack centered on outcomes, evidence, verification, material decisions, and human escalation.",
+    "longDescription": "Evidence-driven engineering loops and reusable Agent Skills centered on outcomes, verification, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],
@@ -21,6 +42,7 @@
       "Plan this engineering task.",
       "Implement this change and verify it.",
       "Review the current change for defects.",
+      "Use $engineering:acceptance-verify to QA this user journey with browser evidence.",
       "Use $engineering:bugfix-loop to prove and fix this bug with regression evidence.",
       "Use $engineering:delivery-loop to deliver this feature in an approved worktree through independent review."
     ]

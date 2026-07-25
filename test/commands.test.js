@@ -63,7 +63,7 @@ test('init without a target writes to the discovered Git root and reports it', a
     packageRoot,
     home: path.join(root, 'home'),
     cwd: nested,
-    packageVersion: '0.6.0',
+    packageVersion: '0.7.0',
     stdout: stdout.stream,
     stderr: writer().stream,
     findGitRoot: async () => gitRoot,

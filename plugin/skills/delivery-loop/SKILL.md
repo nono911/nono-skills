@@ -23,6 +23,7 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 
 - One approved isolated environment: the current Codex-managed worktree, an existing dedicated worktree, or a newly created CLI worktree
 - One verified implementation commit
+- Acceptance-verification evidence when a runnable user journey is material
 - Up to five evidence-backed review rounds with finding dispositions
 - One final review-fix commit when review produced code changes
 - Final verification evidence, environment kind, worktree path, branch or detached HEAD, commit identifiers, and residual risks
@@ -45,14 +46,15 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 
 1. After approval, create a CLI worktree and branch only when required. Otherwise remain in the approved current worktree and perform every workflow write and check there.
 2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` to deliver the smallest complete feature with appropriate tests.
-3. Run verification in proportion to risk and resolve failures caused by the feature.
-4. Inspect the complete feature diff against the base SHA and confirm commit scope.
-5. Create the authorized implementation commit using the repository's commit convention.
+3. When a runnable user-facing journey is material, explicitly use `$engineering:acceptance-verify` as a source-read-only QA specialist against the acceptance criteria. Keep the original agent as implementer, resolve validated failures, and rerun affected scenarios.
+4. Run verification in proportion to risk and resolve failures caused by the feature.
+5. Inspect the complete feature diff against the base SHA and confirm commit scope.
+6. Create the authorized implementation commit using the repository's commit convention.
 
 ## Phase 2: Review until clean
 
 1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.
-2. Give the reviewer the exact worktree path, base SHA, current HEAD, acceptance criteria, repository guidance, verification evidence, complete current diff, and prior finding dispositions. Pass accepted decisions needed to interpret requirements, not the implementer's conclusions.
+2. Give the reviewer the exact worktree path, base SHA, current HEAD, acceptance criteria, repository guidance, test and acceptance-verification evidence, complete current diff, and prior finding dispositions. Pass accepted decisions needed to interpret requirements, not the implementer's conclusions.
 3. Require an independent full-diff review before reconciling prior findings, followed by either `CLEAN` or findings ordered by severity. Each finding must include a stable ID, location, evidence, impact, and remediation direction.
 4. Add a separate read-only specialist round only when the change makes security, architecture, or migration risk material; explicitly use `$engineering:security-review`, `$engineering:architecture-review`, or `$engineering:migration` in assessment-only mode as appropriate and keep the same evidence boundary.
 5. Reject style-only preferences, unsupported speculation, duplicates, and findings already enforced by tooling. Independently validate every actionable finding before editing.
@@ -68,11 +70,12 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 
 ## Phase 3: Verify and commit final fixes
 
-1. Run the full required verification after the clean review.
-2. Inspect the isolated worktree and stage only validated delivery-loop fixes.
-3. If review caused code changes, create the final review-fix commit using the repository's commit convention. If review was clean before any fixes, do not create an empty commit unless the user explicitly requires one and confirms that audit convention.
-4. Preserve permanent and CLI-created worktrees for inspection; leave Codex-managed worktree lifecycle to the app. Report the environment kind, worktree path, branch or detached HEAD, baseline, both commit identifiers when present, review-round count, finding dispositions, verification evidence, and unresolved risks.
-5. Do not claim completion when blocking findings or required checks remain.
+1. Run the full required verification after the clean review, including affected `$engineering:acceptance-verify` scenarios when applicable.
+2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean.
+3. Inspect the isolated worktree and stage only validated delivery-loop fixes.
+4. If review caused code changes, create the final review-fix commit using the repository's commit convention. If review was clean before any fixes, do not create an empty commit unless the user explicitly requires one and confirms that audit convention.
+5. Preserve permanent and CLI-created worktrees for inspection; leave Codex-managed worktree lifecycle to the app. Report the environment kind, worktree path, branch or detached HEAD, baseline, both commit identifiers when present, review-round count, finding dispositions, verification evidence, and unresolved risks.
+6. Do not claim completion when blocking findings or required checks remain.
 
 ## Decision-log updates
 

@@ -26,6 +26,7 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 - Pre-fix evidence that reproduces the symptom or a clearly disclosed evidence gap
 - A supported root cause and causal chain
 - A focused regression test or repeatable check that fails for the expected pre-fix reason
+- Pre-fix and post-fix acceptance evidence when the symptom is a runnable user journey
 - One verified minimal-fix commit
 - Up to five sequential evidence-backed review rounds with finding dispositions
 - One final review-fix commit when review produced code changes
@@ -49,10 +50,11 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 ## Phase 1: Reproduce and prove
 
 1. After approval, create a CLI worktree and branch only when required. Otherwise remain in the approved current worktree and perform every workflow write and check there.
-2. Keep the original agent as orchestrator and explicitly use `$engineering:debug` to reproduce the symptom, trace the real runtime and data path, falsify plausible alternatives, and support a root cause before changing production code.
-3. Preserve the smallest useful pre-fix evidence, including the command, input, observed result, and expected result.
-4. Keep the original agent in control and explicitly use `$engineering:test` to add the smallest stable regression test or repeatable check. Run it before the fix and confirm it fails because of the supported causal path, not because of an unrelated setup error.
-5. If reproduction is unsafe or an automated regression test is not viable, use the strongest safe repeatable evidence and disclose the limitation. Escalate before committing a claimed fix when no pre-fix failure can be demonstrated.
+2. When the symptom is a runnable user-facing journey, explicitly use `$engineering:acceptance-verify` as a source-read-only QA specialist to capture the observed boundary failure.
+3. Keep the original agent as orchestrator and explicitly use `$engineering:debug` to trace the real runtime and data path, falsify plausible alternatives, and support a root cause before changing production code.
+4. Preserve the smallest useful pre-fix evidence, including the command, input, observed result, and expected result.
+5. Keep the original agent in control and explicitly use `$engineering:test` to add the smallest stable regression test or repeatable check. Run it before the fix and confirm it fails because of the supported causal path, not because of an unrelated setup error.
+6. If reproduction is unsafe or an automated regression test is not viable, use the strongest safe repeatable evidence and disclose the limitation. Escalate before committing a claimed fix when no pre-fix failure can be demonstrated.
 
 ## Phase 2: Fix, verify, and commit
 
@@ -64,7 +66,7 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 ## Phase 3: Review until clean
 
 1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.
-2. Give the reviewer the exact worktree path, base SHA, current HEAD, expected behavior, supported root cause, pre-fix regression evidence, verification evidence, complete current diff, repository guidance, and prior finding dispositions. Pass accepted decisions needed to interpret requirements, not the fixer's conclusions.
+2. Give the reviewer the exact worktree path, base SHA, current HEAD, expected behavior, supported root cause, pre-fix regression and acceptance evidence when available, verification evidence, complete current diff, repository guidance, and prior finding dispositions. Pass accepted decisions needed to interpret requirements, not the fixer's conclusions.
 3. Require an independent full-diff review before reconciling prior findings, followed by either `CLEAN` or findings ordered by severity. Each finding must include a stable ID, location, evidence, impact, and remediation direction.
 4. Add a separate read-only specialist to the same round only when the fix makes security, architecture, or migration risk material; explicitly use `$engineering:security-review`, `$engineering:architecture-review`, or `$engineering:migration` in assessment-only mode as appropriate and keep the same evidence boundary.
 5. Reject style-only preferences, unsupported speculation, duplicates, and findings already enforced by tooling. Independently validate every actionable finding before editing.
@@ -82,11 +84,12 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 
 ## Phase 4: Verify and commit final fixes
 
-1. After a clean review, run the full required verification and repeat the original reproduction when safe.
-2. Inspect the isolated worktree and stage only validated bugfix-loop fixes.
-3. If review caused code changes, create the final review-fix commit using the repository's commit convention. If review was clean before any fixes, do not create an empty commit unless the user explicitly requires one and confirms that audit convention.
-4. Preserve permanent and CLI-created worktrees for inspection; leave Codex-managed worktree lifecycle to the app. Report the environment kind, worktree path, branch or detached HEAD, baseline, both commit identifiers when present, supported root cause, pre-fix and post-fix evidence, review-round count, finding dispositions, verification evidence, and unresolved risks.
-5. Do not claim completion when the root cause is unsupported, regression proof is absent without a disclosed limitation, blocking findings remain, or required checks fail.
+1. After a clean review, run the full required verification, repeat the original reproduction when safe, and rerun affected `$engineering:acceptance-verify` scenarios when applicable.
+2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean.
+3. Inspect the isolated worktree and stage only validated bugfix-loop fixes.
+4. If review caused code changes, create the final review-fix commit using the repository's commit convention. If review was clean before any fixes, do not create an empty commit unless the user explicitly requires one and confirms that audit convention.
+5. Preserve permanent and CLI-created worktrees for inspection; leave Codex-managed worktree lifecycle to the app. Report the environment kind, worktree path, branch or detached HEAD, baseline, both commit identifiers when present, supported root cause, pre-fix and post-fix evidence, review-round count, finding dispositions, verification evidence, and unresolved risks.
+6. Do not claim completion when the root cause is unsupported, regression proof is absent without a disclosed limitation, blocking findings remain, or required checks fail.
 
 ## Decision-log updates
 

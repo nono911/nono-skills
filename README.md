@@ -1,6 +1,6 @@
 # Nono Skills
 
-A lightweight, reasoning-first engineering workflow pack for Codex. It provides 17 namespaced skills built around outcomes, evidence, verification, material decisions, and human escalation.
+Evidence-driven engineering loops and reusable Agent Skills for OpenAI Codex CLI. Nono Skills is a lightweight Superpowers alternative covering planning, implementation, testing, browser QA, code review, bug fixing, security, and release readiness.
 
 The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills define intent and guardrails while leaving implementation strategy to the model. They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `$engineering:delivery-loop` or `$engineering:bugfix-loop`. Outside those focused workflows, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request.
 
@@ -12,6 +12,15 @@ The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills de
 - An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope.
 - After approval, Codex maintains that work item's spec, plan, material decisions, findings, and handoff as needed without asking for every file update.
 - Codex asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority.
+
+## Engineering loop model
+
+- `$engineering:delivery-loop` is the engineering loop for delivering new features through implementation, verification, independent review, and remediation.
+- `$engineering:bugfix-loop` is the engineering loop for proving and fixing existing defects with regression evidence and independent review.
+- `$engineering:acceptance-verify` is the source-read-only QA gate for validating real user journeys with browser and runtime evidence.
+- The remaining skills are focused capabilities that can be used independently or composed by a loop when their expertise is needed.
+
+Together they cover plan → implement → test → QA → review → fix → release without forcing every task through a heavyweight workflow.
 
 ## Install
 
@@ -43,6 +52,7 @@ Skills appear under the `engineering` namespace when you want to invoke one expl
 $engineering:plan
 $engineering:implement
 $engineering:review
+$engineering:acceptance-verify
 $engineering:delivery-loop
 $engineering:bugfix-loop
 $engineering:fix-findings
@@ -68,6 +78,7 @@ $engineering:database-design
 | Build a general software change | `$engineering:implement` |
 | Correct validated findings | `$engineering:fix-findings` |
 | Review a change without editing it | `$engineering:review` |
+| QA a real user journey with browser and runtime evidence | `$engineering:acceptance-verify` |
 | Deliver in an approved worktree through independent review | `$engineering:delivery-loop` |
 | Prove and fix a bug with regression evidence and independent review | `$engineering:bugfix-loop` |
 | Assess security as the primary objective | `$engineering:security-review` |
@@ -80,6 +91,29 @@ $engineering:database-design
 | Design a reversible transition | `$engineering:migration` |
 | Design a stable consumer contract | `$engineering:api-design` |
 | Design persistent data around invariants | `$engineering:database-design` |
+
+## QA acceptance verification
+
+Use `$engineering:acceptance-verify` to test a running user journey against explicit acceptance criteria. It behaves like an evidence-driven QA specialist: it interacts with the UI, inspects rendered state, correlates relevant console and network failures, and reports `PASSED`, `FAILED`, or `BLOCKED` per scenario.
+
+```text
+$engineering:acceptance-verify
+
+QA the staging checkout flow as a customer.
+
+Acceptance criteria:
+- a valid card creates one order and reaches confirmation
+- a declined card shows an inline error and creates no order
+- refreshing confirmation does not submit payment again
+
+Use disposable test data. Do not send real charges.
+```
+
+The report identifies the environment, build when known, account role, viewport, scenario status, reproduction steps, and sanitized screenshots or runtime evidence. A failed scenario is retried once from a clean state when safe; an observed intermittent defect remains `FAILED` and includes its reproduction rate.
+
+The skill is source-read-only. It does not edit code, create a worktree, commit, or start a nested fix loop. For QA-only requests it returns the report. When a request also authorizes remediation, the original orchestrator uses the evidence with `delivery-loop` for incomplete feature behavior or `bugfix-loop` for a defect with expected existing behavior.
+
+For UI criteria, API success, source inspection, automated test output, or reviewer opinion alone cannot produce a pass. Production interaction, real money, outbound messages, destructive actions, permission changes, or sensitive data require separate explicit authority.
 
 ## Isolated delivery loop
 
@@ -187,7 +221,7 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.6.0 adds the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
+Version 0.7.0 adds `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
@@ -212,6 +246,7 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 - Codex-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
 - Delivery loop reuses an active Codex-managed worktree without nesting. New CLI worktrees require approval for the exact base, branch, and path and are preserved until separately authorized for removal.
 - Bugfix loop applies the same isolation and authority rules, requires pre-fix evidence, and never treats unreviewed round-five fixes as a clean result.
+- Acceptance verification stays source-read-only, uses the least privileged suitable test identity, and requires new authority before risky external actions.
 - Work-item directories are user-owned, and uninstall purge never removes them.
 - The CLI never disables or removes Superpowers automatically.
 

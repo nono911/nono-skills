@@ -1,7 +1,7 @@
 {
   "name": "nono-skills",
-  "version": "0.6.0",
-  "description": "Install a lightweight engineering workflow plugin for Codex.",
+  "version": "0.7.0",
+  "description": "Engineering Agent Skills and review-fix loops for OpenAI Codex CLI: plan, implement, test, QA, review, fix, and release.",
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
@@ -26,10 +26,25 @@
   ],
   "keywords": [
     "codex",
-    "skills",
-    "plugin",
-    "engineering",
-    "workflow"
+    "codex-cli",
+    "openai-codex",
+    "codex-skills",
+    "codex-plugin",
+    "agent-skills",
+    "ai-coding-agent",
+    "software-engineering",
+    "developer-tools",
+    "code-review",
+    "bug-fix",
+    "qa-testing",
+    "acceptance-testing",
+    "security-review",
+    "delivery-workflow",
+    "engineering-loop",
+    "review-fix-loop",
+    "agentic-workflow",
+    "coding-workflow",
+    "superpowers-alternative"
   ],
   "license": "MIT",
   "repository": {

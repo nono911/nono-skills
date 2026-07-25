@@ -5,6 +5,7 @@ export const workspaceSection = `## Workspace protocol
 Read \`../../references/workspaces.md\` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.`;
 
 export const expectedDurableEndings = Object.freeze({
+  'acceptance-verify': "When durable state is approved, update the selected work item's findings.md with scenario status, sanitized reproduction evidence, and verification gaps and append material environment, test-boundary, or accepted-risk decisions to decisions.md; otherwise report them in the final response.",
   'api-design': "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.",
   'architecture-review': "When durable state is approved, append structural tradeoffs or accepted architecture risk to the selected work item's decisions.md and track actionable defects in findings.md; otherwise report them in the final response.",
   brainstorm: "When durable state is approved, append the accepted direction, recurring tradeoffs, assumptions, and next experiment to the selected work item's decisions.md; otherwise include them in the final response.",
@@ -25,6 +26,20 @@ export const expectedDurableEndings = Object.freeze({
 });
 
 export const expectedRequiredResponsibilityLines = Object.freeze({
+  'acceptance-verify': Object.freeze([
+    '- No source edits, staging, commits, worktree creation, or fix loop',
+    '- Scenario matrix with stable acceptance ID, user flow, one of `PASSED`, `FAILED`, or `BLOCKED`, and concise evidence',
+    '- Treat a user-designated nonproduction environment and explicitly requested scenarios as authority for ordinary reversible test interactions. Use disposable data and the least privileged suitable account.',
+    '- Request additional authority before production interaction, real purchases or charges, outbound messages, destructive or bulk actions, permission changes, irreversible state transitions, or access to sensitive data.',
+    '3. Use an available real browser automation surface for UI criteria. Use project commands or an existing test harness to launch or prepare the application when helpful, but never substitute API or unit-test evidence for an unobserved UI assertion.',
+    '7. Re-run an unexpected failure once from a clean state when safe. Keep the scenario `FAILED` if the defect occurred even when the retry passes, and report the observed reproduction rate as intermittent.',
+    '- Mark `PASSED` only when every required observable assertion was exercised at the correct boundary and no collected evidence contradicts it.',
+    '- Mark `FAILED` when any required assertion is false, an observed intermittent defect violates the criterion, or a material console or network failure breaks the journey.',
+    '- Mark `BLOCKED` when setup, access, fixtures, environment health, tooling, or missing criteria prevent a meaningful verdict. Never convert an unexecuted or partially observed scenario into `PASSED`.',
+    '- Set the overall verdict to `FAILED` when any scenario failed; otherwise `BLOCKED` when any scenario is blocked; otherwise `PASSED`.',
+    '- Do not claim UI acceptance from API success, source inspection, automated test output, or reviewer opinion alone.',
+    '- If the request also authorizes fixes, finish or safely stop the acceptance pass, hand off evidence, and let the original orchestrator select the appropriate implementation workflow. Do not start a nested delivery, bugfix, review, or fix loop.',
+  ]),
   'release-readiness': Object.freeze([
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
   ]),
@@ -35,10 +50,12 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- If the user declines worktree creation, do not silently fall back to the current checkout; ask whether to continue there with explicit commit authority or stop.',
     '- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, Handoff, worktree removal, and branch deletion remain separate actions.',
     '2. Keep the original agent as orchestrator and explicitly use `$engineering:implement` to deliver the smallest complete feature with appropriate tests.',
+    '3. When a runnable user-facing journey is material, explicitly use `$engineering:acceptance-verify` as a source-read-only QA specialist against the acceptance criteria. Keep the original agent as implementer, resolve validated failures, and rerun affected scenarios.',
     '1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.',
     '6. Keep the original agent as fixer and explicitly use `$engineering:fix-findings` for validated findings. Do not let reviewer agents modify the feature.',
     '- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.',
     '- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.',
+    '2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean.',
   ]),
   'bugfix-loop': Object.freeze([
     '- If the task already runs in a Codex-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses Create branch or Handoff; do not move the chat or check the same branch out elsewhere.',
@@ -47,8 +64,9 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- When only commit authority is missing, ask: "May I create up to two local commits in the current approved worktree—one bugfix commit and, only if review produces code changes followed by a clean review, one final review-fix commit? This does not authorize push, merge, deploy, Handoff, worktree removal, or branch deletion."',
     '- If the user declines worktree creation, do not silently fall back to the current checkout; ask whether to continue there with explicit commit authority or stop.',
     '- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, Handoff, worktree removal, and branch deletion remain separate actions.',
-    '2. Keep the original agent as orchestrator and explicitly use `$engineering:debug` to reproduce the symptom, trace the real runtime and data path, falsify plausible alternatives, and support a root cause before changing production code.',
-    '4. Keep the original agent in control and explicitly use `$engineering:test` to add the smallest stable regression test or repeatable check. Run it before the fix and confirm it fails because of the supported causal path, not because of an unrelated setup error.',
+    '2. When the symptom is a runnable user-facing journey, explicitly use `$engineering:acceptance-verify` as a source-read-only QA specialist to capture the observed boundary failure.',
+    '3. Keep the original agent as orchestrator and explicitly use `$engineering:debug` to trace the real runtime and data path, falsify plausible alternatives, and support a root cause before changing production code.',
+    '5. Keep the original agent in control and explicitly use `$engineering:test` to add the smallest stable regression test or repeatable check. Run it before the fix and confirm it fails because of the supported causal path, not because of an unrelated setup error.',
     '1. Keep the original agent as implementer and explicitly use `$engineering:implement` to correct the supported root cause with the smallest compatible change.',
     '1. For every round, prefer a fresh project-scoped `engineering_reviewer` agent. If unavailable, use a fresh reviewer subagent. Explicitly instruct either reviewer to use `$engineering:review` and keep it read-only: no delegation, edits, staging, commits, reverts, or worktree mutation.',
     '6. Keep the original agent as fixer and explicitly use `$engineering:fix-findings` for validated findings. Do not let reviewer agents modify the bugfix.',
@@ -56,6 +74,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Run rounds sequentially. Never start future review rounds in advance; after a round finds actionable defects, validate, fix, and verify them before starting the next round.',
     '- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.',
     '- If the fifth reviewer batch still finds an actionable defect, validate and fix it only when safe within current authority, rerun verification, then stop and escalate because proving the new state requires a sixth review. Do not claim a clean loop or create the final review-fix commit without new direction.',
+    '2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean.',
   ]),
 });
 

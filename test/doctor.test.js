@@ -27,7 +27,7 @@ const codexOk = async (args) => args[0] === '--version'
   ? { code: 0, stdout: 'codex-cli 0.145.0', stderr: '' }
   : { code: 0, stdout: 'engineering@personal installed, enabled', stderr: '' };
 
-test('doctor passes a healthy 17-skill installation', async () => {
+test('doctor passes a healthy 18-skill installation', async () => {
   const { home } = await installedFixture();
   const checks = await diagnose({ home, packageVersion: '0.1.0', runCodex: codexOk });
   assert.equal(checks.every((check) => check.status === 'pass'), true);

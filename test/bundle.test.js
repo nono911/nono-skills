@@ -20,6 +20,28 @@ import {
 
 const root = path.resolve(import.meta.dirname, '..');
 const expectedSkills = canonicalSkillNames;
+const expectedDiscoveryKeywords = [
+  'codex',
+  'codex-cli',
+  'openai-codex',
+  'codex-skills',
+  'codex-plugin',
+  'agent-skills',
+  'ai-coding-agent',
+  'software-engineering',
+  'developer-tools',
+  'code-review',
+  'bug-fix',
+  'qa-testing',
+  'acceptance-testing',
+  'security-review',
+  'delivery-workflow',
+  'engineering-loop',
+  'review-fix-loop',
+  'agentic-workflow',
+  'coding-workflow',
+  'superpowers-alternative',
+];
 const representativeProtocolClauseIds = [
   'classification.transient-durable',
   'classification.transient-default',
@@ -71,7 +93,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.6.0 with 17 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.7.0 with 18 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -155,8 +177,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.6.0');
-  assert.equal(plugin.version, '0.6.0');
+  assert.equal(packageJson.version, '0.7.0');
+  assert.equal(plugin.version, '0.7.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -166,7 +188,18 @@ test('plugin manifest matches the npm package', async () => {
   assert.equal(plugin.repository, 'https://github.com/nono911/nono-skills');
 });
 
-test('bundle contains exactly the validated 17-skill set', async () => {
+test('package discovery metadata describes the engineering-loop product', async () => {
+  const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+  const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
+  const readme = await readFile(path.join(root, 'README.md'), 'utf8');
+  assert.match(packageJson.description, /Engineering Agent Skills and review-fix loops for OpenAI Codex CLI/);
+  assert.deepEqual(packageJson.keywords, expectedDiscoveryKeywords);
+  assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords);
+  assert.match(readme, /^# Nono Skills\n\nEvidence-driven engineering loops and reusable Agent Skills for OpenAI Codex CLI\./);
+  assert.match(readme, /lightweight Superpowers alternative/);
+});
+
+test('bundle contains exactly the validated 18-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -298,6 +331,40 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
   }
 });
 
+test('acceptance-verify owns source-read-only browser QA verdicts', async () => {
+  const content = await readFile(
+    path.join(root, 'plugin', 'skills', 'acceptance-verify', 'SKILL.md'),
+    'utf8',
+  );
+  const metadata = await readFile(
+    path.join(root, 'plugin', 'skills', 'acceptance-verify', 'agents', 'openai.yaml'),
+    'utf8',
+  );
+  for (const responsibility of expectedRequiredResponsibilityLines['acceptance-verify']) {
+    assert.equal(
+      content.split(responsibility).length - 1,
+      1,
+      'acceptance-verify must include each workflow responsibility exactly once',
+    );
+  }
+  assert.match(content, /QA, manual UI testing, UAT, browser testing, or acceptance verification/);
+  assert.match(content, /use test when the primary goal is to author automated tests/);
+  assert.match(content, /`PASSED`, `FAILED`, or `BLOCKED`/);
+  assert.match(content, /Inspect the rendered interface visually/);
+  assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('acceptance-verify', content));
+});
+
+test('contract rejects deleted acceptance-verify responsibilities', async () => {
+  for (const responsibility of expectedRequiredResponsibilityLines['acceptance-verify']) {
+    const result = await validateMutatedSkill('acceptance-verify', (content) => content.replace(
+      `${responsibility}\n`,
+      '',
+    ));
+    assertValidationFails(result, /must include each required responsibility line exactly once/);
+  }
+});
+
 test('delivery-loop owns isolation approval and explicit child-skill composition', async () => {
   const content = await readFile(
     path.join(root, 'plugin', 'skills', 'delivery-loop', 'SKILL.md'),
@@ -398,7 +465,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 17 canonical skills',
+    'plugin skill inventory must contain exactly the 18 canonical skills',
   );
 });
 

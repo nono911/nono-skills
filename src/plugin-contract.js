@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
 export const canonicalSkillNames = Object.freeze([
+  'acceptance-verify',
   'api-design',
   'architecture-review',
   'brainstorm',
