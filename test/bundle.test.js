@@ -41,6 +41,13 @@ const expectedDiscoveryKeywords = [
   'agentic-workflow',
   'coding-workflow',
   'superpowers-alternative',
+  'multi-agent',
+  'claude-code',
+  'gemini-cli',
+  'cursor',
+  'github-copilot',
+  'hermes-agent',
+  'skills-sh',
 ];
 const representativeProtocolClauseIds = [
   'classification.transient-durable',
@@ -64,7 +71,7 @@ const representativeProtocolClauseIds = [
 ];
 const workspaceSection = `## Workspace protocol
 
-Read \`../../references/workspaces.md\` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.`;
+Read \`references/workspaces.md\` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.`;
 const apiDesignEnding = "When durable state is approved, append contract choices and compatibility consequences to the selected work item's decisions.md; otherwise include them in the final response.";
 const planDurableOutput = '- For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory';
 const scopedPlanMaintenanceEndings = Object.freeze({
@@ -93,7 +100,7 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.7.0 with 18 skills.\n');
+  assert.equal(result.stdout, 'Validated engineering plugin 0.8.0 with 18 skills.\n');
   assert.equal(result.stderr, '');
 }
 
@@ -177,8 +184,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.7.0');
-  assert.equal(plugin.version, '0.7.0');
+  assert.equal(packageJson.version, '0.8.0');
+  assert.equal(plugin.version, '0.8.0');
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -192,10 +199,10 @@ test('package discovery metadata describes the engineering-loop product', async 
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
-  assert.match(packageJson.description, /Engineering Agent Skills and review-fix loops for OpenAI Codex CLI/);
+  assert.match(packageJson.description, /Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI/);
   assert.deepEqual(packageJson.keywords, expectedDiscoveryKeywords);
-  assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords);
-  assert.match(readme, /^# Nono Skills\n\nEvidence-driven engineering loops and reusable Agent Skills for OpenAI Codex CLI\./);
+  assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords.slice(0, 20));
+  assert.match(readme, /^# Nono Skills\n\nEvidence-driven engineering loops and reusable Agent Skills for Codex, Claude Code, Gemini CLI/);
   assert.match(readme, /lightweight Superpowers alternative/);
 });
 
@@ -245,11 +252,11 @@ test('README documents adaptive consent-aware workspaces', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
   assert.match(
     readme,
-    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `\$engineering:delivery-loop` or `\$engineering:bugfix-loop`\./,
+    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `delivery-loop` or `bugfix-loop`\./,
   );
   assert.match(
     readme,
-    /Outside those focused workflows, the only built-in gate is consent before Codex creates a durable workspace that the user did not explicitly request\./,
+    /Outside those focused workflows, the only built-in gate is consent before the agent creates a durable workspace that the user did not explicitly request\./,
   );
   assert.doesNotMatch(readme, /They do not impose mandatory approval gates/);
   assert.match(readme, /Small tasks stay artifact-free/);
@@ -261,8 +268,10 @@ test('README documents adaptive consent-aware workspaces', async () => {
   );
   assert.match(
     readme,
-    /Codex asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority/,
+    /The agent asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority/,
   );
+  assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
+  assert.match(readme, /Choose one installation path for the same agent and scope/);
   assert.match(readme, /`init` is optional/);
   assert.match(readme, /Initialization no longer creates task artifacts/);
   assert.match(readme, /Existing 0\.1\.0 singleton files under `docs\/agent\/` are preserved/);
@@ -309,12 +318,30 @@ test('README documents adaptive consent-aware workspaces', async () => {
 });
 
 test('every skill has specific UI metadata and uses the workspace protocol', async () => {
+  const canonicalWorkspaceProtocol = await readFile(
+    path.join(root, 'plugin', 'references', 'workspaces.md'),
+    'utf8',
+  );
   for (const name of expectedSkills) {
     const skillRoot = path.join(root, 'plugin', 'skills', name);
     const skill = await readFile(path.join(skillRoot, 'SKILL.md'), 'utf8');
     const metadata = await readFile(path.join(skillRoot, 'agents', 'openai.yaml'), 'utf8');
+    const bundledWorkspaceProtocol = await readFile(
+      path.join(skillRoot, 'references', 'workspaces.md'),
+      'utf8',
+    );
     const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
 
+    assert.equal(
+      bundledWorkspaceProtocol,
+      canonicalWorkspaceProtocol,
+      `${name} must be self-contained with the canonical workspace protocol`,
+    );
+    assert.doesNotMatch(
+      skill,
+      /\bCodex\b|\$engineering:|\.\.\/\.\.\/references\/workspaces\.md|engineering_reviewer/,
+      `${name} must keep its portable instructions host-neutral`,
+    );
     assert.ok(shortDescription, `${name} must define a short_description`);
     assert.ok(shortDescription.length >= 25 && shortDescription.length <= 64,
       `${name} short_description must be 25-64 characters`);
@@ -351,6 +378,7 @@ test('acceptance-verify owns source-read-only browser QA verdicts', async () => 
   assert.match(content, /use test when the primary goal is to author automated tests/);
   assert.match(content, /`PASSED`, `FAILED`, or `BLOCKED`/);
   assert.match(content, /Inspect the rendered interface visually/);
+  assert.match(metadata, /display_name: "Acceptance Verify"/);
   assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('acceptance-verify', content));
 });
@@ -380,7 +408,10 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
   assert.match(content, /Default to at most five review rounds\./);
   assert.match(content, /One review round means one complete reviewer batch/);
   assert.match(content, /reuse it and never create a nested worktree/);
-  assert.match(content, /project-scoped `engineering_reviewer` agent/);
+  assert.match(content, /fresh project-scoped read-only reviewer agent/);
+  assert.match(content, /never assume a literal invocation prefix/);
+  assert.match(content, /degraded path is outside delivery-loop completion/);
+  assert.match(content, /explicitly activate the companion `plan` skill before implementation/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
 });
 
@@ -411,6 +442,7 @@ test('bugfix-loop requires evidence-first diagnosis and sequential review', asyn
   assert.match(content, /Run rounds sequentially\. Never start future review rounds in advance/);
   assert.match(content, /fifth reviewer batch still finds an actionable defect/);
   assert.match(content, /Do not claim a clean loop or create the final review-fix commit/);
+  assert.match(content, /degraded path is outside bugfix-loop completion/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
 });
 
@@ -451,6 +483,56 @@ test('package validation accepts an unmodified standalone fixture with exact out
   assertValidationPasses(await validateUnmodifiedFixture());
 });
 
+test('package validation rejects a drifted bundled workspace protocol', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    const bundledPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'review',
+      'references',
+      'workspaces.md',
+    );
+    const content = await readFile(bundledPath, 'utf8');
+    await writeFile(bundledPath, `${content}\nDrifted copy.\n`, 'utf8');
+  });
+  assertValidationFails(result, 'review must bundle the canonical workspace protocol');
+});
+
+test('portable resource sync restores local references and workspace instructions', async () => {
+  await withValidationFixture(async (fixtureRoot) => {
+    const skillPath = path.join(fixtureRoot, 'plugin', 'skills', 'review', 'SKILL.md');
+    const bundledPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'review',
+      'references',
+      'workspaces.md',
+    );
+    const content = await readFile(skillPath, 'utf8');
+    await writeFile(
+      skillPath,
+      content.replace(
+        'Read `references/workspaces.md` once per agent task',
+        'Read `../../references/workspaces.md` once per Codex task',
+      ),
+      'utf8',
+    );
+    await writeFile(bundledPath, 'stale\n', 'utf8');
+
+    const result = spawnSync(process.execPath, ['scripts/sync-portable-resources.mjs'], {
+      cwd: fixtureRoot,
+      encoding: 'utf8',
+    });
+    assertSpawnCompleted(result);
+    assert.equal(result.status, 0);
+    assert.equal(result.stdout, 'Synchronized portable workspace resources for 18 skills.\n');
+    assert.equal(result.stderr, '');
+    assertValidationPasses(runPackageValidation(fixtureRoot));
+  });
+});
+
 test('package validation rejects deletion from inventory, ending map, and derived allowlist', async () => {
   const result = await validateMutatedFixture(async (fixtureRoot) => {
     await rm(path.join(fixtureRoot, 'plugin', 'skills', 'api-design'), {
@@ -471,8 +553,8 @@ test('package validation rejects deletion from inventory, ending map, and derive
 
 test('package validation rejects a negated workspace instruction', async () => {
   const result = await validateMutatedSkill('api-design', (content) => content.replace(
-    'Read `../../references/workspaces.md`',
-    'Do not Read `../../references/workspaces.md`',
+    'Read `references/workspaces.md`',
+    'Do not Read `references/workspaces.md`',
   ));
   assertValidationFails(result, /must use the exact Workspace protocol section/);
 });

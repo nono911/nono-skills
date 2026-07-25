@@ -1,6 +1,6 @@
 ---
 name: acceptance-verify
-description: Use when Codex must execute QA, manual UI testing, UAT, browser testing, or acceptance verification of a running user journey and report runtime evidence without fixing code; use test when the primary goal is to author automated tests.
+description: Use when an agent must execute QA, manual UI testing, UAT, browser testing, or acceptance verification of a running user journey and report runtime evidence without fixing code; use test when the primary goal is to author automated tests.
 ---
 
 # Acceptance Verify
@@ -11,7 +11,7 @@ Verify user-observable behavior in a running system against explicit acceptance 
 
 ## Workspace protocol
 
-Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
+Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
 ## Inputs
 
@@ -67,8 +67,8 @@ Read `../../references/workspaces.md` once per Codex task before selecting or cr
 ## Composition
 
 - Run standalone for QA-only requests and return the report without modifying code.
-- When called by `$engineering:delivery-loop`, verify the implemented user journey and return failures to the original orchestrator for implementation or finding remediation.
-- When called by `$engineering:bugfix-loop`, capture the user-visible symptom or post-fix behavior without replacing root-cause analysis or regression testing.
+- When called by the companion `delivery-loop` skill, verify the implemented user journey and return failures to the original orchestrator for implementation or finding remediation.
+- When called by the companion `bugfix-loop` skill, capture the user-visible symptom or post-fix behavior without replacing root-cause analysis or regression testing.
 - If the request also authorizes fixes, finish or safely stop the acceptance pass, hand off evidence, and let the original orchestrator select the appropriate implementation workflow. Do not start a nested delivery, bugfix, review, or fix loop.
 
 ## Decision-log updates

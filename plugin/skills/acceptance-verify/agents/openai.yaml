@@ -1,4 +1,4 @@
 interface:
-  display_name: "QA Acceptance"
+  display_name: "Acceptance Verify"
   short_description: "Verify real user journeys with browser evidence"
   default_prompt: "Use $acceptance-verify to test this user journey against its acceptance criteria and report browser evidence."

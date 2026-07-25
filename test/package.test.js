@@ -16,13 +16,15 @@ test('npm package includes runtime assets and excludes development state', async
   const names = files.map((file) => file.path);
   for (const required of [
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
-    'plugin/references/workspaces.md', 'templates/AGENTS.md', 'README.md', 'LICENSE',
+    'plugin/references/workspaces.md', 'scripts/sync-portable-resources.mjs',
+    'templates/AGENTS.md', 'README.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
   assert.equal(expectedSkills.length, 18);
   for (const name of expectedSkills) {
     for (const required of [
       `plugin/skills/${name}/SKILL.md`,
       `plugin/skills/${name}/agents/openai.yaml`,
+      `plugin/skills/${name}/references/workspaces.md`,
     ]) assert.equal(names.includes(required), true, `missing ${required}`);
   }
   assert.equal(names.some((name) => name.startsWith('templates/docs/agent/')), false);

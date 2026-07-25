@@ -11,7 +11,7 @@ Turn an unclear opportunity into a small set of distinct, evidence-aware options
 
 ## Workspace protocol
 
-Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
+Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
 ## Inputs
 

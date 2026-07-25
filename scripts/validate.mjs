@@ -34,12 +34,24 @@ for (const relative of skillFiles) {
   const expectedName = relative.split(path.sep)[0];
   const content = await readFile(path.join(skillRoot, relative), 'utf8');
   const metadata = await readFile(path.join(skillRoot, expectedName, 'agents', 'openai.yaml'), 'utf8');
+  const bundledWorkspaceProtocol = await readFile(
+    path.join(skillRoot, expectedName, 'references', 'workspaces.md'),
+    'utf8',
+  );
   const shortDescription = metadata.match(/short_description: "([^"]+)"/)?.[1];
   const description = content.match(/^description:\s*"?(.+?)"?$/m)?.[1]?.trim();
   assert.match(content, new RegExp(`^---\\nname: ${expectedName}\\ndescription: .+\\n---`, 's'));
   assert.ok(description, `${expectedName} must define a description`);
   discoveryMetadata.push({ name: expectedName, description, relative });
-  assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
+  assert.equal(
+    bundledWorkspaceProtocol,
+    workspaceProtocol,
+    `${expectedName} must bundle the canonical workspace protocol`,
+  );
+  assert.doesNotMatch(
+    content,
+    /TODO|Superpowers|\.codex\/skills|\bCodex\b|\$engineering:|\.\.\/\.\.\/references\/workspaces\.md|engineering_reviewer/,
+  );
   assertSkillWorkspaceContract(expectedName, content);
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);

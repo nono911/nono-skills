@@ -1,7 +1,7 @@
 {
   "name": "nono-skills",
-  "version": "0.7.0",
-  "description": "Engineering Agent Skills and review-fix loops for OpenAI Codex CLI: plan, implement, test, QA, review, fix, and release.",
+  "version": "0.8.0",
+  "description": "Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
@@ -12,6 +12,7 @@
   },
   "scripts": {
     "test": "node --test",
+    "sync:portable": "node scripts/sync-portable-resources.mjs",
     "validate": "node scripts/validate.mjs",
     "prepublishOnly": "npm test && npm run validate"
   },
@@ -20,7 +21,7 @@
     "src/",
     "plugin/",
     "templates/",
-    "scripts/validate.mjs",
+    "scripts/",
     "README.md",
     "LICENSE"
   ],
@@ -44,7 +45,14 @@
     "review-fix-loop",
     "agentic-workflow",
     "coding-workflow",
-    "superpowers-alternative"
+    "superpowers-alternative",
+    "multi-agent",
+    "claude-code",
+    "gemini-cli",
+    "cursor",
+    "github-copilot",
+    "hermes-agent",
+    "skills-sh"
   ],
   "license": "MIT",
   "repository": {
