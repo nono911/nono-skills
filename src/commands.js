@@ -8,6 +8,11 @@ import { installPlugin, updatePlugin } from './plugin-install.js';
 import { writeJsonAtomic } from './plugin-state.js';
 import { applyProjectInit, planProjectInit, resolveProjectTarget } from './project-init.js';
 import { purgeProject, uninstallPlugin } from './uninstall.js';
+import {
+  listAgentProviders as defaultListAgentProviders,
+  setAgentProviderEnabled as defaultSetAgentProviderEnabled,
+  setAgentProviderPolicy as defaultSetAgentProviderPolicy,
+} from '../plugin/skills/delivery-loop/scripts/agent-bridge.mjs';
 
 async function exists(file) {
   try { await stat(file); return true; }
@@ -23,6 +28,15 @@ export function createHandlers(base) {
   const stderr = base.stderr ?? process.stderr;
   const runCodex = base.runCodex ?? defaultRunCodex;
   const removePlugin = base.uninstallPlugin ?? uninstallPlugin;
+  const agentBridge = base.agentBridge ?? {
+    listAgentProviders: defaultListAgentProviders,
+    setAgentProviderEnabled: defaultSetAgentProviderEnabled,
+    setAgentProviderPolicy: defaultSetAgentProviderPolicy,
+  };
+  const agentContext = () => ({
+    home: base.home,
+    runCommand: base.runExternalCommand,
+  });
   const pluginContext = () => ({
     home: base.home,
     packageRoot: base.packageRoot,
@@ -35,12 +49,14 @@ export function createHandlers(base) {
     async install() {
       const result = await installPlugin(pluginContext());
       stdout.write(`Engineering plugin ${result.status} (${result.pluginVersion}). Start a new Codex task to activate it.\n`);
+      stdout.write('Optional local agents: run npx nono-skills agents list.\n');
       return 0;
     },
 
     async update() {
       const result = await updatePlugin(pluginContext());
       stdout.write(`Engineering plugin ${result.status} (${result.pluginVersion}). Start a new Codex task to activate it.\n`);
+      stdout.write('Optional local agents: run npx nono-skills agents list.\n');
       return 0;
     },
 
@@ -78,6 +94,117 @@ export function createHandlers(base) {
       const checks = await diagnose({ home: base.home, packageVersion: base.packageVersion, runCodex });
       for (const check of checks) stdout.write(`${check.status.toUpperCase()} ${check.name}: ${check.detail}\n`);
       return checks.some((check) => check.status === 'fail') ? 1 : 0;
+    },
+
+    async agents(options) {
+      const providers = await agentBridge.listAgentProviders(agentContext());
+      const provider = options.provider
+        ? providers.find((candidate) => candidate.name === options.provider)
+        : undefined;
+
+      if (options.agentCommand === 'enable') {
+        if (!provider) throw new Error(`Unsupported external agent provider: ${options.provider}`);
+        if (!provider.available) throw new Error(`${provider.displayName} is unavailable: ${provider.detail}`);
+        if (!provider.compatible) throw new Error(`${provider.displayName} is incompatible: ${provider.detail}`);
+        await agentBridge.setAgentProviderEnabled({
+          home: base.home,
+          provider: provider.name,
+          enabled: true,
+        });
+        stdout.write(`ENABLED ${provider.name}: ${provider.displayName} ${provider.version ?? ''}`.trimEnd());
+        stdout.write('\nDelivery-loop still requires explicit per-run consent before sending code.\n');
+        return 0;
+      }
+
+      if (options.agentCommand === 'disable') {
+        if (!provider) throw new Error(`Unsupported external agent provider: ${options.provider}`);
+        await agentBridge.setAgentProviderEnabled({
+          home: base.home,
+          provider: provider.name,
+          enabled: false,
+        });
+        stdout.write(`DISABLED ${provider.name}: excluded from delivery-loop proposals\n`);
+        return 0;
+      }
+
+      if (options.agentCommand === 'policy') {
+        if (!provider) throw new Error(`Unsupported external agent provider: ${options.provider}`);
+        if (!provider.available) throw new Error(`${provider.displayName} is unavailable: ${provider.detail}`);
+        if (!provider.compatible) throw new Error(`${provider.displayName} is incompatible: ${provider.detail}`);
+        if (options.agentPolicy === 'isolated-writer' && !provider.roles?.implement) {
+          throw new Error(`${provider.displayName} does not provide a safe implementation role`);
+        }
+        await agentBridge.setAgentProviderPolicy({
+          home: base.home,
+          provider: provider.name,
+          policy: options.agentPolicy,
+        });
+        stdout.write(`POLICY ${provider.name}: ${options.agentPolicy}\n`);
+        stdout.write('Delivery-loop still requires explicit per-run consent before sending code.\n');
+        return 0;
+      }
+
+      if (options.agentCommand === 'setup') {
+        const compatible = providers.filter(
+          (candidate) => candidate.available && candidate.compatible,
+        );
+        if (compatible.length === 0) {
+          stdout.write('No compatible external agent CLIs detected. Native host agents remain available.\n');
+          return 0;
+        }
+        for (const candidate of compatible) {
+          await agentBridge.setAgentProviderEnabled({
+            home: base.home,
+            provider: candidate.name,
+            enabled: true,
+          });
+          stdout.write(`ENABLED ${candidate.name}: ${candidate.displayName} ${candidate.version ?? ''} (review-only)`.trimEnd());
+          stdout.write('\n');
+        }
+        stdout.write('Delivery-loop still requires explicit per-run consent before sending code.\n');
+        return 0;
+      }
+
+      if (options.agentCommand === 'doctor') {
+        let failed = false;
+        for (const candidate of providers) {
+          if (candidate.enabled === false) {
+            stdout.write(`PASS ${candidate.name}: disabled by user\n`);
+          } else if (!candidate.available || !candidate.compatible) {
+            const required = candidate.enabled === true;
+            failed ||= required;
+            stdout.write(`${required ? 'FAIL' : 'WARN'} ${candidate.name}: ${candidate.detail}\n`);
+          } else {
+            const roles = Object.entries(candidate.roles ?? {})
+              .filter(([, supported]) => supported)
+              .map(([role]) => role)
+              .join(',');
+            stdout.write(`PASS ${candidate.name}: ${candidate.displayName} ${candidate.version ?? 'version unknown'}; ${candidate.enabled === true ? 'enabled' : 'available, not enabled'}; policy=${candidate.policy ?? 'per-run'}; roles=${roles || 'none'}\n`);
+          }
+        }
+        return failed ? 1 : 0;
+      }
+
+      for (const candidate of providers) {
+        const state = candidate.enabled === true
+          ? 'ENABLED'
+          : candidate.enabled === false
+            ? 'DISABLED'
+            : !candidate.available
+              ? 'UNAVAILABLE'
+              : !candidate.compatible
+                ? 'INCOMPATIBLE'
+                : 'AVAILABLE';
+        const roles = Object.entries(candidate.roles ?? {})
+          .filter(([, supported]) => supported)
+          .map(([role]) => role)
+          .join(',');
+        const identity = candidate.identity?.provider
+          ? `; model=${candidate.identity.provider}/${candidate.identity.model ?? 'unknown'}`
+          : '';
+        stdout.write(`${state} ${candidate.name}: ${candidate.displayName}${candidate.version ? ` ${candidate.version}` : ''}; policy=${candidate.policy ?? 'per-run'}; roles=${roles || 'none'}${identity}; ${candidate.detail}\n`);
+      }
+      return 0;
     },
 
     async uninstall(options) {

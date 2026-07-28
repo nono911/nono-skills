@@ -1,7 +1,7 @@
 interface:
   display_name: "Delivery Loop"
-  short_description: "Deliver isolated changes through independent review"
-  default_prompt: "Use $delivery-loop to deliver this feature in an approved worktree through independent review and verified fixes."
+  short_description: "Deliver in isolation with native-first agents"
+  default_prompt: "Use $delivery-loop to deliver this feature in approved worktrees with native subagents by default, optional explicitly selected external agents, independent review, and verified fixes."
 
 policy:
   allow_implicit_invocation: false

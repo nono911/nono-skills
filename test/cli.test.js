@@ -14,19 +14,35 @@ function output() {
 test('parseArgs defaults to help', () => {
   assert.deepEqual(parseArgs([]), {
     command: 'help', target: undefined, force: false, dryRun: false,
-    purgeProject: undefined, help: true, version: false,
+    purgeProject: undefined, agentCommand: undefined, provider: undefined, agentPolicy: undefined,
+    help: true, version: false,
   });
 });
 
 test('parseArgs reads init target and safety flags', () => {
   assert.deepEqual(parseArgs(['init', 'my repo', '--force', '--dry-run']), {
     command: 'init', target: 'my repo', force: true, dryRun: true,
-    purgeProject: undefined, help: false, version: false,
+    purgeProject: undefined, agentCommand: undefined, provider: undefined, agentPolicy: undefined,
+    help: false, version: false,
   });
 });
 
 test('parseArgs reads uninstall purge target', () => {
   assert.equal(parseArgs(['uninstall', '--purge-project', '/tmp/app']).purgeProject, '/tmp/app');
+});
+
+test('parseArgs reads agent bridge commands', () => {
+  assert.deepEqual(parseArgs(['agents', 'enable', 'claude']), {
+    command: 'agents', target: undefined, force: false, dryRun: false,
+    purgeProject: undefined, agentCommand: 'enable', provider: 'claude', agentPolicy: undefined,
+    help: false, version: false,
+  });
+  assert.equal(parseArgs(['agents']).agentCommand, 'list');
+  assert.equal(parseArgs(['agents', 'policy', 'qwen', 'review-only']).agentPolicy, 'review-only');
+  assert.throws(() => parseArgs(['agents', 'enable']), /requires a provider/);
+  assert.throws(() => parseArgs(['agents', 'policy', 'qwen']), /requires a policy/);
+  assert.throws(() => parseArgs(['agents', 'policy', 'qwen', 'full-access']), /Unknown external agent policy/);
+  assert.throws(() => parseArgs(['agents', 'wat']), /Unknown agents command/);
 });
 
 test('run rejects an unknown command', async () => {

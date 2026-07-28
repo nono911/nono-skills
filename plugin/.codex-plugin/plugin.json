@@ -34,7 +34,7 @@
   "interface": {
     "displayName": "Engineering",
     "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "Evidence-driven engineering loops and reusable Agent Skills centered on outcomes, verification, material decisions, and human escalation.",
+    "longDescription": "Evidence-driven engineering loops and reusable Agent Skills centered on outcomes, verification, bounded agent delegation, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],
@@ -44,7 +44,7 @@
       "Review the current change for defects.",
       "Use $engineering:acceptance-verify to QA this user journey with browser evidence.",
       "Use $engineering:bugfix-loop to prove and fix this bug with regression evidence.",
-      "Use $engineering:delivery-loop to deliver this feature in an approved worktree through independent review."
+      "Use $engineering:delivery-loop to deliver this feature in approved worktrees through bounded agent delegation and independent review."
     ]
   }
 }

@@ -42,7 +42,13 @@ const expectedDiscoveryKeywords = [
   'coding-workflow',
   'superpowers-alternative',
   'multi-agent',
+  'multi-agent-cli',
+  'agent-orchestration',
   'claude-code',
+  'qwen-code',
+  'opencode',
+  'codewhale',
+  'antigravity',
   'gemini-cli',
   'cursor',
   'github-copilot',
@@ -288,6 +294,9 @@ test('README documents adaptive consent-aware workspaces', async () => {
   const lines = readme.split('\n');
   for (const command of [
     'npx nono-skills doctor',
+    'npx nono-skills agents list',
+    'npx nono-skills agents setup',
+    'npx nono-skills agents doctor',
     'npx nono-skills update',
     'npx nono-skills uninstall',
   ]) {
@@ -301,6 +310,12 @@ test('README documents adaptive consent-aware workspaces', async () => {
   assert.ok(disableReversibly > verifySkills, 'README must disable Superpowers reversibly after verification');
   assert.ok(uninstallSuperpowers > disableReversibly, 'README must uninstall Superpowers only after disabling it');
   assert.match(readme, /The CLI never disables or removes Superpowers automatically/);
+  assert.match(readme, /You still invoke only `delivery-loop`; there is no separate skill for Claude,\s+Codex, Qwen, OpenCode, or CodeWhale/);
+  assert.match(readme, /`Native subagents \(default\)`/);
+  assert.match(readme, /If the user approves without choosing, the workflow uses Native subagents/);
+  assert.match(readme, /does not infer external consent from an installed or enabled provider/);
+  assert.match(readme, /Enabling a provider is never consent to run it/);
+  assert.match(readme, /The loop never invokes Claude Code from a Claude Code host task/);
 
   for (const stalePhrase of ['Project artifacts include', 'Without initialization']) {
     assert.equal(readme.includes(stalePhrase), false, `README must not contain ${stalePhrase}`);
@@ -412,7 +427,58 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
   assert.match(content, /never assume a literal invocation prefix/);
   assert.match(content, /degraded path is outside delivery-loop completion/);
   assert.match(content, /explicitly activate the companion `plan` skill before implementation/);
+  assert.match(content, /references\/agent-delegation\.md/);
+  assert.match(content, /explicit per-run consent/);
+  assert.match(content, /one writer per file-ownership boundary/);
+  assert.match(content, /Never invoke an external provider that owns the current host task/);
+  assert.match(content, /`Native subagents \(default\)`, `External CLI agents`, and `Hybrid`/);
+  assert.match(content, /If the user approves without selecting a choice, use Native subagents/);
+  assert.match(content, /Do not probe, propose, or invoke external providers unless the user explicitly selects External or Hybrid/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
+});
+
+test('delivery-loop bundles a provider-neutral delegation contract and safe bridge', async () => {
+  const reference = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'references', 'agent-delegation.md'),
+    'utf8',
+  );
+  const bridge = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'scripts', 'agent-bridge.mjs'),
+    'utf8',
+  );
+  const providerContract = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'scripts', 'provider-contract.mjs'),
+    'utf8',
+  );
+  const providers = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'scripts', 'providers', 'index.mjs'),
+    'utf8',
+  );
+  assert.match(reference, /Task packet/);
+  assert.match(reference, /Claude Code/);
+  assert.match(reference, /OpenAI Codex/);
+  assert.match(reference, /Qwen Code/);
+  assert.match(reference, /OpenCode/);
+  assert.match(reference, /CodeWhale/);
+  assert.match(reference, /Google Antigravity/);
+  assert.match(reference, /per-run consent/);
+  assert.match(reference, /An approval that does not select an\s+agent-execution choice selects Native subagents/);
+  assert.match(reference, /Do not probe, propose, or invoke an external provider until the user selects\s+External or Hybrid/);
+  assert.match(reference, /Never invoke the same harness that owns the current host task/);
+  assert.match(reference, /input_digest/);
+  assert.match(reference, /must not be the sole\s+general reviewer/);
+  assert.match(bridge, /buildClaudeArgs/);
+  assert.match(bridge, /runExternalAgent/);
+  assert.match(bridge, /scope_completed/);
+  assert.match(bridge, /SIGKILL/);
+  assert.match(providerContract, /composeAgentPrompt/);
+  assert.match(providers, /claudeAdapter/);
+  assert.match(providers, /codexAdapter/);
+  assert.match(providers, /qwenAdapter/);
+  assert.match(providers, /openCodeAdapter/);
+  assert.match(providers, /codeWhaleAdapter/);
+  assert.match(providers, /antigravityAdapter/);
+  assert.doesNotMatch(bridge, /dangerously-skip-permissions/);
 });
 
 test('contract rejects deleted delivery-loop workflow responsibilities', async () => {

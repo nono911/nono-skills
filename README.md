@@ -54,6 +54,30 @@ Use the npm installer when you want the managed `engineering:*` Codex plugin, na
 npx nono-skills install
 ```
 
+The optional local-agent bridge needs no additional skill installation. It
+currently provides reviewed adapters for Claude Code, OpenAI Codex, Qwen Code,
+OpenCode, and CodeWhale. Google Antigravity is detected for diagnostics but its
+TUI is not automated; the official SDK remains the future programmatic path.
+Inspect compatible CLIs, persist preferred providers, or diagnose enabled
+providers with:
+
+```bash
+npx nono-skills agents list
+npx nono-skills agents setup
+npx nono-skills agents doctor
+npx nono-skills agents policy qwen isolated-writer
+```
+
+`agents setup` records detected compatible providers as preferred and defaults
+each one to `review-only`; it is optional and never changes the Native-subagent
+default. Use `agents policy <name>
+isolated-writer` only when you want that provider to be eligible for implementation
+after you explicitly select an external execution path. Detection and setup never
+start an agent or share repository content. `delivery-loop` still states the harness, underlying
+provider/model when discoverable, role, source scope, worktree, call limit,
+timeout, and budget, then obtains explicit consent for each run. Use
+`npx nono-skills agents disable claude` to exclude Claude Code from proposals.
+
 Choose one installation path for the same agent and scope. Installing both the universal standalone skills and native Codex plugin can expose duplicate skill names.
 
 Then work normally:
@@ -145,7 +169,7 @@ For UI criteria, API success, source inspection, automated test output, or revie
 
 ## Isolated delivery loop
 
-Activate `delivery-loop` when a feature should be isolated in a Git worktree, implemented, independently reviewed, and remediated before it is considered complete. This workflow is explicit-only and is not selected automatically. The example uses the native Codex namespace.
+Activate `delivery-loop` when a feature should be isolated in a Git worktree, implemented, independently reviewed, and remediated before it is considered complete. This workflow is explicit-only and is not selected automatically. The example uses the native Codex namespace. Native host agents remain the default; compatible local agent CLIs are optional collaborators when provider diversity or an independent work split materially helps.
 
 When the current host already provides an isolated worktree, start there when practical; the workflow reuses that host-managed worktree and never creates a nested one. Otherwise, start from the intended base checkout and invoke the skill explicitly. The current local checkout may contain unrelated changes because a separately approved feature worktree isolates them:
 
@@ -163,24 +187,57 @@ Acceptance criteria:
 Do not push.
 ```
 
-When the task already runs in a host-managed worktree, the agent reuses it and requests only missing commit authority. Otherwise, unless the initial prompt already authorizes every local action, the agent proposes the exact base revision, branch, and worktree path, then asks once for approval to create them plus up to two local commits. The workflow then runs in this order:
+You still invoke only `delivery-loop`; there is no separate skill for Claude,
+Codex, Qwen, OpenCode, or CodeWhale. For example, add `Use Qwen Code only as a
+read-only reviewer` or `Split independent implementation across eligible agents,
+with at most two external calls` when you want a specific policy. Otherwise the
+orchestrator uses fresh native agents or subagents from the current host and does
+not probe or propose external providers.
+
+When the task already runs in a host-managed worktree, the agent reuses it and requests only missing commit authority. Otherwise, unless the initial prompt already authorizes every local action, the agent proposes the exact base revision, branch, and worktree path, then asks once for approval to create them plus up to two local commits. That approval includes these agent-execution choices:
+
+1. `Native subagents (default)` — use fresh agents or subagents from the current host.
+2. `External CLI agents` — select a compatible local provider, then confirm its source scope and per-run consent.
+3. `Hybrid` — keep native orchestration and add approved external reviewers or isolated writers.
+
+If the user approves without choosing, the workflow uses Native subagents. It
+does not infer external consent from an installed or enabled provider. The
+workflow then runs in this order:
 
 1. Reuse the current host-managed or dedicated feature worktree, or create the approved Git CLI worktree and branch from the recorded base SHA.
 2. For multi-step work, activate the companion `plan` skill before implementation. Keep it in the conversation unless a durable workspace is approved; do not create planning artifacts for a small well-defined feature.
-3. Keep the original agent as orchestrator and activate the companion `implement` skill for the feature.
-4. Run the repository's required checks and create the authorized implementation commit.
-5. Use a fresh project-scoped reviewer agent or fresh reviewer subagent and instruct it to activate the companion `review` skill. If that capability disappears after implementation, stop rather than substituting self-review or claiming `CLEAN`.
-6. Validate actionable findings, then have the original agent activate the companion `fix-findings` skill.
-7. Review the complete feature diff again with a fresh reviewer. Repeat until required reviewers return `CLEAN` or the bounded loop requires human input.
-8. Add a separate read-only security, architecture, or migration review only when the changed risk makes it relevant.
-9. Run final verification and create one review-fix commit when any validated post-implementation fix changed code and the resulting state passed fresh review.
+3. Use native subagents by default. Only after the user selects External or Hybrid, probe optional agent CLIs locally with version, help, and documented offline capability checks, then propose bridge-reported roles and obtain any missing provider, data-sharing, call-budget, and child-worktree consent.
+4. Keep the original agent as orchestrator and activate the companion `implement` skill for the feature. Read-only delegates may work in parallel; write delegates receive disjoint ownership and separate approved child worktrees.
+5. Inspect every delegated result, reject out-of-scope changes, integrate accepted work, and run the repository's required checks before creating the authorized implementation commit.
+6. Use a fresh project-scoped reviewer agent or fresh reviewer subagent and instruct it to activate the companion `review` skill. An approved external reviewer may join or fill this role only with fresh, read-only context. If independent review becomes unavailable, stop rather than substituting self-review or claiming `CLEAN`.
+7. Validate actionable findings, then have the original agent activate the companion `fix-findings` skill.
+8. Review the complete feature diff again with a fresh reviewer. Repeat until required reviewers return `CLEAN` or the bounded loop requires human input.
+9. Add a separate read-only security, architecture, or migration review only when the changed risk makes it relevant.
+10. Run final verification and create one review-fix commit when any validated post-implementation fix changed code and the resulting state passed fresh review.
 
 Each reviewer receives the worktree path, baseline and target revisions, acceptance criteria, repository guidance, verification evidence, complete diff, and prior finding dispositions. It reviews the full diff independently before reconciling earlier findings. Implementer conclusions are not passed as review evidence. Style preferences and unsupported speculation do not block completion.
 Reviewer agents return findings and proposed decision-log records to the original orchestrator; they never edit code or durable workspace artifacts themselves.
 
 One review round is one complete batch over the same HEAD: the general reviewer plus any security, architecture, or migration specialists required by the current risk. The default limit is five complete review rounds, not two; repeated or disputed findings are escalated instead of being silently closed.
 
-Approval is scoped. Invoking `delivery-loop` alone does not authorize worktree creation or commits; the agent asks once unless both were already authorized in the initial prompt. If required worktree creation is declined, the loop ends; the agent may offer ordinary implementation in the current checkout only with separate write and commit authority. Push, merge, deploy, production mutation, worktree removal, and branch deletion always require separate authorization.
+Approval is scoped. Invoking `delivery-loop` alone does not authorize worktree creation, commits, or sharing source with an external provider; the agent asks once unless those exact actions were already authorized in the initial prompt. Enabling a provider is never consent to run it. If required worktree creation is declined, the loop ends; the agent may offer ordinary implementation in the current checkout only with separate write and commit authority. Push, merge, deploy, production mutation, worktree removal, and branch deletion always require separate authorization.
+
+Every adapter must provide a noninteractive permission boundary and return the
+same validated task identity and result contract. Claude Code receives scoped
+file tools and no shell; Codex uses its native read-only or workspace-write
+sandbox; Qwen Code uses safe mode, sandboxing, excluded shell/web/subagent tools,
+and native budgets; OpenCode uses pure mode and deny-by-default inline
+permissions; CodeWhale requires a doctor-reported OS sandbox, disables shell,
+clamps nested-agent concurrency, and explicitly forbids further delegation in
+the task contract. The original orchestrator owns official verification, Git,
+integration, and commits.
+
+The loop never invokes Claude Code from a Claude Code host task—or any provider
+from a task owned by the same harness. A failed or malformed external result is
+rejected rather than treated as `CLEAN`. If an external provider implemented any
+part of the feature, it may supplement review but cannot be the sole general
+reviewer. Review independence tracks the harness, underlying provider/model, and
+fresh session; changing only the CLI wrapper does not create model diversity.
 
 If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. Git CLI-created and permanent feature worktrees remain available for inspection by default; host-managed worktree lifecycle stays under the host.
 
@@ -255,6 +312,7 @@ For the native Codex plugin:
 
 ```bash
 npx nono-skills doctor
+npx nono-skills agents doctor
 npx nono-skills update
 npx nono-skills uninstall
 ```
@@ -286,6 +344,8 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 - Project files are never overwritten without `--force` and a backup.
 - Agent-proposed durable workspaces require one explicit approval before creation; explicit artifact requests already provide consent for their scope.
 - Delivery loop reuses an active host-managed worktree without nesting. New Git CLI worktrees require approval for the exact base, branch, and path and are preserved until separately authorized for removal.
+- External-agent discovery uses only local version and capability probes. Every external run requires fresh consent for provider, role, data scope, worktree, and call or budget bounds; write workers never receive shell or Git authority.
+- Provider setup defaults to `review-only`. An `isolated-writer` policy makes implementation eligible for proposal but never replaces per-run consent or child-worktree isolation.
 - Bugfix loop applies the same isolation and authority rules, requires pre-fix evidence, and never treats unreviewed round-five fixes as a clean result.
 - Acceptance verification stays source-read-only, uses the least privileged suitable test identity, and requires new authority before risky external actions.
 - Work-item directories are user-owned, and uninstall purge never removes them.

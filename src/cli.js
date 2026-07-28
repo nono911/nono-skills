@@ -1,4 +1,6 @@
-const COMMANDS = new Set(['install', 'init', 'update', 'doctor', 'uninstall']);
+const COMMANDS = new Set(['install', 'init', 'update', 'doctor', 'agents', 'uninstall']);
+const AGENT_COMMANDS = new Set(['list', 'setup', 'enable', 'disable', 'policy', 'doctor']);
+const AGENT_POLICIES = new Set(['review-only', 'isolated-writer']);
 
 export const HELP = `nono-skills <command> [options]
 
@@ -7,7 +9,17 @@ Commands:
   init [directory]        Add repository guidance and a reviewer agent
   update                  Update an owned plugin installation
   doctor                  Diagnose the plugin installation
+  agents [command]        Inspect or configure optional local agent CLIs
   uninstall               Remove the owned plugin installation
+
+Agent commands:
+  agents list             Show detected providers and configuration
+  agents setup            Prefer every detected compatible provider
+  agents enable <name>    Prefer a provider for delivery-loop proposals
+  agents disable <name>   Exclude a provider from delivery-loop proposals
+  agents policy <name> <review-only|isolated-writer>
+                          Restrict the durable role policy for a provider
+  agents doctor           Diagnose optional provider configuration
 
 Options:
   --dry-run               Show project changes without writing
@@ -20,7 +32,8 @@ Options:
 export function parseArgs(argv) {
   const result = {
     command: 'help', target: undefined, force: false, dryRun: false,
-    purgeProject: undefined, help: false, version: false,
+    purgeProject: undefined, agentCommand: undefined, provider: undefined, agentPolicy: undefined,
+    help: false, version: false,
   };
   const args = [...argv];
   if (args.length === 0) {
@@ -37,6 +50,27 @@ export function parseArgs(argv) {
     return result;
   }
   result.command = args.shift();
+  if (result.command === 'agents') {
+    result.agentCommand = args.shift() ?? 'list';
+    if (result.agentCommand === '--help' || result.agentCommand === '-h') {
+      result.help = true;
+      return result;
+    }
+    if (!AGENT_COMMANDS.has(result.agentCommand)) {
+      throw new Error(`Unknown agents command: ${result.agentCommand}`);
+    }
+    if (['enable', 'disable', 'policy'].includes(result.agentCommand)) {
+      result.provider = args.shift();
+      if (!result.provider) throw new Error(`agents ${result.agentCommand} requires a provider`);
+    }
+    if (result.agentCommand === 'policy') {
+      result.agentPolicy = args.shift();
+      if (!result.agentPolicy) throw new Error('agents policy requires a policy');
+      if (!AGENT_POLICIES.has(result.agentPolicy)) {
+        throw new Error(`Unknown external agent policy: ${result.agentPolicy}`);
+      }
+    }
+  }
   while (args.length) {
     const arg = args.shift();
     if (arg === '--force') result.force = true;

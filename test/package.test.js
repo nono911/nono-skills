@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import test from 'node:test';
@@ -10,6 +11,21 @@ const exec = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
 const expectedSkills = canonicalSkillNames;
 
+test('npm metadata advertises the supported external agent harnesses', async () => {
+  const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
+  for (const keyword of [
+    'multi-agent-cli',
+    'agent-orchestration',
+    'claude-code',
+    'qwen-code',
+    'opencode',
+    'codewhale',
+    'antigravity',
+  ]) {
+    assert.equal(packageJson.keywords.includes(keyword), true, `missing keyword ${keyword}`);
+  }
+});
+
 test('npm package includes runtime assets and excludes development state', async () => {
   const { stdout } = await exec('npm', ['pack', '--json', '--dry-run'], { cwd: root });
   const [{ files }] = JSON.parse(stdout);
@@ -17,6 +33,16 @@ test('npm package includes runtime assets and excludes development state', async
   for (const required of [
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
     'plugin/references/workspaces.md', 'scripts/sync-portable-resources.mjs',
+    'plugin/skills/delivery-loop/references/agent-delegation.md',
+    'plugin/skills/delivery-loop/scripts/agent-bridge.mjs',
+    'plugin/skills/delivery-loop/scripts/provider-contract.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/index.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/claude.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/codex.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/qwen.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/opencode.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/codewhale.mjs',
+    'plugin/skills/delivery-loop/scripts/providers/antigravity.mjs',
     'templates/AGENTS.md', 'README.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
   assert.equal(expectedSkills.length, 18);

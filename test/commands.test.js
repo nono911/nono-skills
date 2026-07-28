@@ -86,6 +86,136 @@ test('doctor command returns failure when checks fail', async () => {
   assert.match(stdout.read(), /FAIL codex/);
 });
 
+test('agents setup enables compatible local providers without invoking them', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
+  const stdout = writer();
+  const enabled = [];
+  const handlers = createHandlers({
+    packageRoot: root,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.8.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    agentBridge: {
+      listAgentProviders: async () => [{
+        name: 'claude', displayName: 'Claude Code', available: true,
+        compatible: true, enabled: undefined, version: '2.1.220',
+        roles: { review: true, implement: true },
+      }],
+      setAgentProviderEnabled: async ({ provider, enabled: state }) => {
+        enabled.push({ provider, enabled: state });
+      },
+      setAgentProviderPolicy: async () => {},
+    },
+  });
+
+  assert.equal(await handlers.agents({ agentCommand: 'setup' }), 0);
+  assert.deepEqual(enabled, [{ provider: 'claude', enabled: true }]);
+  assert.match(stdout.read(), /ENABLED claude/);
+  assert.match(stdout.read(), /per-run consent/);
+});
+
+test('agents policy persists an isolated writer only for an implementation-capable provider', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
+  const stdout = writer();
+  const policies = [];
+  const handlers = createHandlers({
+    packageRoot: root,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.8.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    agentBridge: {
+      listAgentProviders: async () => [{
+        name: 'qwen', displayName: 'Qwen Code', available: true,
+        compatible: true, enabled: true, version: '0.16.2',
+        roles: { review: true, implement: true },
+      }],
+      setAgentProviderEnabled: async () => {},
+      setAgentProviderPolicy: async (value) => { policies.push(value); },
+    },
+  });
+
+  assert.equal(await handlers.agents({
+    agentCommand: 'policy',
+    provider: 'qwen',
+    agentPolicy: 'isolated-writer',
+  }), 0);
+  assert.deepEqual(policies, [{
+    home: path.join(root, 'home'),
+    provider: 'qwen',
+    policy: 'isolated-writer',
+  }]);
+  assert.match(stdout.read(), /POLICY qwen: isolated-writer/);
+  assert.match(stdout.read(), /per-run consent/);
+});
+
+test('agents list distinguishes available, incompatible, and unavailable providers', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
+  const stdout = writer();
+  const handlers = createHandlers({
+    packageRoot: root,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.8.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    agentBridge: {
+      listAgentProviders: async () => [
+        {
+          name: 'claude', displayName: 'Claude Code', available: true,
+          compatible: true, roles: { review: true, implement: true },
+          detail: 'compatible',
+        },
+        {
+          name: 'opencode', displayName: 'OpenCode', available: true,
+          compatible: false, roles: { review: false, implement: false },
+          detail: 'missing safe flags',
+        },
+        {
+          name: 'qwen', displayName: 'Qwen Code', available: false,
+          compatible: false, roles: { review: false, implement: false },
+          detail: 'command not found',
+        },
+      ],
+      setAgentProviderEnabled: async () => {},
+      setAgentProviderPolicy: async () => {},
+    },
+  });
+
+  assert.equal(await handlers.agents({ agentCommand: 'list' }), 0);
+  assert.match(stdout.read(), /AVAILABLE claude:/);
+  assert.match(stdout.read(), /INCOMPATIBLE opencode:/);
+  assert.match(stdout.read(), /UNAVAILABLE qwen:/);
+});
+
+test('agents doctor fails only when an enabled provider is unavailable', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
+  const stdout = writer();
+  const handlers = createHandlers({
+    packageRoot: root,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.8.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    agentBridge: {
+      listAgentProviders: async () => [{
+        name: 'claude', displayName: 'Claude Code', available: false,
+        compatible: false, enabled: true, version: undefined,
+        detail: 'command not found',
+      }],
+      setAgentProviderEnabled: async () => {},
+      setAgentProviderPolicy: async () => {},
+    },
+  });
+
+  assert.equal(await handlers.agents({ agentCommand: 'doctor' }), 1);
+  assert.match(stdout.read(), /FAIL claude/);
+});
+
 test('purge preflight fails before uninstall when project state is missing', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
   let uninstallCalls = 0;
