@@ -26,6 +26,7 @@ export const expectedDurableEndings = Object.freeze({
 });
 
 export const expectedSkillWordBudgets = Object.freeze({
+  'acceptance-verify': 1100,
   'bugfix-loop': 1500,
   'delivery-loop': 1500,
 });
@@ -47,6 +48,12 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
   ]),
   'release-readiness': Object.freeze([
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
+  ]),
+  plan: Object.freeze([
+    '- Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.',
+    '- For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.',
+    '- Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.',
+    '- Add negative, compatibility, rollout, or rollback criteria only when material to the risk.',
   ]),
   'delivery-loop': Object.freeze([
     '- Refer to companion skills by their frontmatter names, such as `implement` or `review`. Invoke them through the host\'s native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.',

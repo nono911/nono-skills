@@ -1,6 +1,6 @@
 ---
 name: fix-findings
-description: Use when validated review, audit, QA, or security findings must be corrected and verified in the current codebase.
+description: Use when validated review, audit, QA, or security findings are the primary work queue and must be corrected and verified; use implement for a general requirement or feature.
 ---
 
 # Fix Findings

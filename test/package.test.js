@@ -32,6 +32,7 @@ test('npm package includes runtime assets and excludes development state', async
   const names = files.map((file) => file.path);
   for (const required of [
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
+    'evals/skill-behavior.json', 'scripts/eval-skills.mjs',
     'plugin/references/workspaces.md', 'scripts/sync-portable-resources.mjs',
     'plugin/skills/delivery-loop/references/agent-delegation.md',
     'plugin/skills/delivery-loop/scripts/agent-bridge.mjs',

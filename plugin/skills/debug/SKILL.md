@@ -1,6 +1,6 @@
 ---
 name: debug
-description: Use when behavior is wrong, failing, flaky, slow, inconsistent, or unexplained and the root cause must be isolated from runtime evidence.
+description: Use when behavior is wrong, failing, flaky, slow, inconsistent, or unexplained and the root cause must be isolated from runtime evidence; use bugfix-loop only when its full isolated fix-and-review workflow is explicitly requested.
 ---
 
 # Debug

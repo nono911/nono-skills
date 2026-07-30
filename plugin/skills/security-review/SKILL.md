@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: Use when security is the primary assessment objective for code, configuration, architecture, identities, data handling, or a change set.
+description: Use when security is the primary assessment objective for code, configuration, architecture, identities, data handling, or a change set; use review for a general defect review.
 ---
 
 # Security Review

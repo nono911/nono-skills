@@ -12,12 +12,14 @@ import {
   assertSkillWorkspaceContract,
   expectedDurableEndings,
 } from '../src/skill-contract.js';
+import { loadSkillEvalCorpus } from '../src/skill-eval.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
 assert.equal(plugin.name, 'engineering');
 assert.equal(plugin.version, packageJson.version);
+await loadSkillEvalCorpus(path.join(root, 'evals', 'skill-behavior.json'));
 
 const skillRoot = path.join(root, 'plugin', 'skills');
 const skillFiles = (await listFiles(skillRoot)).filter((file) => file.endsWith('/SKILL.md'));

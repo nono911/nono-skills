@@ -1,6 +1,6 @@
 {
   "name": "nono-skills",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
   "author": "thitikorn.j",
   "type": "module",
@@ -12,9 +12,10 @@
   },
   "scripts": {
     "test": "node --test",
+    "eval:skills": "node scripts/eval-skills.mjs",
     "sync:portable": "node scripts/sync-portable-resources.mjs",
     "validate": "node scripts/validate.mjs",
-    "prepublishOnly": "npm test && npm run validate"
+    "prepublishOnly": "npm test && npm run validate && npm run eval:skills"
   },
   "files": [
     "bin/",
@@ -22,6 +23,7 @@
     "plugin/",
     "templates/",
     "scripts/",
+    "evals/",
     "README.md",
     "LICENSE"
   ],

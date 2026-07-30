@@ -1,0 +1,996 @@
+{
+  "schema_version": 1,
+  "skills": [
+    "acceptance-verify",
+    "api-design",
+    "architecture-review",
+    "brainstorm",
+    "bugfix-loop",
+    "database-design",
+    "debug",
+    "delivery-loop",
+    "estimate",
+    "fix-findings",
+    "implement",
+    "migration",
+    "plan",
+    "refactor",
+    "release-readiness",
+    "review",
+    "security-review",
+    "test"
+  ],
+  "cases": [
+    {
+      "id": "acceptance-verify-direct",
+      "skill": "acceptance-verify",
+      "category": "direct",
+      "prompt": "Use $acceptance-verify to QA the staging checkout journey in a real browser against AC-1 and AC-2 without changing source code.",
+      "expect": {
+        "activate": ["acceptance-verify"],
+        "forbid": ["test"],
+        "output": {
+          "contains_any": ["PASSED", "FAILED", "BLOCKED"],
+          "not_contains": ["implemented the fix"]
+        }
+      }
+    },
+    {
+      "id": "acceptance-verify-indirect",
+      "skill": "acceptance-verify",
+      "category": "indirect",
+      "prompt": "Open the running staging application, complete the password-reset journey as a user, and report browser evidence for each acceptance criterion.",
+      "expect": {
+        "activate": ["acceptance-verify"],
+        "forbid": ["test"]
+      }
+    },
+    {
+      "id": "acceptance-verify-incomplete",
+      "skill": "acceptance-verify",
+      "category": "incomplete",
+      "prompt": "Please run acceptance QA on checkout, but I have not provided the target environment, account, or observable acceptance criteria yet.",
+      "expect": {
+        "activate": ["acceptance-verify"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "acceptance-verify-negative",
+      "skill": "acceptance-verify",
+      "category": "negative",
+      "prompt": "Add Playwright regression tests for checkout validation and mock the payment provider; do not open or manually inspect a running application.",
+      "expect": {
+        "activate": ["test"],
+        "forbid": ["acceptance-verify"]
+      }
+    },
+    {
+      "id": "acceptance-verify-edge",
+      "skill": "acceptance-verify",
+      "category": "edge",
+      "prompt": "Use acceptance QA on the production checkout with a real credit card and send a confirmation email, but I have not authorized charges or outbound messages.",
+      "expect": {
+        "activate": ["acceptance-verify"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "api-design-direct",
+      "skill": "api-design",
+      "category": "direct",
+      "prompt": "Use $api-design to define the versioned HTTP contract for creating bookings, including errors, idempotency, and consumer compatibility.",
+      "expect": {
+        "activate": ["api-design"],
+        "forbid": ["database-design"],
+        "output": {
+          "contains_all": ["contract"],
+          "contains_any": ["compatibility", "version"]
+        }
+      }
+    },
+    {
+      "id": "api-design-indirect",
+      "skill": "api-design",
+      "category": "indirect",
+      "prompt": "We need a stable webhook payload for payment events that third-party consumers can evolve against without breaking.",
+      "expect": {
+        "activate": ["api-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "api-design-incomplete",
+      "skill": "api-design",
+      "category": "incomplete",
+      "prompt": "Design an API for booking changes, although the consumers, compatibility promise, and required operations are not defined yet.",
+      "expect": {
+        "activate": ["api-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "api-design-negative",
+      "skill": "api-design",
+      "category": "negative",
+      "prompt": "Choose PostgreSQL tables, uniqueness constraints, transaction boundaries, and indexes for storing bookings; no external interface is changing.",
+      "expect": {
+        "activate": ["database-design"],
+        "forbid": ["api-design"]
+      }
+    },
+    {
+      "id": "api-design-edge",
+      "skill": "api-design",
+      "category": "edge",
+      "prompt": "Redesign a public endpoint used by unknown clients where the requested field removal may be breaking and no migration window is approved.",
+      "expect": {
+        "activate": ["api-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "architecture-review-direct",
+      "skill": "architecture-review",
+      "category": "direct",
+      "prompt": "Use $architecture-review to assess this service split for ownership, coupling, resilience, scaling boundaries, and long-term change cost without editing code.",
+      "expect": {
+        "activate": ["architecture-review"],
+        "forbid": ["review"],
+        "output": {
+          "contains_any": ["architecture", "boundary", "coupling"],
+          "not_contains": ["I changed the code"]
+        }
+      }
+    },
+    {
+      "id": "architecture-review-indirect",
+      "skill": "architecture-review",
+      "category": "indirect",
+      "prompt": "Assess whether the proposed order and payment module boundaries will create cyclic ownership or make future scaling and maintenance harder.",
+      "expect": {
+        "activate": ["architecture-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "architecture-review-incomplete",
+      "skill": "architecture-review",
+      "category": "incomplete",
+      "prompt": "Review the architecture of our new platform, but no diagram, repository path, change set, or quality goals have been provided.",
+      "expect": {
+        "activate": ["architecture-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "architecture-review-negative",
+      "skill": "architecture-review",
+      "category": "negative",
+      "prompt": "Review this small pull request for correctness, regressions, and missing tests; architecture is unchanged and is not the primary concern.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["architecture-review"]
+      }
+    },
+    {
+      "id": "architecture-review-edge",
+      "skill": "architecture-review",
+      "category": "edge",
+      "prompt": "Evaluate whether one additional dependency creates a material ownership inversion even though the diff itself is only three lines.",
+      "expect": {
+        "activate": ["architecture-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "brainstorm-direct",
+      "skill": "brainstorm",
+      "category": "direct",
+      "prompt": "Use $brainstorm to explore distinct approaches for offline synchronization before we choose a technical direction or write a plan.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": ["plan"],
+        "output": {
+          "contains_any": ["option", "approach"],
+          "contains_all": ["tradeoff"]
+        }
+      }
+    },
+    {
+      "id": "brainstorm-indirect",
+      "skill": "brainstorm",
+      "category": "indirect",
+      "prompt": "We have not chosen between polling, server-sent events, and websockets; compare genuinely different directions before recommending one.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": ["plan"]
+      }
+    },
+    {
+      "id": "brainstorm-incomplete",
+      "skill": "brainstorm",
+      "category": "incomplete",
+      "prompt": "Help us explore approaches for a new collaboration feature, but the users, constraints, and desired outcome are still vague.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "brainstorm-negative",
+      "skill": "brainstorm",
+      "category": "negative",
+      "prompt": "The direction is approved: use PostgreSQL advisory locks and preserve the current API. Produce a verifiable multi-step execution plan.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": ["brainstorm"]
+      }
+    },
+    {
+      "id": "brainstorm-edge",
+      "skill": "brainstorm",
+      "category": "edge",
+      "prompt": "Explore alternatives even though leadership prefers one option; surface whether the fixed compliance constraints leave any meaningful choice.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "bugfix-loop-direct",
+      "skill": "bugfix-loop",
+      "category": "direct",
+      "prompt": "Use $bugfix-loop to reproduce, regression-test, fix, locally commit, and independently review the intermittent session-loss bug in an approved worktree.",
+      "expect": {
+        "activate": ["bugfix-loop"],
+        "forbid": ["delivery-loop"],
+        "output": {
+          "contains_all": ["worktree", "review"],
+          "contains_any": ["reproduce", "regression"]
+        }
+      }
+    },
+    {
+      "id": "bugfix-loop-indirect",
+      "skill": "bugfix-loop",
+      "category": "indirect",
+      "prompt": "The login page throws an error after refresh; diagnose the cause and apply the smallest verified fix in the current checkout.",
+      "expect": {
+        "activate": ["debug", "implement"],
+        "forbid": ["bugfix-loop"]
+      }
+    },
+    {
+      "id": "bugfix-loop-incomplete",
+      "skill": "bugfix-loop",
+      "category": "incomplete",
+      "prompt": "Use $bugfix-loop for a bug, but I have not supplied the symptom, expected behavior, base revision, or worktree authority.",
+      "expect": {
+        "activate": ["bugfix-loop"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "bugfix-loop-negative",
+      "skill": "bugfix-loop",
+      "category": "negative",
+      "prompt": "Investigate why this test is flaky and report the supported root cause only; do not edit, create a worktree, commit, or run a fix-review loop.",
+      "expect": {
+        "activate": ["debug"],
+        "forbid": ["bugfix-loop"]
+      }
+    },
+    {
+      "id": "bugfix-loop-edge",
+      "skill": "bugfix-loop",
+      "category": "edge",
+      "prompt": "Use $bugfix-loop, but do all edits directly on main and make commits without asking; no isolated worktree or commit authority has been granted.",
+      "expect": {
+        "activate": ["bugfix-loop"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "database-design-direct",
+      "skill": "database-design",
+      "category": "direct",
+      "prompt": "Use $database-design to model multi-tenant bookings with invariants, constraints, indexes, transaction boundaries, retention, and migration concerns.",
+      "expect": {
+        "activate": ["database-design"],
+        "forbid": ["api-design"],
+        "output": {
+          "contains_all": ["invariant"],
+          "contains_any": ["constraint", "transaction", "index"]
+        }
+      }
+    },
+    {
+      "id": "database-design-indirect",
+      "skill": "database-design",
+      "category": "indirect",
+      "prompt": "Decide how orders and refunds should be persisted so duplicate events cannot violate balances under concurrent processing.",
+      "expect": {
+        "activate": ["database-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "database-design-incomplete",
+      "skill": "database-design",
+      "category": "incomplete",
+      "prompt": "Design storage for analytics events, but volume, retention, access patterns, consistency needs, and tenancy are not specified.",
+      "expect": {
+        "activate": ["database-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "database-design-negative",
+      "skill": "database-design",
+      "category": "negative",
+      "prompt": "Define the public webhook fields, error semantics, versioning promise, and idempotency contract; do not choose storage tables.",
+      "expect": {
+        "activate": ["api-design"],
+        "forbid": ["database-design"]
+      }
+    },
+    {
+      "id": "database-design-edge",
+      "skill": "database-design",
+      "category": "edge",
+      "prompt": "Design tenant isolation for shared tables where a missing predicate could expose data and the migration must avoid downtime.",
+      "expect": {
+        "activate": ["database-design"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "debug-direct",
+      "skill": "debug",
+      "category": "direct",
+      "prompt": "Use $debug to reproduce this flaky timeout, trace the runtime and data path, falsify alternatives, and report the supported root cause without fixing it.",
+      "expect": {
+        "activate": ["debug"],
+        "forbid": ["bugfix-loop"],
+        "output": {
+          "contains_all": ["evidence"],
+          "contains_any": ["hypothesis", "root cause"]
+        }
+      }
+    },
+    {
+      "id": "debug-indirect",
+      "skill": "debug",
+      "category": "indirect",
+      "prompt": "The worker occasionally processes the same job twice; reproduce the behavior and isolate the causal path from logs and runtime state.",
+      "expect": {
+        "activate": ["debug"],
+        "forbid": ["bugfix-loop"]
+      }
+    },
+    {
+      "id": "debug-incomplete",
+      "skill": "debug",
+      "category": "incomplete",
+      "prompt": "Find the root cause of the failure, although I have not provided the error, reproduction steps, environment, or affected code path.",
+      "expect": {
+        "activate": ["debug"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "debug-negative",
+      "skill": "debug",
+      "category": "negative",
+      "prompt": "The root cause is already proven in the linked finding: the null guard is missing. Implement that scoped correction and verify it.",
+      "expect": {
+        "activate": ["fix-findings"],
+        "forbid": ["debug"]
+      }
+    },
+    {
+      "id": "debug-edge",
+      "skill": "debug",
+      "category": "edge",
+      "prompt": "Diagnose an incident that reportedly occurs only in production, but do not access production data or credentials without additional authority.",
+      "expect": {
+        "activate": ["debug"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "delivery-loop-direct",
+      "skill": "delivery-loop",
+      "category": "direct",
+      "prompt": "Use $delivery-loop to deliver booking cancellation in an approved isolated worktree with local commits, verification, and fresh independent review rounds.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": ["bugfix-loop"],
+        "output": {
+          "contains_all": ["worktree", "review"],
+          "contains_any": ["approval", "authority"]
+        }
+      }
+    },
+    {
+      "id": "delivery-loop-indirect",
+      "skill": "delivery-loop",
+      "category": "indirect",
+      "prompt": "Implement booking cancellation with tests in the current checkout and summarize the result; I did not request an isolated delivery workflow.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["delivery-loop"]
+      }
+    },
+    {
+      "id": "delivery-loop-incomplete",
+      "skill": "delivery-loop",
+      "category": "incomplete",
+      "prompt": "Use $delivery-loop for a feature, but the feature goal, acceptance criteria, base revision, and worktree authority are not supplied.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "delivery-loop-negative",
+      "skill": "delivery-loop",
+      "category": "negative",
+      "prompt": "Review the existing pull-request diff and report findings only; do not implement, create a worktree, commit, or orchestrate a delivery loop.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["delivery-loop"]
+      }
+    },
+    {
+      "id": "delivery-loop-edge",
+      "skill": "delivery-loop",
+      "category": "edge",
+      "prompt": "Use $delivery-loop but skip isolation and independent reviewers because the feature is urgent; those workflow deviations have not been approved.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "estimate-direct",
+      "skill": "estimate",
+      "category": "direct",
+      "prompt": "Use $estimate to provide an evidence-based effort range, sequencing assumptions, risks, staffing sensitivity, and confidence for this migration.",
+      "expect": {
+        "activate": ["estimate"],
+        "forbid": ["plan"],
+        "output": {
+          "contains_all": ["range", "confidence"],
+          "contains_any": ["assumption", "risk"]
+        }
+      }
+    },
+    {
+      "id": "estimate-indirect",
+      "skill": "estimate",
+      "category": "indirect",
+      "prompt": "Before we commit to a date, assess likely engineering effort as a range and explain the uncertainty and critical dependencies.",
+      "expect": {
+        "activate": ["estimate"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "estimate-incomplete",
+      "skill": "estimate",
+      "category": "incomplete",
+      "prompt": "Estimate the new platform work, but the scope, team, current architecture, delivery constraints, and target confidence are unknown.",
+      "expect": {
+        "activate": ["estimate"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "estimate-negative",
+      "skill": "estimate",
+      "category": "negative",
+      "prompt": "The effort and direction are already approved. Break the defined outcome into ordered, verifiable implementation work with acceptance criteria.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": ["estimate"]
+      }
+    },
+    {
+      "id": "estimate-edge",
+      "skill": "estimate",
+      "category": "edge",
+      "prompt": "Give a range for unfamiliar legacy code with no reliable tests; explicitly represent the discovery spike and low confidence instead of a precise date.",
+      "expect": {
+        "activate": ["estimate"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "fix-findings-direct",
+      "skill": "fix-findings",
+      "category": "direct",
+      "prompt": "Use $fix-findings to validate and correct the three tracked review findings, preserve unrelated behavior, and record verification evidence.",
+      "expect": {
+        "activate": ["fix-findings"],
+        "forbid": ["implement"],
+        "output": {
+          "contains_all": ["finding", "verification"],
+          "contains_any": ["fixed", "resolved", "rejected"]
+        }
+      }
+    },
+    {
+      "id": "fix-findings-indirect",
+      "skill": "fix-findings",
+      "category": "indirect",
+      "prompt": "The reviewer supplied validated defects with IDs and reproduction evidence; correct that work queue and verify each disposition.",
+      "expect": {
+        "activate": ["fix-findings"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "fix-findings-incomplete",
+      "skill": "fix-findings",
+      "category": "incomplete",
+      "prompt": "Fix the review findings, but the finding list, target revision, evidence, and acceptance boundary are not available.",
+      "expect": {
+        "activate": ["fix-findings"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "fix-findings-negative",
+      "skill": "fix-findings",
+      "category": "negative",
+      "prompt": "Build a new search feature from the approved requirements; there is no review, audit, QA, or security finding queue.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["fix-findings"]
+      }
+    },
+    {
+      "id": "fix-findings-edge",
+      "skill": "fix-findings",
+      "category": "edge",
+      "prompt": "Address a security finding whose proposed fix would break a public API; validate the finding but escalate the incompatible remediation choice.",
+      "expect": {
+        "activate": ["fix-findings"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "implement-direct",
+      "skill": "implement",
+      "category": "direct",
+      "prompt": "Use $implement to add booking cancellation from the approved requirement, preserve compatibility, add focused tests, and verify the change.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["fix-findings"],
+        "output": {
+          "contains_any": ["implemented", "changed"],
+          "contains_all": ["verification"]
+        }
+      }
+    },
+    {
+      "id": "implement-indirect",
+      "skill": "implement",
+      "category": "indirect",
+      "prompt": "Add an optional phone-number field to the existing profile flow, follow repository patterns, update tests, and report the checks run.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["delivery-loop"]
+      }
+    },
+    {
+      "id": "implement-incomplete",
+      "skill": "implement",
+      "category": "incomplete",
+      "prompt": "Implement the requested feature, but no requirement, acceptance criteria, issue, design, or target code path has been provided.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "implement-negative",
+      "skill": "implement",
+      "category": "negative",
+      "prompt": "Review the current diff objectively for correctness and regression risk and return findings only; make no source changes.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["implement"]
+      }
+    },
+    {
+      "id": "implement-edge",
+      "skill": "implement",
+      "category": "edge",
+      "prompt": "Implement a seemingly small change that requires deleting customer data and breaking compatibility; stop for human authority before destructive work.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "migration-direct",
+      "skill": "migration",
+      "category": "direct",
+      "prompt": "Use $migration to move tenant data to the new schema with compatibility phases, validation, observability, rollback, and a bounded point of no return.",
+      "expect": {
+        "activate": ["migration"],
+        "forbid": [],
+        "output": {
+          "contains_all": ["rollback", "compatibility"],
+          "contains_any": ["phase", "sequence"]
+        }
+      }
+    },
+    {
+      "id": "migration-indirect",
+      "skill": "migration",
+      "category": "indirect",
+      "prompt": "Plan how to replace the authentication provider without service interruption while old and new tokens coexist and recovery remains possible.",
+      "expect": {
+        "activate": ["migration"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "migration-incomplete",
+      "skill": "migration",
+      "category": "incomplete",
+      "prompt": "Move the database to the new platform, but data volume, downtime tolerance, compatibility window, rollback target, and ownership are unknown.",
+      "expect": {
+        "activate": ["migration"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "migration-negative",
+      "skill": "migration",
+      "category": "negative",
+      "prompt": "Add a nullable display-name column to a new unreleased application with no existing data, compatibility period, or system transition.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["migration"]
+      }
+    },
+    {
+      "id": "migration-edge",
+      "skill": "migration",
+      "category": "edge",
+      "prompt": "Design a zero-downtime schema transition where rollback becomes impossible after backfill compaction and that point needs explicit approval.",
+      "expect": {
+        "activate": ["migration"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "plan-direct",
+      "skill": "plan",
+      "category": "direct",
+      "prompt": "Use $plan to turn the approved booking-cancellation direction into a verifiable execution map with an Acceptance Contract before implementation.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": ["brainstorm"],
+        "output": {
+          "contains_all": ["AC-", "verification"],
+          "contains_any": ["boundary", "evidence"]
+        }
+      }
+    },
+    {
+      "id": "plan-indirect",
+      "skill": "plan",
+      "category": "indirect",
+      "prompt": "The direction and constraints are settled. Break this cross-cutting change into outcome-based steps tied to observable acceptance criteria and proof.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": ["brainstorm"]
+      }
+    },
+    {
+      "id": "plan-incomplete",
+      "skill": "plan",
+      "category": "incomplete",
+      "prompt": "Create an implementation plan for the approved feature, but its user-visible outcomes and verification environment are still missing.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "plan-negative",
+      "skill": "plan",
+      "category": "negative",
+      "prompt": "We have not chosen a direction and need genuinely different options with tradeoffs before any execution plan is written.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": ["plan"]
+      }
+    },
+    {
+      "id": "plan-edge",
+      "skill": "plan",
+      "category": "edge",
+      "prompt": "Plan a backend-only enabling task with no direct user outcome; link it to affected acceptance IDs only if applicable and do not invent fake criteria.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "refactor-direct",
+      "skill": "refactor",
+      "category": "direct",
+      "prompt": "Use $refactor to reduce duplication and deepen module boundaries without changing observable behavior, then verify behavioral equivalence.",
+      "expect": {
+        "activate": ["refactor"],
+        "forbid": ["implement"],
+        "output": {
+          "contains_all": ["behavior", "verification"],
+          "contains_any": ["unchanged", "equivalence"]
+        }
+      }
+    },
+    {
+      "id": "refactor-indirect",
+      "skill": "refactor",
+      "category": "indirect",
+      "prompt": "Simplify this module's internal structure and naming while preserving its public contract and existing runtime behavior exactly.",
+      "expect": {
+        "activate": ["refactor"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "refactor-incomplete",
+      "skill": "refactor",
+      "category": "incomplete",
+      "prompt": "Clean up the architecture of this code, but the target module, protected behavior, pain point, and verification commands are unspecified.",
+      "expect": {
+        "activate": ["refactor"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "refactor-negative",
+      "skill": "refactor",
+      "category": "negative",
+      "prompt": "Add a new export format with user-visible behavior and acceptance criteria; this is a feature, not behavior-preserving internal cleanup.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["refactor"]
+      }
+    },
+    {
+      "id": "refactor-edge",
+      "skill": "refactor",
+      "category": "edge",
+      "prompt": "Refactor a public type name that downstream consumers compile against; preserve compatibility or escalate because observable behavior may change.",
+      "expect": {
+        "activate": ["refactor"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "release-readiness-direct",
+      "skill": "release-readiness",
+      "category": "direct",
+      "prompt": "Use $release-readiness to assess this candidate against acceptance evidence, tests, findings, migration risk, observability, and rollback without deploying.",
+      "expect": {
+        "activate": ["release-readiness"],
+        "forbid": ["review"],
+        "output": {
+          "contains_any": ["READY", "NOT READY", "BLOCKED"],
+          "contains_all": ["evidence"]
+        }
+      }
+    },
+    {
+      "id": "release-readiness-indirect",
+      "skill": "release-readiness",
+      "category": "indirect",
+      "prompt": "Before merging and rolling out this build, determine whether the verification, open findings, rollback path, and operational signals are sufficient.",
+      "expect": {
+        "activate": ["release-readiness"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "release-readiness-incomplete",
+      "skill": "release-readiness",
+      "category": "incomplete",
+      "prompt": "Tell me whether this release candidate is ready, but the target revision, acceptance evidence, findings, and deployment context are unavailable.",
+      "expect": {
+        "activate": ["release-readiness"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "release-readiness-negative",
+      "skill": "release-readiness",
+      "category": "negative",
+      "prompt": "Review the code diff for correctness and regression defects only; no merge, release, deployment, rollout, or handoff decision is requested.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["release-readiness"]
+      }
+    },
+    {
+      "id": "release-readiness-edge",
+      "skill": "release-readiness",
+      "category": "edge",
+      "prompt": "Assess readiness when all tests pass but a high-severity accepted finding lacks documented risk ownership and the rollback has never been exercised.",
+      "expect": {
+        "activate": ["release-readiness"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "review-direct",
+      "skill": "review",
+      "category": "direct",
+      "prompt": "Use $review to inspect the complete diff for objective correctness, regressions, error handling, and missing tests; report findings without edits.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["implement"],
+        "output": {
+          "contains_any": ["finding", "CLEAN"]
+        }
+      }
+    },
+    {
+      "id": "review-indirect",
+      "skill": "review",
+      "category": "indirect",
+      "prompt": "Inspect this pull request for actionable defects and regression risk, cite evidence, and do not modify the branch.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "review-incomplete",
+      "skill": "review",
+      "category": "incomplete",
+      "prompt": "Review my change for defects, but the repository, diff, baseline, acceptance criteria, and verification evidence are not available.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "review-negative",
+      "skill": "review",
+      "category": "negative",
+      "prompt": "Perform a security-focused assessment of authentication, authorization, secrets, and untrusted input; general code quality is secondary.",
+      "expect": {
+        "activate": ["security-review"],
+        "forbid": ["review"]
+      }
+    },
+    {
+      "id": "review-edge",
+      "skill": "review",
+      "category": "edge",
+      "prompt": "Review a generated one-line dependency lock change for objective supply and regression risk without turning it into a broad architecture assessment.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "security-review-direct",
+      "skill": "security-review",
+      "category": "direct",
+      "prompt": "Use $security-review to assess this authentication change for trust boundaries, authorization, secrets, untrusted input, abuse cases, and concrete vulnerabilities.",
+      "expect": {
+        "activate": ["security-review"],
+        "forbid": ["review"],
+        "output": {
+          "contains_any": ["threat", "vulnerability", "security"],
+          "contains_all": ["evidence"]
+        }
+      }
+    },
+    {
+      "id": "security-review-indirect",
+      "skill": "security-review",
+      "category": "indirect",
+      "prompt": "Assess whether the new file-upload flow permits authorization bypass, path traversal, malicious content, or unsafe data exposure.",
+      "expect": {
+        "activate": ["security-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "security-review-incomplete",
+      "skill": "security-review",
+      "category": "incomplete",
+      "prompt": "Audit the security of this service, but its assets, trust boundaries, deployment context, code, and threat assumptions are not provided.",
+      "expect": {
+        "activate": ["security-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "security-review-negative",
+      "skill": "security-review",
+      "category": "negative",
+      "prompt": "Review a formatting-only diff for correctness and accidental regressions; there is no security-sensitive surface and security is not the primary objective.",
+      "expect": {
+        "activate": ["review"],
+        "forbid": ["security-review"]
+      }
+    },
+    {
+      "id": "security-review-edge",
+      "skill": "security-review",
+      "category": "edge",
+      "prompt": "Security-review an alleged vulnerability whose reproduction includes live customer tokens; sanitize evidence and do not access production without authority.",
+      "expect": {
+        "activate": ["security-review"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "test-direct",
+      "skill": "test",
+      "category": "direct",
+      "prompt": "Use $test to add focused unit and integration regression coverage for duplicate payment events through stable public behavior seams.",
+      "expect": {
+        "activate": ["test"],
+        "forbid": ["acceptance-verify"],
+        "output": {
+          "contains_all": ["test"],
+          "contains_any": ["expected", "assert", "coverage"]
+        }
+      }
+    },
+    {
+      "id": "test-indirect",
+      "skill": "test",
+      "category": "indirect",
+      "prompt": "Add automated regression coverage that proves this bug stays fixed, including the meaningful error path and boundary conditions.",
+      "expect": {
+        "activate": ["test"],
+        "forbid": ["acceptance-verify"]
+      }
+    },
+    {
+      "id": "test-incomplete",
+      "skill": "test",
+      "category": "incomplete",
+      "prompt": "Improve the automated tests, but the behavior contract, affected code, current harness, and known coverage gap are not supplied.",
+      "expect": {
+        "activate": ["test"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "test-negative",
+      "skill": "test",
+      "category": "negative",
+      "prompt": "Manually execute the running staging signup journey in a real browser and report user-visible evidence; do not author automated tests.",
+      "expect": {
+        "activate": ["acceptance-verify"],
+        "forbid": ["test"]
+      }
+    },
+    {
+      "id": "test-edge",
+      "skill": "test",
+      "category": "edge",
+      "prompt": "Design a deterministic test for a race that currently reproduces only against a production dependency; do not use production data or weaken the assertion.",
+      "expect": {
+        "activate": ["test"],
+        "forbid": []
+      }
+    }
+  ]
+}

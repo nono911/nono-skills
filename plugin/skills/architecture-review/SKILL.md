@@ -1,6 +1,6 @@
 ---
 name: architecture-review
-description: Use when architecture is the primary review objective for boundaries, coupling, ownership, scalability, resilience, maintainability, or long-term change cost.
+description: Use when architecture is the primary review objective for boundaries, coupling, ownership, scalability, resilience, maintainability, or long-term change cost; use review for a general defect review.
 ---
 
 # Architecture Review

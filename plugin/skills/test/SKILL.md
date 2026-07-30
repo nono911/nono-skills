@@ -1,6 +1,6 @@
 ---
 name: test
-description: Use when software behavior needs new or improved unit, integration, contract, end-to-end, edge-case, or regression tests, or when test coverage must be assessed.
+description: Use when software behavior needs automated unit, integration, contract, end-to-end, edge-case, or regression tests, or coverage assessment; use acceptance-verify for manual runtime QA of a running user journey.
 ---
 
 # Test

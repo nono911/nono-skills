@@ -144,6 +144,19 @@ $engineering:database-design
 
 Universal installations expose these frontmatter names through each host's own skill syntax and any namespace assigned by that host. Use the name shown in the agent's skill list rather than assuming the native Codex `$engineering:` prefix.
 
+## Acceptance Contract planning
+
+`plan` turns every user-visible or externally observable outcome into a compact
+Acceptance Contract. Criteria use stable `AC-<number>` identifiers and state the
+observable outcome, verification boundary, expected evidence, and at least one
+verification method. Plan outcomes reference affected acceptance IDs when
+applicable, so implementation, QA, review, and release readiness share the same
+definition of done.
+
+The contract stays proportional to risk. Internal enabling tasks do not receive
+invented acceptance criteria, and negative, compatibility, rollout, or rollback
+criteria are included only when they materially affect the change.
+
 ## QA acceptance verification
 
 Activate `acceptance-verify` through the current host to test a running user journey against explicit acceptance criteria. It behaves like an evidence-driven QA specialist: it interacts with the UI, inspects rendered state, correlates relevant console and network failures, and reports `PASSED`, `FAILED`, or `BLOCKED` per scenario. The example uses the native Codex namespace:
@@ -326,7 +339,7 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.10.0 makes both engineering loops leaner, loads external-provider guidance only after External or Hybrid is selected, and enforces progressive-disclosure word budgets in package validation. Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
+Version 0.11.0 adds Acceptance Contracts to planning, sharper trigger boundaries, a provider-neutral 90-case behavioral evaluation matrix, progressive-disclosure protection for acceptance QA, and CI across Windows, macOS, and Linux. Version 0.10.0 makes both engineering loops leaner, loads external-provider guidance only after External or Hybrid is selected, and enforces progressive-disclosure word budgets in package validation. Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
@@ -364,7 +377,39 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 npm test
 npm run sync:portable
 npm run validate
+npm run eval:skills
 npm pack --dry-run
 ```
+
+The behavioral corpus at `evals/skill-behavior.json` covers direct, indirect,
+incomplete, should-not-activate, and edge prompts for all 18 skills. Validation
+is deterministic and makes no model calls, so it runs safely in CI on Node.js 20
+and 24 across Linux, macOS, and Windows.
+
+To forward-test any Codex, Claude Code, Gemini CLI, or other Agent Skills host,
+export the cases as JSONL, run them through that host, and capture results in the
+provider-neutral schema:
+
+```bash
+node scripts/eval-skills.mjs cases
+node scripts/eval-skills.mjs score path/to/results.json
+```
+
+```json
+{
+  "schema_version": 1,
+  "results": [
+    {
+      "case_id": "plan-direct",
+      "activated_skills": ["plan"],
+      "output": "Acceptance Contract: AC-1 ... Verification ..."
+    }
+  ]
+}
+```
+
+Scoring checks required and forbidden activations plus lightweight output
+assertions. Full runs require all 90 cases; add `--allow-missing` only for an
+explicit exploratory subset.
 
 Run `npm run sync:portable` after changing the canonical workspace protocol so every self-contained skill receives the same reference. The runtime has no third-party dependencies.

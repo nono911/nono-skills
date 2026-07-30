@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use for a general objective code, diff, PR, or fix review without edits; use security-review when security is the primary assessment objective.
+description: Use for a general objective code, diff, PR, or fix review without edits; use architecture-review or security-review when either is the primary assessment objective.
 ---
 
 # Review

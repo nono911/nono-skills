@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Use when a software direction is defined enough to map multi-step, cross-cutting, risky, or long-running work into a concrete execution plan before implementation.
+description: Use when a software direction is defined enough to map multi-step, cross-cutting, risky, or long-running work into a verifiable execution plan; use brainstorm first when the direction is still open.
 ---
 
 # Plan
@@ -21,7 +21,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Outputs
 
-- A decision-ready spec and concise execution map with testable acceptance criteria
+- A decision-ready spec and concise execution map with an Acceptance Contract of testable criteria
 - For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory
 - A short summary of assumptions and human decisions needed
 
@@ -29,6 +29,10 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Inspect the real code path before decomposing implementation work.
 - Separate confirmed facts, inferences, and unresolved choices.
+- Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
+- For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
+- Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.
+- Add negative, compatibility, rollout, or rollback criteria only when material to the risk.
 - Keep work items outcome-based and independently verifiable; avoid file-by-file pseudo-instructions.
 - Include compatibility, migration, rollout, observability, and rollback work only when relevant.
 - Do not edit production code while the request is planning-only.

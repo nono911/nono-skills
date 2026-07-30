@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: Use when a product, feature, technical approach, workflow, or problem space needs distinct options explored before choosing a direction or writing an execution plan.
+description: Use when a product, feature, technical approach, workflow, or problem space needs distinct options explored before a direction is chosen; use plan after the direction and constraints are sufficiently settled.
 ---
 
 # Brainstorm

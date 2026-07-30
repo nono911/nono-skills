@@ -130,7 +130,7 @@ async function validateMutatedSkill(name, mutate) {
 async function withValidationFixture(run) {
   const fixtureRoot = await mkdtemp(path.join(tmpdir(), 'nono-skills-validate-'));
   try {
-    await Promise.all(['package.json', 'plugin', 'scripts', 'src'].map((relative) => cp(
+    await Promise.all(['package.json', 'plugin', 'scripts', 'src', 'evals'].map((relative) => cp(
       path.join(root, relative),
       path.join(fixtureRoot, relative),
       { recursive: true },
@@ -1158,6 +1158,15 @@ test('plan uses selected work-item artifacts and repository guidance stays conci
   const agents = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
 
   assert.match(plan, /selected work item's spec, plan, and decisions/);
+  for (const responsibility of expectedRequiredResponsibilityLines.plan) {
+    assert.equal(
+      plan.split(responsibility).length - 1,
+      1,
+      'plan must include each Acceptance Contract responsibility exactly once',
+    );
+  }
+  assert.match(plan, /Acceptance Contract/);
+  assert.match(plan, /`AC-<number>`/);
   assert.match(agents, /docs\/agent\/work\/<work-id>\//);
   assert.match(agents, /ask before creating a new durable workspace/);
   assert.match(agents, /\$engineering:<skill>/);
