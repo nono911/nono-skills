@@ -1,6 +1,6 @@
 {
   "name": "nono-skills",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
   "author": "thitikorn.j",
   "type": "module",

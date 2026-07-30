@@ -16,9 +16,13 @@ import {
   assertSkillWorkspaceContract,
   expectedDurableEndings,
   expectedRequiredResponsibilityLines,
+  expectedSkillWordBudgets,
 } from '../src/skill-contract.js';
 
 const root = path.resolve(import.meta.dirname, '..');
+const packageVersion = JSON.parse(
+  await readFile(path.join(root, 'package.json'), 'utf8'),
+).version;
 const expectedSkills = canonicalSkillNames;
 const expectedDiscoveryKeywords = [
   'codex',
@@ -106,7 +110,10 @@ function assertValidationPasses(result) {
     0,
     `validation unexpectedly failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
   );
-  assert.equal(result.stdout, 'Validated engineering plugin 0.9.0 with 18 skills.\n');
+  assert.equal(
+    result.stdout,
+    `Validated engineering plugin ${packageVersion} with 18 skills.\n`,
+  );
   assert.equal(result.stderr, '');
 }
 
@@ -190,8 +197,8 @@ test('plugin manifest matches the npm package', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   assert.equal(plugin.name, 'engineering');
-  assert.equal(packageJson.version, '0.9.0');
-  assert.equal(plugin.version, '0.9.0');
+  assert.match(packageJson.version, /^\d+\.\d+\.\d+$/);
+  assert.equal(packageJson.version, packageVersion);
   assert.equal(plugin.version, packageJson.version);
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
@@ -454,7 +461,7 @@ test('delivery-loop bundles a provider-neutral delegation contract and safe brid
     path.join(root, 'plugin', 'skills', 'delivery-loop', 'scripts', 'providers', 'index.mjs'),
     'utf8',
   );
-  assert.match(reference, /Task packet/);
+  assert.match(reference, /task packet/i);
   assert.match(reference, /Claude Code/);
   assert.match(reference, /OpenAI Codex/);
   assert.match(reference, /Qwen Code/);
@@ -462,11 +469,14 @@ test('delivery-loop bundles a provider-neutral delegation contract and safe brid
   assert.match(reference, /CodeWhale/);
   assert.match(reference, /Google Antigravity/);
   assert.match(reference, /per-run consent/);
-  assert.match(reference, /An approval that does not select an\s+agent-execution choice selects Native subagents/);
-  assert.match(reference, /Do not probe, propose, or invoke an external provider until the user selects\s+External or Hybrid/);
-  assert.match(reference, /Never invoke the same harness that owns the current host task/);
+  assert.match(reference, /Read this reference only after the user selects External or Hybrid/);
+  assert.match(reference, /Never invoke\s+the current host harness as an external child/);
   assert.match(reference, /input_digest/);
-  assert.match(reference, /must not be the sole\s+general reviewer/);
+  assert.match(reference, /must not be (?:its|the) sole\s+general reviewer/);
+  assert.ok(
+    reference.trim().split(/\s+/).length <= 800,
+    'external delegation reference must stay concise because it joins the active context',
+  );
   assert.match(bridge, /buildClaudeArgs/);
   assert.match(bridge, /runExternalAgent/);
   assert.match(bridge, /scope_completed/);
@@ -521,6 +531,20 @@ test('contract rejects deleted bugfix-loop workflow responsibilities', async () 
     assertValidationFails(result, /must include each required responsibility line exactly once/);
   }
 });
+
+for (const [name, budget] of Object.entries(expectedSkillWordBudgets)) {
+  test(`${name} stays within its progressive-disclosure budget`, async () => {
+    const content = await readFile(
+      path.join(root, 'plugin', 'skills', name, 'SKILL.md'),
+      'utf8',
+    );
+    assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
+    assert.throws(
+      () => assertSkillWorkspaceContract(name, `${content}\n${'padding '.repeat(budget + 1)}`),
+      new RegExp(`${name} must stay within its ${budget}-word progressive-disclosure budget`),
+    );
+  });
+}
 
 for (const name of ['bugfix-loop', 'delivery-loop']) {
   test(`package validation rejects implicit ${name} metadata`, async () => {

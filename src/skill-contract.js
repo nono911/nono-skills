@@ -25,6 +25,11 @@ export const expectedDurableEndings = Object.freeze({
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
 });
 
+export const expectedSkillWordBudgets = Object.freeze({
+  'bugfix-loop': 1500,
+  'delivery-loop': 1500,
+});
+
 export const expectedRequiredResponsibilityLines = Object.freeze({
   'acceptance-verify': Object.freeze([
     '- No source edits, staging, commits, worktree creation, or fix loop',
@@ -44,50 +49,61 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
   ]),
   'delivery-loop': Object.freeze([
+    '- Refer to companion skills by their frontmatter names, such as `implement` or `review`. Invoke them through the host\'s native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.',
+    '- Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.',
+    '- At the approval gate, offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`.',
+    '- If the user approves without selecting a choice, use Native subagents.',
+    '- Do not probe, propose, or invoke external providers unless the user explicitly selects External or Hybrid, names an external provider, or asks for external-agent options.',
+    '- Read `references/agent-delegation.md` only after External or Hybrid is selected, then follow its provider, consent, isolation, result, and fallback contracts.',
+    '- Require explicit per-run consent before sending repository content to an external provider.',
+    '- Never invoke an external provider that owns the current host task; use that host\'s native agent mechanism instead.',
+    '- Use one writer per file-ownership boundary, isolate every delegated writer in an approved child worktree, and keep integration, verification, Git operations, and official commits with the orchestrator.',
     '- If the task already runs in a host-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses to create a branch or hand off the task; do not move the task or check the same branch out elsewhere.',
     '- If neither reuse case applies, propose the exact base revision, branch, and worktree path, then request one scoped approval covering their creation and up to two local commits unless the initial request already authorizes every action.',
     '- Invoking `delivery-loop` alone is not worktree or commit authority. Only an explicit initial authorization for the exact proposed actions satisfies those gates.',
     '- When reusing any worktree, request only missing authority for up to two local commits.',
     '- If the user declines required worktree creation, do not continue this loop in the current checkout. Ask whether to switch to ordinary implementation there with explicit write and commit authority or stop; the switched path is outside delivery-loop completion.',
     '- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, task handoff, worktree removal, and branch deletion remain separate actions.',
-    '- Refer to companion skills by their frontmatter names, such as `implement` or `review`. Invoke them through the host\'s native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.',
-    '- Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.',
-    '- Before implementation, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary implementation with a non-independent self-review or stop. That degraded path is outside delivery-loop completion and must never report `CLEAN` or independently reviewed. After switching, this loop ends; the ordinary workflow must establish its own isolation, verification, write, commit, and reporting boundaries.',
+    '- Do not copy ignored files or secrets or change host worktree rules without authorization.',
+    '- Before implementation, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary implementation with a non-independent self-review or stop. That degraded path is outside delivery-loop completion and must never report `CLEAN` or independently reviewed.',
     '2. When the feature warrants multi-step planning, explicitly activate the companion `plan` skill before implementation. Keep the plan in the current conversation unless a durable work-item workspace is approved; for a small well-defined feature, keep orchestration lightweight and do not create artifacts merely to satisfy the loop.',
     '3. Keep the original agent as orchestrator and explicitly activate the companion `implement` skill to deliver the smallest complete feature with appropriate tests.',
     '4. When a runnable user-facing journey is material, explicitly activate the companion `acceptance-verify` skill as a source-read-only QA specialist against the acceptance criteria. Keep the original agent as implementer, resolve validated failures, and rerun affected scenarios.',
-    '1. For every round, use a fresh project-scoped read-only reviewer agent when the host provides one; otherwise use a fresh reviewer subagent. Explicitly instruct the reviewer to activate the companion `review` skill and remain read-only: no delegation, edits, staging, commits, reverts, or worktree mutation. If fresh isolated review becomes unavailable after implementation, stop without substituting self-review or claiming `CLEAN`, then ask whether to hand off the incomplete state or continue outside the loop with a disclosed non-independent review.',
-    '2. Every reviewer returns findings, questions, and proposed decision-log records to the original orchestrator. Reviewer agents never update durable artifacts; only the original orchestrator may write validated dispositions or accepted decisions to an approved work-item workspace.',
+    '1. For every round, use a fresh project-scoped read-only reviewer agent or subagent. Instruct it to activate `review` and forbid delegation or mutation. If it becomes unavailable, stop; a non-independent fallback is outside delivery-loop completion and must not report `CLEAN`.',
+    '2. Every reviewer returns findings, questions, and proposed decision-log records to the original orchestrator; only the orchestrator may update approved durable state.',
     '7. Keep the original agent as fixer and explicitly activate the companion `fix-findings` skill for validated findings. Do not let reviewer agents modify the feature.',
     '- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.',
+    '- Run rounds sequentially: review, validate and fix findings, verify, then start a fresh review. Never launch all five rounds at once.',
     '- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.',
-    '2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, explicitly activate the companion `fix-findings` skill before editing, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean. If no review round remains, fix and verify only when safe within current authority, then stop without committing the changed state or claiming `CLEAN` and escalate for direction on a sixth review.',
-    '4. If validated post-implementation fixes changed code—whether discovered by review or final verification—and the resulting state passed fresh review and final verification, create the final review-fix commit using the repository\'s commit convention. If no code changed after the implementation commit, do not create an empty second commit unless the user explicitly requires one and confirms that audit convention.',
+    '- If the fifth round finds an actionable defect, fix and verify only when safe within current authority, then stop without claiming `CLEAN` or creating the final commit because the changed state needs a sixth review.',
+    '2. If final verification changes the state, activate `fix-findings`, fix, and start a fresh complete review within the five-round limit; with no round remaining, do not claim `CLEAN` or commit the changed state.',
+    '4. If validated post-implementation fixes changed code and the resulting state passed fresh review and final verification, create the final review-fix commit. Do not create an empty second commit unless explicitly required.',
   ]),
   'bugfix-loop': Object.freeze([
+    '- Refer to companion skills by their frontmatter names, such as `debug` or `review`. Invoke them through the host\'s native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.',
+    '- Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.',
     '- If the task already runs in a host-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses to create a branch or hand off the task; do not move the task or check the same branch out elsewhere.',
     '- If neither reuse case applies, propose the exact base revision, branch, and worktree path, then request one scoped approval covering their creation and up to two local commits unless the initial request already authorizes every action.',
     '- Invoking `bugfix-loop` alone is not worktree or commit authority. Only an explicit initial authorization for the exact proposed actions satisfies those gates.',
     '- When reusing any worktree, request only missing authority for up to two local commits.',
-    '- When only commit authority is missing, ask: "May I create up to two local commits in the current approved worktree—one bugfix commit and, only if validated post-implementation fixes change code and the resulting state passes fresh review, one final review-fix commit? This does not authorize push, merge, deploy, task handoff, worktree removal, or branch deletion."',
+    '- When only commit authority is missing, request the two named local commits and repeat the excluded actions.',
     '- If the user declines required worktree creation, do not continue this loop in the current checkout. Ask whether to switch to ordinary bug fixing there with explicit write and commit authority or stop; the switched path is outside bugfix-loop completion.',
     '- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, task handoff, worktree removal, and branch deletion remain separate actions.',
-    '- Refer to companion skills by their frontmatter names, such as `debug` or `review`. Invoke them through the host\'s native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.',
-    '- Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.',
-    '- Before changing production code, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary bug fixing with a non-independent self-review or stop. That degraded path is outside bugfix-loop completion and must never report `CLEAN` or independently reviewed. After switching, this loop ends; the ordinary workflow must establish its own isolation, verification, write, commit, and reporting boundaries.',
+    '- Do not copy ignored files or secrets or change host worktree rules without authorization.',
+    '- Before changing production code, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary bug fixing with a non-independent self-review or stop. That degraded path is outside bugfix-loop completion and must never report `CLEAN` or independently reviewed.',
     '2. When the symptom is a runnable user-facing journey, explicitly activate the companion `acceptance-verify` skill as a source-read-only QA specialist to capture the observed boundary failure.',
     '3. Keep the original agent as orchestrator and explicitly activate the companion `debug` skill to trace the real runtime and data path, falsify plausible alternatives, and support a root cause before changing production code.',
     '5. Keep the original agent in control and explicitly activate the companion `test` skill to add the smallest stable regression test or repeatable check. Run it before the fix and confirm it fails because of the supported causal path, not because of an unrelated setup error.',
     '1. Keep the original agent as implementer and explicitly activate the companion `implement` skill to correct the supported root cause with the smallest compatible change.',
-    '1. For every round, use a fresh project-scoped read-only reviewer agent when the host provides one; otherwise use a fresh reviewer subagent. Explicitly instruct the reviewer to activate the companion `review` skill and remain read-only: no delegation, edits, staging, commits, reverts, or worktree mutation. If fresh isolated review becomes unavailable after implementation, stop without substituting self-review or claiming `CLEAN`, then ask whether to hand off the incomplete state or continue outside the loop with a disclosed non-independent review.',
-    '2. Every reviewer returns findings, questions, and proposed decision-log records to the original orchestrator. Reviewer agents never update durable artifacts; only the original orchestrator may write validated dispositions or accepted decisions to an approved work-item workspace.',
+    '1. For every round, use a fresh project-scoped read-only reviewer agent or subagent. Instruct it to activate `review` and forbid delegation or mutation. If it becomes unavailable, stop; a non-independent fallback is outside bugfix-loop completion and must not report `CLEAN`.',
+    '2. Every reviewer returns findings, questions, and proposed decision-log records to the original orchestrator; only the orchestrator may update approved durable state.',
     '7. Keep the original agent as fixer and explicitly activate the companion `fix-findings` skill for validated findings. Do not let reviewer agents modify the bugfix.',
     '- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.',
     '- Run rounds sequentially. Never start future review rounds in advance; after a round finds actionable defects, validate, fix, and verify them before starting the next round.',
     '- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.',
     '- If the fifth reviewer batch still finds an actionable defect, validate and fix it only when safe within current authority, rerun verification, then stop and escalate because proving the new state requires a sixth review. Do not claim a clean loop or create the final review-fix commit without new direction.',
-    '2. If final verification produces an actionable failure, independently validate it, keep the original agent as fixer, explicitly activate the companion `fix-findings` skill before editing, rerun affected verification, and start a fresh complete reviewer batch over the changed HEAD within the five-round limit. Never commit a changed state merely because its previous HEAD was clean. If no review round remains, fix and verify only when safe within current authority, then stop without committing the changed state or claiming `CLEAN` and escalate for direction on a sixth review.',
-    '4. If validated post-implementation fixes changed code—whether discovered by review or final verification—and the resulting state passed fresh review and final verification, create the final review-fix commit using the repository\'s commit convention. If no code changed after the bugfix commit, do not create an empty second commit unless the user explicitly requires one and confirms that audit convention.',
+    '2. If final verification changes the state, activate `fix-findings`, fix, and start a fresh complete review within the five-round limit; with no round remaining, do not claim `CLEAN` or commit the changed state.',
+    '4. If validated post-implementation fixes changed code and the resulting state passed fresh review and final verification, create the final review-fix commit. Do not create an empty second commit unless explicitly required.',
   ]),
 });
 
@@ -309,4 +325,13 @@ export function assertSkillWorkspaceContract(name, content) {
 
   assertArtifactLines(name, lines);
   assertRequiredResponsibilityLines(name, lines);
+
+  const wordBudget = expectedSkillWordBudgets[name];
+  if (wordBudget) {
+    const wordCount = content.trim().split(/\s+/).length;
+    assert.ok(
+      wordCount <= wordBudget,
+      `${name} must stay within its ${wordBudget}-word progressive-disclosure budget`,
+    );
+  }
 }

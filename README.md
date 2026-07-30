@@ -171,6 +171,13 @@ For UI criteria, API success, source inspection, automated test output, or revie
 
 Activate `delivery-loop` when a feature should be isolated in a Git worktree, implemented, independently reviewed, and remediated before it is considered complete. This workflow is explicit-only and is not selected automatically. The example uses the native Codex namespace. Native host agents remain the default; compatible local agent CLIs are optional collaborators when provider diversity or an independent work split materially helps.
 
+The normal Native path loads only the compact loop instructions. External
+provider guidance is loaded only after the user selects External or Hybrid, and
+provider flags, schemas, sandbox details, and result normalization stay
+authoritative in the bridge scripts. Package validation enforces concise
+progressive-disclosure budgets for both engineering loops so later changes
+cannot silently turn them into prompt-heavy workflows.
+
 When the current host already provides an isolated worktree, start there when practical; the workflow reuses that host-managed worktree and never creates a nested one. Otherwise, start from the intended base checkout and invoke the skill explicitly. The current local checkout may contain unrelated changes because a separately approved feature worktree isolates them:
 
 ```text
@@ -319,7 +326,7 @@ npx nono-skills uninstall
 
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
+Version 0.10.0 makes both engineering loops leaner, loads external-provider guidance only after External or Hybrid is selected, and enforces progressive-disclosure word budgets in package validation. Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
