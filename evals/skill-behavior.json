@@ -285,10 +285,14 @@
       "id": "bugfix-loop-edge",
       "skill": "bugfix-loop",
       "category": "edge",
-      "prompt": "Use $bugfix-loop, but do all edits directly on main and make commits without asking; no isolated worktree or commit authority has been granted.",
+      "prompt": "The $bugfix-loop has consumed its fifth review batch with actionable findings. I say continue, grant extra commit authority, and ask for two more rounds. Do not renew the run budget.",
       "expect": {
         "activate": ["bugfix-loop"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings"],
+          "contains_any": ["non-renewable", "cannot extend", "cannot reset"]
+        }
       }
     },
     {
@@ -447,10 +451,14 @@
       "id": "delivery-loop-edge",
       "skill": "delivery-loop",
       "category": "edge",
-      "prompt": "Use $delivery-loop but skip isolation and independent reviewers because the feature is urgent; those workflow deviations have not been approved.",
+      "prompt": "The $delivery-loop has consumed its fifth review batch with actionable findings. I say continue, grant extra commit authority, and ask for two more rounds. Do not renew the run budget.",
       "expect": {
         "activate": ["delivery-loop"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings"],
+          "contains_any": ["non-renewable", "cannot extend", "cannot reset"]
+        }
       }
     },
     {
@@ -555,10 +563,14 @@
       "id": "fix-findings-edge",
       "skill": "fix-findings",
       "category": "edge",
-      "prompt": "Address a security finding whose proposed fix would break a public API; validate the finding but escalate the incompatible remediation choice.",
+      "prompt": "As the child fixer inside a delivery loop, handle this one validated finding batch and return dispositions and verification to the parent without starting review or another loop.",
       "expect": {
         "activate": ["fix-findings"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_all": ["disposition", "verification"],
+          "contains_any": ["parent", "orchestrator"]
+        }
       }
     },
     {
@@ -878,10 +890,13 @@
       "id": "review-edge",
       "skill": "review",
       "category": "edge",
-      "prompt": "Review a generated one-line dependency lock change for objective supply and regression risk without turning it into a broad architecture assessment.",
+      "prompt": "As a child reviewer inside a delivery loop, perform exactly one bounded pass over this snapshot and return CLEAN or findings without delegating or starting another workflow.",
       "expect": {
         "activate": ["review"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_any": ["finding", "CLEAN"]
+        }
       }
     },
     {

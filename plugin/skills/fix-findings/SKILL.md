@@ -22,7 +22,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - Minimal fixes and regression coverage
-- Updated finding states with verification evidence
+- Finding dispositions with verification evidence returned to the caller
 - Updated plan or handoff for unresolved items
 
 ## Rules
@@ -32,7 +32,8 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Handle findings in risk order unless dependencies require another sequence.
 - Keep unrelated refactors separate.
 - Mark `not-reproducible` or `wont-fix` only with evidence or human approval; never close by assertion.
-- Request re-review or perform an independent verification pass after fixes.
+- When called by an orchestrating loop, handle one supplied finding batch and return dispositions and verification. Never invoke or request `review`, `delivery-loop`, `bugfix-loop`, or another fix loop; only the parent decides the next phase.
+- When standalone, recommend re-review when warranted but do not start another workflow without explicit authorization.
 
 ## Decision-log updates
 

@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Engineering Agent Skills and review-fix loops for OpenAI Codex CLI.",
   "author": {
     "name": "thitikorn.j"

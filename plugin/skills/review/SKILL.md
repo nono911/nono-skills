@@ -32,6 +32,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Prioritize defects over style preferences. Do not invent issues for report completeness.
 - Distinguish verified defects from questions and speculative risks.
 - Do not modify code or mark a finding fixed without evidence.
+- When called by an orchestrating loop, perform one bounded review pass and return. Never invoke or request another review, fix, delivery, bugfix, or delegated workflow; only the parent decides the next phase.
 
 ## Decision-log updates
 

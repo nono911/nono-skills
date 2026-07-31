@@ -427,7 +427,12 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
       'delivery-loop must include each workflow responsibility exactly once',
     );
   }
-  assert.match(content, /Default to at most five review rounds\./);
+  assert.match(content, /absolute budget is five batches for the entire delivery run/);
+  assert.match(content, /budget is non-renewable/);
+  assert.match(content, /Generic approval, `continue`, extra commit authority/);
+  assert.match(content, /never invokes or requests another review or loop/);
+  assert.match(content, /Never review the same HEAD twice/);
+  assert.match(content, /Mark `BUDGET_EXHAUSTED`/);
   assert.match(content, /One review round means one complete reviewer batch/);
   assert.match(content, /reuse it and never create a nested worktree/);
   assert.match(content, /fresh project-scoped read-only reviewer agent/);
@@ -516,8 +521,13 @@ test('bugfix-loop requires evidence-first diagnosis and sequential review', asyn
   assert.match(content, /support a root cause before changing production code/);
   assert.match(content, /fails because of the supported causal path/);
   assert.match(content, /Run rounds sequentially\. Never start future review rounds in advance/);
-  assert.match(content, /fifth reviewer batch still finds an actionable defect/);
-  assert.match(content, /Do not claim a clean loop or create the final review-fix commit/);
+  assert.match(content, /absolute budget is five batches for the entire bugfix run/);
+  assert.match(content, /budget is non-renewable/);
+  assert.match(content, /Generic approval, `continue`, extra commit authority/);
+  assert.match(content, /never invokes or requests another review or loop/);
+  assert.match(content, /Never review the same HEAD twice/);
+  assert.match(content, /If the fifth batch finds an actionable defect, do not fix or mutate/);
+  assert.match(content, /Mark `BUDGET_EXHAUSTED`/);
   assert.match(content, /degraded path is outside bugfix-loop completion/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
 });
@@ -531,6 +541,33 @@ test('contract rejects deleted bugfix-loop workflow responsibilities', async () 
     assertValidationFails(result, /must include each required responsibility line exactly once/);
   }
 });
+
+for (const name of ['fix-findings', 'review']) {
+  test(`${name} returns control without starting a nested workflow`, async () => {
+    const content = await readFile(
+      path.join(root, 'plugin', 'skills', name, 'SKILL.md'),
+      'utf8',
+    );
+    for (const responsibility of expectedRequiredResponsibilityLines[name]) {
+      assert.equal(
+        content.split(responsibility).length - 1,
+        1,
+        `${name} must include each child-loop boundary exactly once`,
+      );
+    }
+    assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
+  });
+
+  test(`contract rejects a deleted ${name} child-loop boundary`, async () => {
+    for (const responsibility of expectedRequiredResponsibilityLines[name]) {
+      const result = await validateMutatedSkill(name, (content) => content.replace(
+        `${responsibility}\n`,
+        '',
+      ));
+      assertValidationFails(result, /must include each required responsibility line exactly once/);
+    }
+  });
+}
 
 for (const [name, budget] of Object.entries(expectedSkillWordBudgets)) {
   test(`${name} stays within its progressive-disclosure budget`, async () => {

@@ -17,7 +17,6 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Refer to companion skills by their frontmatter names, such as `debug` or `review`. Invoke them through the host's native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.
 - Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.
-- Confirm required companions are available where used. Accept a fallback only when it preserves authority and read/write boundaries.
 - Keep the original agent as orchestrator and Git owner. Use fresh agents only for read-only review or justified specialist assessment.
 
 ## Inputs
@@ -29,7 +28,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Pre-fix evidence, a supported causal chain, and a focused failing regression proof
 - One approved isolated minimal fix and commit
-- Up to five sequential review-fix rounds, stopping when clean
+- No more than five sequential review-fix batches for the entire run, stopping when clean or `BUDGET_EXHAUSTED`
 - A second commit only for validated later fixes that pass fresh review
 - Verification, review, commit, and residual-risk evidence
 
@@ -44,7 +43,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - When only commit authority is missing, request the two named local commits and repeat the excluded actions.
 - If the user declines required worktree creation, do not continue this loop in the current checkout. Ask whether to switch to ordinary bug fixing there with explicit write and commit authority or stop; the switched path is outside bugfix-loop completion.
 - Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, task handoff, worktree removal, and branch deletion remain separate actions.
-- Preserve unrelated changes; never stash, reset, move, include, or delete them. Follow repository instructions and verify required remote and identity conditions before each commit.
+- Preserve unrelated changes and follow repository remote and identity rules before each commit.
 - Do not copy ignored files or secrets or change host worktree rules without authorization.
 - Before changing production code, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary bug fixing with a non-independent self-review or stop. That degraded path is outside bugfix-loop completion and must never report `CLEAN` or independently reviewed.
 
@@ -67,21 +66,24 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Review and fix
 
 1. For every round, use a fresh project-scoped read-only reviewer agent or subagent. Instruct it to activate `review` and forbid delegation or mutation. If it becomes unavailable, stop; a non-independent fallback is outside bugfix-loop completion and must not report `CLEAN`.
-2. Every reviewer returns findings, questions, and proposed decision-log records to the original orchestrator; only the orchestrator may update approved durable state.
-3. Give the reviewer the exact snapshot, expected behavior, causal and pre-fix evidence, checks, full diff, guidance, prior dispositions, and accepted decisions.
-4. Require `CLEAN` or severity-ordered findings with stable ID, location, evidence, impact, and remediation.
-5. Add a read-only security, architecture, or migration specialist to the same round only when the changed risk requires it.
+2. The original orchestrator exclusively owns the review-batch counter and may start each batch. Every child performs one bounded pass, returns its results, and never invokes or requests another review or loop. Only the orchestrator may update approved durable state.
+3. Give each reviewer the exact snapshot, expected behavior, causal evidence, checks, full diff, guidance, prior dispositions, and accepted decisions.
+4. Require `CLEAN` or findings with stable ID, severity, location, evidence, impact, and remediation.
+5. Add a risk-required read-only specialist to the same batch.
 6. Reject preferences, unsupported claims, duplicates, and stale findings; validate actionable findings before editing.
-7. Keep the original agent as fixer and explicitly activate the companion `fix-findings` skill for validated findings. Do not let reviewer agents modify the bugfix.
-8. Strengthen viable regression coverage, verify fixes, then freshly review the complete new state.
+7. Keep the original agent as fixer and activate `fix-findings` once for the validated batch. Require dispositions and evidence back without re-review; never let a reviewer modify the bugfix.
+8. Strengthen regression proof, verify fixes, then freshly review the new HEAD.
 
 ## Loop controls
 
 - One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.
 - Run rounds sequentially. Never start future review rounds in advance; after a round finds actionable defects, validate, fix, and verify them before starting the next round.
 - `CLEAN` means no actionable defect; optional suggestions do not block.
-- Default to at most five review rounds. Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.
-- If the fifth reviewer batch still finds an actionable defect, validate and fix it only when safe within current authority, rerun verification, then stop and escalate because proving the new state requires a sixth review. Do not claim a clean loop or create the final review-fix commit without new direction.
+- The absolute budget is five batches for the entire bugfix run. Keep its counter monotonic across continuation, compaction, replanning, provider changes, and child returns; never reset it.
+- The budget is non-renewable. Generic approval, `continue`, extra commit authority, or a request for more rounds never extends it; do not ask the user to extend it.
+- Never review the same HEAD twice unless the earlier attempt returned no verdict; retry that failed attempt as the same numbered batch.
+- Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.
+- If the fifth batch finds an actionable defect, do not fix or mutate the reviewed state. Mark `BUDGET_EXHAUSTED`, report remaining findings and evidence, and stop without claiming `CLEAN` or creating the final review-fix commit.
 - Never hide, downgrade, or close a disputed finding to terminate the loop.
 
 ## Finalize
