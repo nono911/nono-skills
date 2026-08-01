@@ -55,6 +55,7 @@ export const openCodeAdapter = {
     implement: { supported: true, boundary: 'workspace-only edit permission; shell, external paths, plugins, and subagents denied' },
   },
   capabilities: {
+    guarantees: ['headless', 'structured-output', 'read-only-review', 'isolated-write', 'no-shell', 'no-delegation', 'wall-time-budget'],
     headless: true,
     input: 'argument',
     structuredOutput: 'validated-prompt-json',

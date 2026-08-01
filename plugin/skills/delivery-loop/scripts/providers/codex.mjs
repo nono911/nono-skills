@@ -46,6 +46,7 @@ export const codexAdapter = {
     implement: { supported: true, boundary: 'native workspace-write sandbox in an approved child worktree' },
   },
   capabilities: {
+    guarantees: ['headless', 'structured-output', 'read-only-review', 'isolated-write', 'no-delegation', 'ephemeral-session', 'wall-time-budget'],
     headless: true,
     input: 'stdin',
     structuredOutput: 'json-schema',

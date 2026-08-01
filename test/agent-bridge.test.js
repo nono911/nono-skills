@@ -16,6 +16,7 @@ import {
   readAgentConfig,
   runCommand,
   runExternalAgent,
+  selectAgentProviders,
   setAgentProviderEnabled,
   setAgentProviderPolicy,
 } from '../plugin/skills/delivery-loop/scripts/agent-bridge.mjs';
@@ -211,6 +212,63 @@ test('provider registry exposes native adapters and detects Antigravity without 
   assert.equal(inspected.compatible, false);
   assert.deepEqual(inspected.roles, { review: false, implement: false });
   assert.match(inspected.detail, /TUI-first/);
+  assert.ok(providerAdapters.codex.capabilities.guarantees.includes('no-delegation'));
+  assert.deepEqual(providerAdapters.antigravity.capabilities.guarantees, ['interactive-only']);
+});
+
+test('capability-aware selection filters boundaries and uses local history only as a tie-break', () => {
+  const providers = [
+    {
+      name: 'first',
+      displayName: 'First',
+      enabled: true,
+      available: true,
+      compatible: true,
+      policy: 'review-only',
+      roles: { review: true, implement: false },
+      capabilities: { guarantees: ['headless', 'structured-output', 'no-delegation', 'read-only-review'] },
+    },
+    {
+      name: 'second',
+      displayName: 'Second',
+      available: true,
+      compatible: true,
+      policy: 'isolated-writer',
+      roles: { review: true, implement: true },
+      capabilities: { guarantees: ['headless', 'structured-output', 'no-delegation', 'read-only-review', 'isolated-write'] },
+    },
+    {
+      name: 'interactive',
+      displayName: 'Interactive',
+      available: true,
+      compatible: false,
+      roles: { review: false, implement: false },
+      capabilities: { guarantees: ['interactive-only'] },
+    },
+  ];
+  const selected = selectAgentProviders({
+    providers,
+    role: 'review',
+    requiredCapabilities: ['headless', 'structured-output', 'no-delegation'],
+    history: {
+      first: { samples: 4, clean: 1, findings: 1, no_verdict: 2 },
+      second: { samples: 4, clean: 2, findings: 2, no_verdict: 0 },
+    },
+  });
+  assert.deepEqual(selected.eligible.map((item) => item.provider), ['first', 'second']);
+  assert.equal(selected.eligible[0].enabled, true);
+  assert.deepEqual(selected.rejected[0], {
+    provider: 'interactive',
+    reasons: ['incompatible', 'does not support review', 'missing capabilities: headless, structured-output, no-delegation, read-only-review'],
+  });
+
+  const writers = selectAgentProviders({
+    providers,
+    role: 'implement',
+    requiredCapabilities: ['headless', 'no-delegation'],
+  });
+  assert.deepEqual(writers.eligible.map((item) => item.provider), ['second']);
+  assert.ok(writers.rejected.find((item) => item.provider === 'first').reasons.includes('durable policy is review-only'));
 });
 
 test('Claude uses worktree-scoped file tools and no shell', () => {
@@ -476,9 +534,81 @@ for (const provider of ['claude', 'codex', 'qwen', 'opencode', 'codewhale']) {
     if (provider === 'codewhale') {
       assert.equal(execution.options.env.CODEWHALE_ALLOW_SHELL, '0');
       assert.equal(execution.options.env.CODEWHALE_SANDBOX_MODE, 'read-only');
+      assert.equal(execution.options.env.CODEWHALE_MAX_SUBAGENTS, '0');
     }
   });
 }
+
+test('controlled external reviews must echo the exact loop lease context', async () => {
+  const home = await mkdtemp(`${os.tmpdir()}/nono-agent-bridge-`);
+  const loopContext = {
+    run_id: 'run-1',
+    lease_id: 'lease-1',
+    batch: 2,
+    attempt: 1,
+    head_sha: taskPacket.head_sha,
+  };
+  const packet = taskPacketFor(home, { loop_context: loopContext });
+  const output = { ...reviewOutput, loop_context: loopContext };
+  const result = await runExternalAgent({
+    home,
+    provider: 'codex',
+    mode: 'review',
+    cwd: home,
+    prompt: JSON.stringify(packet),
+    consent: true,
+    runCommand: providerRunner([], output),
+    runGitCommand: gitRunner(home),
+    env: {},
+  });
+  assert.deepEqual(result.output.loop_context, loopContext);
+
+  await assert.rejects(
+    runExternalAgent({
+      home,
+      provider: 'codex',
+      mode: 'review',
+      cwd: home,
+      prompt: JSON.stringify(packet),
+      consent: true,
+      runCommand: providerRunner([], {
+        ...output,
+        loop_context: { ...loopContext, lease_id: 'stale-lease' },
+      }),
+      runGitCommand: gitRunner(home),
+      env: {},
+    }),
+    /mismatched structured output: loop_context/,
+  );
+});
+
+test('external review findings require Evidence Contract categories', async () => {
+  const home = await mkdtemp(`${os.tmpdir()}/nono-agent-bridge-`);
+  await assert.rejects(
+    runExternalAgent({
+      home,
+      provider: 'codex',
+      mode: 'review',
+      cwd: home,
+      prompt: JSON.stringify(taskPacketFor(home)),
+      consent: true,
+      runCommand: providerRunner([], {
+        ...reviewOutput,
+        findings: [{
+          id: 'F-1',
+          severity: 'high',
+          location: 'src/example.js:1',
+          evidence: 'Observed incompatible behavior',
+          impact: 'Acceptance behavior fails',
+          remediation: 'Preserve the documented contract',
+        }],
+      }),
+      runGitCommand: gitRunner(home),
+      env: {},
+    }),
+    /finding category/,
+  );
+});
 
 test('external execution rejects stale identity and incomplete scope for every adapter', async () => {
   const home = await mkdtemp(`${os.tmpdir()}/nono-agent-bridge-`);

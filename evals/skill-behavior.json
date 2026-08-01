@@ -187,13 +187,14 @@
       "id": "brainstorm-direct",
       "skill": "brainstorm",
       "category": "direct",
-      "prompt": "Use $brainstorm to explore distinct approaches for offline synchronization before we choose a technical direction or write a plan.",
+      "prompt": "Use $brainstorm to explore offline synchronization for field technicians who must edit jobs without connectivity. Success means no lost edits after reconnect, conflicts remain explainable, and the first release must work with the existing mobile database.",
       "expect": {
         "activate": ["brainstorm"],
         "forbid": ["plan"],
         "output": {
           "contains_any": ["option", "approach"],
-          "contains_all": ["tradeoff"]
+          "contains_all": ["tradeoff", "success"],
+          "not_contains": ["cannot recommend"]
         }
       }
     },
@@ -201,7 +202,7 @@
       "id": "brainstorm-indirect",
       "skill": "brainstorm",
       "category": "indirect",
-      "prompt": "We have not chosen between polling, server-sent events, and websockets; compare genuinely different directions before recommending one.",
+      "prompt": "Operators need dashboard updates within five seconds, outbound connections are allowed, and simplicity matters more than sub-second latency. We have not chosen between polling, server-sent events, and websockets; compare genuinely different directions before recommending one.",
       "expect": {
         "activate": ["brainstorm"],
         "forbid": ["plan"]
@@ -214,7 +215,11 @@
       "prompt": "Help us explore approaches for a new collaboration feature, but the users, constraints, and desired outcome are still vague.",
       "expect": {
         "activate": ["brainstorm"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_all": ["user", "outcome"],
+          "contains_any": ["question", "clarify", "unknown"]
+        }
       }
     },
     {
@@ -241,12 +246,12 @@
       "id": "bugfix-loop-direct",
       "skill": "bugfix-loop",
       "category": "direct",
-      "prompt": "Use $bugfix-loop to reproduce, regression-test, fix, locally commit, and independently review the intermittent session-loss bug in an approved worktree.",
+      "prompt": "Use $bugfix-loop to reproduce, regression-test, fix, locally commit, and independently review the intermittent session-loss bug in an approved worktree. Preserve structured evidence across the whole run.",
       "expect": {
         "activate": ["bugfix-loop"],
         "forbid": ["delivery-loop"],
         "output": {
-          "contains_all": ["worktree", "review"],
+          "contains_all": ["worktree", "review", "evidence"],
           "contains_any": ["reproduce", "regression"]
         }
       }
@@ -265,7 +270,7 @@
       "id": "bugfix-loop-incomplete",
       "skill": "bugfix-loop",
       "category": "incomplete",
-      "prompt": "Use $bugfix-loop for a bug, but I have not supplied the symptom, expected behavior, base revision, or worktree authority.",
+      "prompt": "Use $bugfix-loop for a bug, but I have not supplied the symptom, expected behavior, acceptance IDs, base revision, or worktree authority. Do not start controller state before approval.",
       "expect": {
         "activate": ["bugfix-loop"],
         "forbid": []
@@ -290,7 +295,7 @@
         "activate": ["bugfix-loop"],
         "forbid": [],
         "output": {
-          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings"],
+          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings", "recovery"],
           "contains_any": ["non-renewable", "cannot extend", "cannot reset"]
         }
       }
@@ -407,12 +412,12 @@
       "id": "delivery-loop-direct",
       "skill": "delivery-loop",
       "category": "direct",
-      "prompt": "Use $delivery-loop to deliver booking cancellation in an approved isolated worktree with local commits, verification, and fresh independent review rounds.",
+      "prompt": "Use $delivery-loop to deliver booking cancellation in an approved isolated worktree with local commits, evidence-gated verification, capability-matched reviewers, and fresh independent review rounds.",
       "expect": {
         "activate": ["delivery-loop"],
         "forbid": ["bugfix-loop"],
         "output": {
-          "contains_all": ["worktree", "review"],
+          "contains_all": ["worktree", "review", "evidence"],
           "contains_any": ["approval", "authority"]
         }
       }
@@ -431,7 +436,7 @@
       "id": "delivery-loop-incomplete",
       "skill": "delivery-loop",
       "category": "incomplete",
-      "prompt": "Use $delivery-loop for a feature, but the feature goal, acceptance criteria, base revision, and worktree authority are not supplied.",
+      "prompt": "Use $delivery-loop for a feature, but the feature goal, acceptance criteria, risk signals, base revision, and worktree authority are not supplied. Do not create a run before approval.",
       "expect": {
         "activate": ["delivery-loop"],
         "forbid": []
@@ -456,7 +461,7 @@
         "activate": ["delivery-loop"],
         "forbid": [],
         "output": {
-          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings"],
+          "contains_all": ["BUDGET_EXHAUSTED", "remaining findings", "recovery"],
           "contains_any": ["non-renewable", "cannot extend", "cannot reset"]
         }
       }
@@ -685,13 +690,14 @@
       "id": "plan-direct",
       "skill": "plan",
       "category": "direct",
-      "prompt": "Use $plan to turn the approved booking-cancellation direction into a verifiable execution map with an Acceptance Contract before implementation.",
+      "prompt": "Use $plan for the approved booking-cancellation direction: only the booking owner can cancel, started bookings cannot be cancelled, unknown bookings return not found, and tests must prove each outcome. Produce a verifiable execution map with an Acceptance Contract.",
       "expect": {
         "activate": ["plan"],
         "forbid": ["brainstorm"],
         "output": {
           "contains_all": ["AC-", "verification"],
-          "contains_any": ["boundary", "evidence"]
+          "contains_any": ["boundary", "evidence"],
+          "not_contains": ["cannot finalize"]
         }
       }
     },
@@ -712,7 +718,11 @@
       "prompt": "Create an implementation plan for the approved feature, but its user-visible outcomes and verification environment are still missing.",
       "expect": {
         "activate": ["plan"],
-        "forbid": []
+        "forbid": [],
+        "output": {
+          "contains_all": ["user-visible", "verification"],
+          "contains_any": ["question", "clarify", "cannot finalize"]
+        }
       }
     },
     {

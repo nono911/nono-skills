@@ -1,7 +1,7 @@
 {
   "name": "nono-skills",
-  "version": "0.11.1",
-  "description": "Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
+  "version": "0.12.0",
+  "description": "Evidence-driven adaptive engineering skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
@@ -48,6 +48,9 @@
     "agentic-workflow",
     "coding-workflow",
     "superpowers-alternative",
+    "evidence-driven-development",
+    "adaptive-agent",
+    "agent-evaluation",
     "multi-agent",
     "multi-agent-cli",
     "agent-orchestration",

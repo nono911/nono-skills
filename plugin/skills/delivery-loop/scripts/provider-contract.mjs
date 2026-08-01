@@ -4,6 +4,18 @@ const stringListSchema = Object.freeze({
   items: nonEmptyStringSchema,
   uniqueItems: true,
 });
+const loopContextSchema = Object.freeze({
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    run_id: nonEmptyStringSchema,
+    lease_id: nonEmptyStringSchema,
+    batch: { type: 'integer', minimum: 1, maximum: 5 },
+    attempt: { type: 'integer', minimum: 1, maximum: 2 },
+    head_sha: nonEmptyStringSchema,
+  },
+  required: ['run_id', 'lease_id', 'batch', 'attempt', 'head_sha'],
+});
 
 const sharedResultProperties = Object.freeze({
   task_id: nonEmptyStringSchema,
@@ -26,7 +38,7 @@ const sharedRequiredProperties = Object.freeze(Object.keys(sharedResultPropertie
 export const implementSchema = Object.freeze({
   type: 'object',
   additionalProperties: false,
-  properties: sharedResultProperties,
+  properties: { ...sharedResultProperties, loop_context: loopContextSchema },
   required: sharedRequiredProperties,
 });
 
@@ -35,6 +47,7 @@ export const reviewSchema = Object.freeze({
   additionalProperties: false,
   properties: {
     ...sharedResultProperties,
+    loop_context: loopContextSchema,
     findings: {
       type: 'array',
       items: {
@@ -43,22 +56,28 @@ export const reviewSchema = Object.freeze({
         properties: {
           id: nonEmptyStringSchema,
           severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] },
+          category: nonEmptyStringSchema,
           location: nonEmptyStringSchema,
           evidence: nonEmptyStringSchema,
           impact: nonEmptyStringSchema,
           remediation: nonEmptyStringSchema,
         },
-        required: ['id', 'severity', 'location', 'evidence', 'impact', 'remediation'],
+        required: ['id', 'severity', 'category', 'location', 'evidence', 'impact', 'remediation'],
       },
     },
   },
   required: [...sharedRequiredProperties, 'findings'],
 });
 
-export function schemaForMode(mode) {
-  if (mode === 'review') return reviewSchema;
-  if (mode === 'implement') return implementSchema;
-  throw new Error(`Unsupported external agent mode: ${mode}`);
+export function schemaForMode(mode, { requireLoopContext = false } = {}) {
+  const schema = mode === 'review'
+    ? reviewSchema
+    : mode === 'implement'
+      ? implementSchema
+      : undefined;
+  if (!schema) throw new Error(`Unsupported external agent mode: ${mode}`);
+  if (!requireLoopContext) return schema;
+  return Object.freeze({ ...schema, required: [...schema.required, 'loop_context'] });
 }
 
 export function composeAgentPrompt({ packet, mode, schema, schemaEnforced }) {
@@ -183,6 +202,13 @@ export function assertAdapter(adapter) {
     || Array.isArray(adapter.limits)
   ) {
     throw new Error(`Invalid external-agent adapter ${adapter.name}: limits`);
+  }
+  if (
+    !Array.isArray(adapter.capabilities?.guarantees)
+    || adapter.capabilities.guarantees.some((value) => typeof value !== 'string' || value.trim() === '')
+    || new Set(adapter.capabilities.guarantees).size !== adapter.capabilities.guarantees.length
+  ) {
+    throw new Error(`Invalid external-agent adapter ${adapter.name}: capability guarantees`);
   }
   for (const [name, flag] of Object.entries(adapter.limits)) {
     if (

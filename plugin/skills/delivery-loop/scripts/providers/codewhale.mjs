@@ -35,6 +35,7 @@ export const codeWhaleAdapter = {
     implement: { supported: true, boundary: 'native workspace-write sandbox with shell disabled and delegation forbidden by contract' },
   },
   capabilities: {
+    guarantees: ['headless', 'structured-output', 'read-only-review', 'isolated-write', 'no-shell', 'no-delegation', 'wall-time-budget'],
     headless: true,
     input: 'argument',
     structuredOutput: 'validated-prompt-json',
@@ -85,7 +86,7 @@ export const codeWhaleAdapter = {
         CODEWHALE_ALLOW_SHELL: '0',
         CODEWHALE_APPROVAL_POLICY: 'never',
         CODEWHALE_SANDBOX_MODE: sandboxMode,
-        CODEWHALE_MAX_SUBAGENTS: '1',
+        CODEWHALE_MAX_SUBAGENTS: '0',
         CODEWHALE_VERBOSITY: 'concise',
       },
       parse(stdout) {

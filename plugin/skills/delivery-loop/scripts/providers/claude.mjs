@@ -67,6 +67,7 @@ export const claudeAdapter = {
     implement: { supported: true, boundary: 'scoped file edits in an approved child worktree; no shell' },
   },
   capabilities: {
+    guarantees: ['headless', 'structured-output', 'read-only-review', 'isolated-write', 'no-shell', 'no-delegation', 'ephemeral-session', 'wall-time-budget', 'cost-budget', 'turn-budget'],
     headless: true,
     input: 'stdin',
     structuredOutput: 'json-schema',

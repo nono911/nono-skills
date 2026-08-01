@@ -15,6 +15,7 @@ export const antigravityAdapter = {
     implement: { supported: false, boundary: 'no verified one-shot CLI contract' },
   },
   capabilities: {
+    guarantees: ['interactive-only'],
     headless: false,
     input: 'interactive-tui',
     structuredOutput: 'none',

@@ -31,6 +31,8 @@ assert.deepEqual(
 );
 const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+const loopController = await readFile(path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'), 'utf8');
+const evidenceContract = await readFile(path.join(root, 'plugin', 'runtime', 'evidence-contract.md'), 'utf8');
 assertWorkspaceProtocolContract(workspaceProtocol);
 for (const relative of skillFiles) {
   const expectedName = relative.split(path.sep)[0];
@@ -63,6 +65,16 @@ for (const relative of skillFiles) {
       metadata,
       /^policy:\n  allow_implicit_invocation: false$/m,
       `${expectedName} must require explicit invocation`,
+    );
+    assert.equal(
+      await readFile(path.join(skillRoot, expectedName, 'scripts', 'loop-controller.mjs'), 'utf8'),
+      loopController,
+      `${expectedName} must bundle the canonical loop controller`,
+    );
+    assert.equal(
+      await readFile(path.join(skillRoot, expectedName, 'references', 'evidence-contract.md'), 'utf8'),
+      evidenceContract,
+      `${expectedName} must bundle the canonical evidence contract`,
     );
   }
 }

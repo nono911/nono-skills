@@ -21,6 +21,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Outputs
 
+- A requirement snapshot separating confirmed intent, observed behavior, inferences, and blocking questions
 - A decision-ready spec and concise execution map with an Acceptance Contract of testable criteria
 - For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory
 - A short summary of assumptions and human decisions needed
@@ -28,7 +29,10 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Rules
 
 - Inspect the real code path before decomposing implementation work.
-- Separate confirmed facts, inferences, and unresolved choices.
+- Summarize the affected user or operator, desired observable behavior, must-have and must-not behavior, constraints, and success signals; separate confirmed intent, observed current behavior, inferences, and unknowns.
+- Ask only when an unresolved choice changes user-visible behavior, acceptance criteria, scope, compatibility, or irreversible risk. Ask one to three highest-leverage questions per round; never ask for facts safely discoverable from the repository.
+- Do not call a spec decision-ready or finalize its Acceptance Contract while such a blocking choice remains. Use `brainstorm` when the product or technical direction is still genuinely open.
+- State reversible low-impact assumptions and proceed when they cannot materially change the contract.
 - Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
 - For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
 - Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.

@@ -13,18 +13,22 @@ Deliver a feature through an isolated implement-review-fix loop.
 
 Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.
 
+## Evidence control
+
+- After workflow approval, read `references/evidence-contract.md` and use the bundled controller before implementation. Start or resume one repository-local run; never ask the user to operate it.
+- Treat the controller-issued run ID, evidence events, review leases, snapshots, and immutable budgets as authoritative across continuation, compaction, replanning, providers, and child returns. Never edit controller state directly or replace a rejected transition with prose.
+- Record implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v1. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
+- Use the controller's capability plan and local insights only as evidence-linked advice for specialist selection. They never expand authority, scope, cost, or budgets or silently modify policy.
+- If strict control cannot execute or persist, stop this named loop. Offer ordinary implementation only with separate authority and never claim bounded or independently reviewed completion.
+
 ## Companions and delegation
 
 - Refer to companion skills by their frontmatter names, such as `implement` or `review`. Invoke them through the host's native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.
 - Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.
-- Keep the original agent as orchestrator; delegate only bounded work that benefits from separate context.
-- At the approval gate, offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`.
-- If the user approves without selecting a choice, use Native subagents.
-- Do not probe, propose, or invoke external providers unless the user explicitly selects External or Hybrid, names an external provider, or asks for external-agent options.
-- Read `references/agent-delegation.md` only after External or Hybrid is selected, then follow its provider, consent, isolation, result, and fallback contracts.
-- Require explicit per-run consent before sending repository content to an external provider.
-- Never invoke an external provider that owns the current host task; use that host's native agent mechanism instead.
-- Use one writer per file-ownership boundary, isolate every delegated writer in an approved child worktree, and keep integration, verification, Git operations, and official commits with the orchestrator.
+- Keep the original agent as orchestrator and delegate only bounded work.
+- At approval offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`; an unspecified choice means Native.
+- Probe or invoke external providers only after External, Hybrid, a named provider, or an options request. Then read `references/agent-delegation.md`, obtain explicit per-run consent before sharing source, and never invoke the current host externally.
+- Match agents to required roles and enforceable capabilities rather than provider names. Use one writer per file boundary, isolate delegated writers, and keep integration, verification, Git operations, and official commits with the orchestrator.
 
 ## Inputs
 
@@ -35,64 +39,61 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - One approved isolated implementation and commit
-- No more than five sequential review-fix batches for the entire run, stopping when clean or `BUDGET_EXHAUSTED`
+- Evidence-linked execution with no more than five review batches, four fix cycles, and one no-verdict retry for the entire run
 - A second commit only for validated later fixes that pass fresh review
 - Verification, delegation, commit, and residual-risk evidence
 
 ## Approval and isolation
 
-- Inspect repository scope, checkout, worktrees, base SHA, HEAD, and all change states before editing.
-- If the task already runs in a host-managed worktree, reuse it and never create a nested worktree. A detached HEAD is valid until the user chooses to create a branch or hand off the task; do not move the task or check the same branch out elsewhere.
-- Otherwise reuse the checkout only when it is a dedicated worktree for this feature with an unambiguous base.
-- If neither reuse case applies, propose the exact base revision, branch, and worktree path, then request one scoped approval covering their creation and up to two local commits unless the initial request already authorizes every action.
-- Invoking `delivery-loop` alone is not worktree or commit authority. Only an explicit initial authorization for the exact proposed actions satisfies those gates.
-- When reusing any worktree, request only missing authority for up to two local commits.
-- If the user declines required worktree creation, do not continue this loop in the current checkout. Ask whether to switch to ordinary implementation there with explicit write and commit authority or stop; the switched path is outside delivery-loop completion.
-- Approval in this workflow covers only the proposed worktree or branch creation and up to two local commits; push, merge, deploy, external mutation, task handoff, worktree removal, and branch deletion remain separate actions.
+- Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
+- Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated feature worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
+- Otherwise propose the exact base, branch, and worktree path and request one approval for their creation and up to two local commits unless already authorized. The loop-owned implementation commit may be amended before first review; the second is an unpushed review-fix commit that may be amended across later fix cycles.
+- Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.
+- If required isolation is declined, stop this loop and offer ordinary implementation in the checkout only with explicit write and commit authority.
+- Approval covers only the proposed worktree or branch, the implementation commit, and creation or amendment of one loop-owned review-fix commit; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
 - Preserve unrelated changes and follow repository remote and identity rules before each commit.
 - Do not copy ignored files or secrets or change host worktree rules without authorization.
-- Before implementation, confirm the host can create a fresh isolated read-only reviewer agent or subagent. If it cannot, disclose the limitation before editing and ask whether to switch to ordinary implementation with a non-independent self-review or stop. That degraded path is outside delivery-loop completion and must never report `CLEAN` or independently reviewed.
+- Before editing confirm a fresh isolated read-only reviewer is available. Otherwise disclose the limitation and offer ordinary implementation with non-independent self-review or stop; that path cannot report `CLEAN`.
 
 ## Implement and commit
 
 1. Create a CLI worktree and branch only when approved and required; otherwise remain in the approved isolated environment.
-2. When the feature warrants multi-step planning, explicitly activate the companion `plan` skill before implementation. Keep the plan in the current conversation unless a durable work-item workspace is approved; for a small well-defined feature, keep orchestration lightweight and do not create artifacts merely to satisfy the loop.
+2. For multi-step work activate `plan` before implementation; keep small well-defined features artifact-light and follow workspace consent for durable state.
 3. Keep the original agent as orchestrator and explicitly activate the companion `implement` skill to deliver the smallest complete feature with appropriate tests.
-4. When a runnable user-facing journey is material, explicitly activate the companion `acceptance-verify` skill as a source-read-only QA specialist against the acceptance criteria. Keep the original agent as implementer, resolve validated failures, and rerun affected scenarios.
-5. Validate delegated scope and claims before integration.
-6. Verify in proportion to risk, stage only in-scope changes, and create the authorized implementation commit.
+4. For a material runnable journey activate source-read-only `acceptance-verify`, resolve validated failures, and rerun affected scenarios.
+5. Validate delegated scope and claims, verify in proportion to risk, and exclude out-of-scope changes.
+6. Stage only in-scope changes, create the authorized implementation commit, then ingest its implementation and verification evidence.
 
 ## Review and fix
 
-1. For every round, use a fresh project-scoped read-only reviewer agent or subagent. Instruct it to activate `review` and forbid delegation or mutation. If it becomes unavailable, stop; a non-independent fallback is outside delivery-loop completion and must not report `CLEAN`.
-2. The original orchestrator exclusively owns the review-batch counter and may start each batch. Every child performs one bounded pass, returns its results, and never invokes or requests another review or loop. Only the orchestrator may update approved durable state.
+1. Before every round, obtain a controller review lease for the exact HEAD and capability-matched reviewer batch. Use a fresh project-scoped read-only reviewer agent or subagent, activate `review`, and forbid delegation or mutation. If unavailable, stop; a non-independent fallback cannot report `CLEAN`.
+2. The controller exclusively owns the review-batch counter; the original orchestrator owns transitions. Every child performs one leased bounded pass, returns Evidence Contract output, and never invokes or requests another review or loop.
 3. Give each reviewer the exact snapshot, criteria, checks, full diff, guidance, prior dispositions, and accepted decisions.
-4. Require `CLEAN` or findings with stable ID, severity, location, evidence, impact, and remediation.
+4. Require `CLEAN` or findings with stable ID, severity, category, location, evidence, impact, and remediation.
 5. Add a risk-required read-only specialist to the same batch.
-6. Reject preferences, unsupported claims, duplicates, and stale findings; validate actionable findings before editing.
-7. Keep the original agent as fixer and activate `fix-findings` once for the validated batch. Require dispositions and evidence back without re-review; never let a reviewer modify the feature.
-8. Verify fixes, then freshly review the new HEAD.
+6. Ingest the review, reject preferences and unsupported, duplicate, or stale findings, then record one evidence-backed disposition for every finding before editing.
+7. Keep the original agent as fixer and activate `fix-findings` once for actionable findings. Validate the changed scope and dispositions; never let a reviewer modify the feature.
+8. Create the loop-owned review-fix commit on the first fix cycle and amend only that unpushed commit on later cycles. Ingest the new committed HEAD and verification evidence, then acquire a fresh lease.
 
 ## Loop controls
 
-- One review round means one complete reviewer batch over the same HEAD: the general engineering reviewer plus every specialist required by the current risk. Count the batch as one round, not each reviewer.
+- One round is one batch over one HEAD: the general reviewer plus risk-required specialists.
 - Run rounds sequentially: review, validate and fix findings, verify, then start a fresh review. Never launch all five rounds at once.
 - `CLEAN` means no actionable defect; optional suggestions do not block.
-- The absolute budget is five batches for the entire delivery run. Keep its counter monotonic across continuation, compaction, replanning, provider changes, and child returns; never reset it.
-- The budget is non-renewable. Generic approval, `continue`, extra commit authority, or a request for more rounds never extends it; do not ask the user to extend it.
-- Never review the same HEAD twice unless the earlier attempt returned no verdict; retry that failed attempt as the same numbered batch.
-- Stop earlier and escalate when the same finding repeats after a verified fix, reviewers conflict on material behavior, or safe progress needs a product decision.
-- If the fifth batch finds an actionable defect, do not fix or mutate the reviewed state. Mark `BUDGET_EXHAUSTED`, report remaining findings and evidence, and stop without claiming `CLEAN` or creating the final commit.
-- Keep external calls within the approved bound and never run extra calls merely to consume the allowance.
+- The controller enforces five batches, four fix cycles, and one no-verdict retry for the entire delivery run. Its persisted counters are monotonic and non-renewable; `continue`, extra commit authority, provider changes, or more-round requests never reset or extend them.
+- Never review the same HEAD twice. The sole no-verdict retry reuses its numbered batch and a fresh lease.
+- Stop earlier for a repeated finding, material reviewer conflict, or needed product decision.
+- If fifth-batch triage confirms an actionable defect, accept the controller's `BUDGET_EXHAUSTED` transition, do not mutate, and report its recovery record. A narrower linked run needs explicit approval and never makes this run `CLEAN`.
+- Keep external calls within their approved bound.
 - Never hide, downgrade, or close a disputed finding to terminate the loop.
 
 ## Finalize
 
-1. After a clean review, run all required checks and affected acceptance scenarios.
-2. If final verification changes the state, activate `fix-findings`, fix, and start a fresh complete review within the five-round limit; with no round remaining, do not claim `CLEAN` or commit the changed state.
+1. After a clean review, run all required checks and affected acceptance scenarios, then ingest final verification evidence.
+2. If final verification changes state, fix and freshly review within the remaining budget; otherwise do not claim `CLEAN` or commit it.
 3. Inspect the worktree and stage only validated delivery-loop fixes.
-4. If validated post-implementation fixes changed code and the resulting state passed fresh review and final verification, create the final review-fix commit. Do not create an empty second commit unless explicitly required.
-5. Preserve worktrees unless removal is authorized. Report environment, commits, rounds, findings, checks, delegation, and residual risks.
+4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
+5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, budgets, findings, checks, delegation, relevant local insights, and residual risks.
 6. Do not claim completion while blocking findings or required checks remain.
 
 ## Decision-log updates

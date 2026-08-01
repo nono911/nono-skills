@@ -1,7 +1,7 @@
 {
   "name": "engineering",
-  "version": "0.11.1",
-  "description": "Engineering Agent Skills and review-fix loops for OpenAI Codex CLI.",
+  "version": "0.12.0",
+  "description": "Evidence-driven adaptive engineering skills and review-fix loops for OpenAI Codex CLI.",
   "author": {
     "name": "thitikorn.j"
   },
@@ -34,7 +34,7 @@
   "interface": {
     "displayName": "Engineering",
     "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "Evidence-driven engineering loops and reusable Agent Skills centered on outcomes, verification, bounded agent delegation, material decisions, and human escalation.",
+    "longDescription": "Evidence-driven adaptive engineering loops and reusable Agent Skills centered on outcomes, persistent verification, bounded agent delegation, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],

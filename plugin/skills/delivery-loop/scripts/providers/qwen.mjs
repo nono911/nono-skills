@@ -54,6 +54,7 @@ export const qwenAdapter = {
     implement: { supported: true, boundary: 'sandboxed auto-edit in an approved child worktree; no shell or subagents' },
   },
   capabilities: {
+    guarantees: ['headless', 'structured-output', 'read-only-review', 'isolated-write', 'no-shell', 'no-delegation', 'wall-time-budget', 'turn-budget', 'tool-budget'],
     headless: true,
     input: 'stdin',
     structuredOutput: 'json-schema',

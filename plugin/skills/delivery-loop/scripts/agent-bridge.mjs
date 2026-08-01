@@ -328,6 +328,69 @@ export async function listAgentProviders({
   })));
 }
 
+export function selectAgentProviders({
+  providers,
+  role,
+  requiredCapabilities = [],
+  history = {},
+} = {}) {
+  if (!Array.isArray(providers)) throw new Error('providers must be an array');
+  if (!['review', 'implement'].includes(role)) throw new Error('role must be review or implement');
+  if (
+    !Array.isArray(requiredCapabilities)
+    || requiredCapabilities.some((value) => typeof value !== 'string' || value.trim() === '')
+    || new Set(requiredCapabilities).size !== requiredCapabilities.length
+  ) {
+    throw new Error('requiredCapabilities must be a unique string list');
+  }
+  const roleGuarantee = role === 'review' ? 'read-only-review' : 'isolated-write';
+  const required = [...new Set([...requiredCapabilities, roleGuarantee])];
+  const eligible = [];
+  const rejected = [];
+  for (const provider of providers) {
+    const reasons = [];
+    if (provider.enabled === false) reasons.push('disabled by user');
+    if (!provider.available) reasons.push('unavailable');
+    if (!provider.compatible) reasons.push('incompatible');
+    if (provider.roles?.[role] !== true) reasons.push(`does not support ${role}`);
+    if (role === 'implement' && provider.policy === 'review-only') {
+      reasons.push('durable policy is review-only');
+    }
+    const guarantees = provider.capabilities?.guarantees ?? [];
+    const missing = required.filter((capability) => !guarantees.includes(capability));
+    if (missing.length) reasons.push(`missing capabilities: ${missing.join(', ')}`);
+    if (reasons.length) {
+      rejected.push({ provider: provider.name, reasons });
+      continue;
+    }
+    const observations = history[provider.name] ?? {};
+    const samples = Number.isInteger(observations.samples) ? observations.samples : 0;
+    const valid = (observations.clean ?? 0) + (observations.findings ?? 0);
+    const reliability = samples >= 3 ? valid / samples : null;
+    eligible.push({
+      provider: provider.name,
+      displayName: provider.displayName,
+      required_capabilities: required,
+      guarantees,
+      enabled: provider.enabled === true,
+      history: { samples, reliability },
+      reasons: [
+        'available, compatible, and role-eligible',
+        `provides ${required.join(', ')}`,
+        ...(reliability === null
+          ? ['insufficient local history for a reliability tie-break']
+          : [`local valid-output rate ${valid}/${samples}`]),
+      ],
+    });
+  }
+  eligible.sort((left, right) => (
+    Number(right.enabled) - Number(left.enabled)
+    || (right.history.reliability ?? -1) - (left.history.reliability ?? -1)
+    || left.provider.localeCompare(right.provider)
+  ));
+  return { role, required_capabilities: required, eligible, rejected };
+}
+
 function assertStringList(output, name, providerName) {
   if (
     !Array.isArray(output[name])
@@ -385,6 +448,22 @@ function parseTaskPacket(prompt, mode) {
   ]) {
     if (!packet.forbidden_actions.includes(action)) {
       throw new Error(`task packet must forbid: ${action}`);
+    }
+  }
+  if (packet.loop_context !== undefined) {
+    if (mode !== 'review' || packet.loop_context === null || typeof packet.loop_context !== 'object' || Array.isArray(packet.loop_context)) {
+      throw new Error('task packet loop_context is supported only for controlled reviews');
+    }
+    for (const name of ['run_id', 'lease_id', 'head_sha']) {
+      nonEmptyString(packet.loop_context[name], `task packet loop_context ${name}`);
+    }
+    for (const name of ['batch', 'attempt']) {
+      if (!Number.isInteger(packet.loop_context[name]) || packet.loop_context[name] < 1) {
+        throw new Error(`task packet loop_context ${name} must be a positive integer`);
+      }
+    }
+    if (packet.loop_context.head_sha !== packet.head_sha) {
+      throw new Error('task packet loop_context head_sha must match the approved HEAD');
     }
   }
   return packet;
@@ -478,6 +557,11 @@ function validateStructuredOutput(output, mode, packet, providerName) {
       throw new Error(`${providerName} returned mismatched structured output: ${name}`);
     }
   }
+  if (packet.loop_context !== undefined) {
+    if (JSON.stringify(output.loop_context) !== JSON.stringify(packet.loop_context)) {
+      throw new Error(`${providerName} returned mismatched structured output: loop_context`);
+    }
+  }
   if (!['completed', 'blocked', 'failed'].includes(output.status)) {
     throw new Error(`${providerName} returned invalid structured output: status`);
   }
@@ -517,7 +601,7 @@ function validateStructuredOutput(output, mode, packet, providerName) {
         throw new Error(`${providerName} returned findings outside severity order`);
       }
       previousSeverity = severity;
-      for (const name of ['id', 'location', 'evidence', 'impact', 'remediation']) {
+      for (const name of ['id', 'category', 'location', 'evidence', 'impact', 'remediation']) {
         if (typeof finding[name] !== 'string' || finding[name].trim() === '') {
           throw new Error(`${providerName} returned invalid structured output: finding ${name}`);
         }
@@ -601,7 +685,7 @@ export async function runExternalAgent({
     }
   }
 
-  const schema = schemaForMode(mode);
+  const schema = schemaForMode(mode, { requireLoopContext: packet.loop_context !== undefined });
   const resolvedMaxTurns = inspected.limits.maxTurns
     ? requestedMaxTurns ?? defaultMaxTurns
     : undefined;
@@ -674,6 +758,7 @@ function parseBridgeArgs(argv) {
     maxTurns: undefined,
     maxToolCalls: undefined,
     timeoutMs: undefined,
+    requiredCapabilities: [],
   };
   while (args.length) {
     const arg = args.shift();
@@ -687,6 +772,9 @@ function parseBridgeArgs(argv) {
     else if (arg === '--max-turns') options.maxTurns = args.shift();
     else if (arg === '--max-tool-calls') options.maxToolCalls = args.shift();
     else if (arg === '--timeout-ms') options.timeoutMs = args.shift();
+    else if (arg === '--require') {
+      options.requiredCapabilities = (args.shift() ?? '').split(',').map((value) => value.trim()).filter(Boolean);
+    }
     else throw new Error(`Unknown bridge option: ${arg}`);
   }
   return options;
@@ -696,6 +784,7 @@ const bridgeHelp = `agent-bridge <command> [options]
 
 Commands:
   detect --json
+  select --mode <review|implement> --require <capability,...> --json
   run --provider <claude|codex|qwen|opencode|codewhale> --mode <review|implement>
       --cwd <path> --prompt-file <path> --consent
       [--max-budget-usd <amount>] [--max-turns <count>]
@@ -722,6 +811,17 @@ export async function runAgentBridgeCli(
       const providers = await listAgentProviders({ home, runCommand: execute, env });
       stdout.write(`${JSON.stringify(providers, null, options.json ? 2 : 0)}\n`);
       return 0;
+    }
+    if (options.command === 'select') {
+      nonEmptyString(options.mode, 'mode');
+      const providers = await listAgentProviders({ home, runCommand: execute, env });
+      const selection = selectAgentProviders({
+        providers,
+        role: options.mode,
+        requiredCapabilities: options.requiredCapabilities,
+      });
+      stdout.write(`${JSON.stringify(selection, null, options.json ? 2 : 0)}\n`);
+      return selection.eligible.length === 0 ? 1 : 0;
     }
     if (options.command === 'run') {
       nonEmptyString(options.provider, 'provider');

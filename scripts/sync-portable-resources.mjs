@@ -6,10 +6,14 @@ import { canonicalSkillNames } from '../src/plugin-contract.js';
 const root = path.resolve(import.meta.dirname, '..');
 const skillsRoot = path.join(root, 'plugin', 'skills');
 const canonicalWorkspacePath = path.join(root, 'plugin', 'references', 'workspaces.md');
+const canonicalLoopControllerPath = path.join(root, 'plugin', 'runtime', 'loop-controller.mjs');
+const canonicalEvidenceContractPath = path.join(root, 'plugin', 'runtime', 'evidence-contract.md');
 const legacyWorkspaceInstruction = 'Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 const portableWorkspaceInstruction = 'Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 
 const canonicalWorkspace = await readFile(canonicalWorkspacePath, 'utf8');
+const canonicalLoopController = await readFile(canonicalLoopControllerPath, 'utf8');
+const canonicalEvidenceContract = await readFile(canonicalEvidenceContractPath, 'utf8');
 const skillNames = [...canonicalSkillNames].sort();
 
 for (const skillName of skillNames) {
@@ -30,4 +34,14 @@ for (const skillName of skillNames) {
   await writeFile(referencePath, canonicalWorkspace);
 }
 
-process.stdout.write(`Synchronized portable workspace resources for ${skillNames.length} skills.\n`);
+for (const skillName of ['bugfix-loop', 'delivery-loop']) {
+  const skillRoot = path.join(skillsRoot, skillName);
+  const controllerPath = path.join(skillRoot, 'scripts', 'loop-controller.mjs');
+  const evidencePath = path.join(skillRoot, 'references', 'evidence-contract.md');
+  await mkdir(path.dirname(controllerPath), { recursive: true });
+  await mkdir(path.dirname(evidencePath), { recursive: true });
+  await writeFile(controllerPath, canonicalLoopController, { mode: 0o755 });
+  await writeFile(evidencePath, canonicalEvidenceContract);
+}
+
+process.stdout.write(`Synchronized portable resources for ${skillNames.length} skills and 2 controlled loops.\n`);

@@ -22,6 +22,23 @@ The pack is designed for capable reasoning models such as GPT-5.6 Sol. Skills de
 
 Together they cover plan → implement → test → QA → review → fix → release without forcing every task through a heavyweight workflow.
 
+### Evidence-driven adaptive control
+
+Version 0.12 adds strict control only inside the two explicit engineering loops. After workflow approval, the skill automatically starts or resumes a repository-local run and records each implementation, verification, review, triage, fix, block, and completion transition through Evidence Contract v1. The user does not run or configure the controller.
+
+Run identity is independent of a chat or agent session. State is stored outside tracked source under the repository's Git common directory at `.git/nono-skills/runs/`, so a later task can resume the same controlled worktree without resetting its budget. Evidence records contain structured outcomes, snapshot IDs, finding summaries, and verification labels—not prompts, conversations, source, diffs, terminal output, environment values, or secrets.
+
+The controller adapts within fixed safety bounds:
+
+- Risk signals recommend relevant acceptance, security, architecture, or migration specialists.
+- Agents are filtered by role and enforceable capabilities before provider preference.
+- A clean result stops early instead of spending all available rounds.
+- Review leases bind one reviewer batch to one exact HEAD and reject stale or replayed output.
+- Five review batches, four fix cycles, and one no-verdict retry are immutable for the run.
+- An actionable fifth-batch finding ends in `BUDGET_EXHAUSTED` without another mutation and produces a recovery record for a separately approved narrower run.
+
+Completed runs also create redacted local summaries. Repository insights can use repeated evidence to recommend an earlier specialist or break down recurring risk, but they are advisory only: they do not train a model, rewrite a skill, change permissions, extend a budget, accept a finding, or send telemetry.
+
 ## Install
 
 ### Universal Agent Skills
@@ -153,6 +170,15 @@ verification method. Plan outcomes reference affected acceptance IDs when
 applicable, so implementation, QA, review, and release readiness share the same
 definition of done.
 
+Before option ranking or Acceptance Contract creation, `brainstorm` and `plan`
+build a lightweight requirement snapshot from the user's statements and
+in-scope evidence. They distinguish confirmed intent, observed current behavior,
+inferences, and unknowns. Repository facts are inspected rather than asked back
+to the user; one to three high-impact questions are asked only when an answer
+would change user-visible behavior, option ranking, scope, compatibility, or
+irreversible risk. Reversible low-impact gaps remain explicit assumptions, so
+complete requests do not acquire an unnecessary interview gate.
+
 The contract stays proportional to risk. Internal enabling tasks do not receive
 invented acceptance criteria, and negative, compatibility, rollout, or rollback
 criteria are included only when they materially affect the change.
@@ -227,13 +253,13 @@ workflow then runs in this order:
 1. Reuse the current host-managed or dedicated feature worktree, or create the approved Git CLI worktree and branch from the recorded base SHA.
 2. For multi-step work, activate the companion `plan` skill before implementation. Keep it in the conversation unless a durable workspace is approved; do not create planning artifacts for a small well-defined feature.
 3. Use native subagents by default. Only after the user selects External or Hybrid, probe optional agent CLIs locally with version, help, and documented offline capability checks, then propose bridge-reported roles and obtain any missing provider, data-sharing, call-budget, and child-worktree consent.
-4. Keep the original agent as orchestrator and activate the companion `implement` skill for the feature. Read-only delegates may work in parallel; write delegates receive disjoint ownership and separate approved child worktrees.
-5. Inspect every delegated result, reject out-of-scope changes, integrate accepted work, and run the repository's required checks before creating the authorized implementation commit.
-6. Use a fresh project-scoped reviewer agent or fresh reviewer subagent and instruct it to activate the companion `review` skill. An approved external reviewer may join or fill this role only with fresh, read-only context. If independent review becomes unavailable, stop rather than substituting self-review or claiming `CLEAN`.
-7. Validate actionable findings, then have the original agent activate the companion `fix-findings` skill.
-8. Review the complete feature diff again with a fresh reviewer. Repeat until required reviewers return `CLEAN` or the bounded loop requires human input.
-9. Add a separate read-only security, architecture, or migration review only when the changed risk makes it relevant.
-10. Run final verification and create one review-fix commit when any validated post-implementation fix changed code and the resulting state passed fresh review.
+4. Start or resume the controller-owned run with acceptance IDs and risk signals, then keep its run identity and immutable budgets across every later phase.
+5. Keep the original agent as orchestrator and activate the companion `implement` skill for the feature. Read-only delegates may work in parallel; write delegates receive disjoint ownership and separate approved child worktrees.
+6. Inspect every delegated result, reject out-of-scope changes, integrate accepted work, run required checks, create the authorized implementation commit, and record its implementation and verification evidence.
+7. Acquire a review lease for the exact HEAD and capability-matched reviewer batch. Use a fresh project-scoped reviewer agent or fresh reviewer subagent and instruct it to activate the companion `review` skill. An approved external reviewer may join or fill this role only with fresh, read-only context and must echo the run and lease identity.
+8. Validate and record every finding disposition, then have the original agent activate the companion `fix-findings` skill only for actionable findings. Create one loop-owned review-fix commit on the first fix cycle and amend only that unpushed commit on later cycles before recording the new HEAD and verification evidence.
+9. Review the new HEAD under a fresh lease, with acceptance, security, architecture, or migration specialists in the same batch when the current risk requires them. Stop early on `CLEAN`; never spend rounds mechanically.
+10. Run and record final verification. Complete the controlled run only when the evidence passes and no blocking findings remain.
 
 Each reviewer receives the worktree path, baseline and target revisions, acceptance criteria, repository guidance, verification evidence, complete diff, and prior finding dispositions. It reviews the full diff independently before reconciling earlier findings. Implementer conclusions are not passed as review evidence. Style preferences and unsupported speculation do not block completion.
 Reviewer agents return findings and proposed decision-log records to the original orchestrator; they never edit code or durable workspace artifacts themselves.
@@ -253,11 +279,12 @@ the task contract. The original orchestrator owns official verification, Git,
 integration, and commits.
 
 The loop never invokes Claude Code from a Claude Code host task—or any provider
-from a task owned by the same harness. A failed or malformed external result is
-rejected rather than treated as `CLEAN`. If an external provider implemented any
-part of the feature, it may supplement review but cannot be the sole general
-reviewer. Review independence tracks the harness, underlying provider/model, and
-fresh session; changing only the CLI wrapper does not create model diversity.
+from a task owned by the same harness. A failed, malformed, stale, or
+capability-ineligible external result is rejected rather than treated as
+`CLEAN`. If an external provider implemented any part of the feature, it may
+supplement review but cannot be the sole general reviewer. Review independence
+tracks the harness, underlying provider/model, and fresh session; changing only
+the CLI wrapper does not create model diversity.
 
 If the first independent review is already `CLEAN`, the implementation commit is the final code state and the workflow does not create an empty second commit. Git CLI-created and permanent feature worktrees remain available for inspection by default; host-managed worktree lifecycle stays under the host.
 
@@ -267,14 +294,14 @@ Activate `bugfix-loop` when a defect should be reproduced, traced to a supported
 
 It uses the same host-managed, dedicated, or approved Git CLI worktree rules and the same two-local-commit authority boundary as `delivery-loop`. The bug-specific sequence is:
 
-1. Activate the companion `debug` skill to reproduce the symptom and support the causal chain before changing production code.
-2. Activate the companion `test` skill to create the smallest stable regression proof and confirm it fails for the expected pre-fix reason.
-3. Activate the companion `implement` skill for the minimal compatible root-cause fix.
-4. Re-run the regression proof, original reproduction when safe, and adjacent verification; then create the authorized bugfix commit.
-5. Run a fresh read-only companion `review` batch over the complete diff.
-6. Validate findings and activate the companion `fix-findings` skill; verify before starting the next fresh batch.
-7. Stop when the required reviewers return `CLEAN`, or escalate after at most five sequential review rounds.
-8. Create one consolidated review-fix commit only when validated post-implementation fixes changed code and the resulting state passed fresh review and final verification.
+1. Start or resume the controller-owned run after workflow approval, using stable acceptance IDs and current risk signals.
+2. Activate the companion `debug` skill to reproduce the symptom and support the causal chain before changing production code; record the diagnosis evidence.
+3. Activate the companion `test` skill to create the smallest stable regression proof and confirm it fails for the expected pre-fix reason.
+4. Activate the companion `implement` skill for the minimal compatible root-cause fix, rerun the proof and safe reproduction, create the authorized bugfix commit, and record implementation and verification evidence.
+5. Acquire a lease and run a fresh read-only companion `review` batch over the complete diff, including risk-required specialists in the same batch.
+6. Validate and record findings, activate the companion `fix-findings` skill for actionable defects, and create or amend the single loop-owned review-fix commit before recording verification and acquiring a fresh lease.
+7. Stop early when the required reviewers return `CLEAN`, or enter evidence-backed recovery after at most five sequential review batches.
+8. Record final verification and complete only when no blocking findings remain.
 
 Review rounds are never launched five times in advance. Each round completes against one HEAD, then any findings are validated, fixed, and verified before the next round begins. If round five still finds an actionable defect, the loop does not fix or mutate that reviewed state. It reports `BUDGET_EXHAUSTED` with the remaining findings and stops without asking to extend the run.
 
@@ -333,13 +360,18 @@ For the native Codex plugin:
 ```bash
 npx nono-skills doctor
 npx nono-skills agents doctor
+npx nono-skills runs list
+npx nono-skills runs show <run-id>
+npx nono-skills insights
 npx nono-skills update
 npx nono-skills uninstall
 ```
 
+The run and insight commands are optional inspection tools; normal loop use is automatic. `runs show` prints the validated evidence chain for one run. `insights` reports only redacted, evidence-backed local recommendations. To remove all package-owned run evidence for the current repository, use `npx nono-skills runs purge --force`; source files and durable `docs/agent/work/` artifacts are not removed.
+
 Start a new Codex task after install or update so the refreshed skill definitions are loaded.
 
-Version 0.11.1 makes review budgets absolute and non-renewable, prevents child reviewers and fixers from starting nested workflows, refuses duplicate-HEAD review, and stops without mutation when the fifth batch still has findings. Version 0.11.0 adds Acceptance Contracts to planning, sharper trigger boundaries, a provider-neutral 90-case behavioral evaluation matrix, progressive-disclosure protection for acceptance QA, and CI across Windows, macOS, and Linux. Version 0.10.0 makes both engineering loops leaner, loads external-provider guidance only after External or Hybrid is selected, and enforces progressive-disclosure word budgets in package validation. Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
+Version 0.12.0 adds Evidence Contract v1, persistent adaptive loop control, review leases and replay protection, capability-aware provider selection, and privacy-preserving local experience memory. Version 0.11.1 makes review budgets absolute and non-renewable, prevents child reviewers and fixers from starting nested workflows, refuses duplicate-HEAD review, and stops without mutation when the fifth batch still has findings. Version 0.11.0 adds Acceptance Contracts to planning, sharper trigger boundaries, a provider-neutral 90-case behavioral evaluation matrix, progressive-disclosure protection for acceptance QA, and CI across Windows, macOS, and Linux. Version 0.10.0 makes both engineering loops leaner, loads external-provider guidance only after External or Hybrid is selected, and enforces progressive-disclosure word budgets in package validation. Version 0.9.0 makes delivery native-first, adds Native, External, and Hybrid approval choices, and introduces bounded adapters for Claude Code, OpenAI Codex, Qwen Code, OpenCode, and CodeWhale. Version 0.8.0 makes all 18 skills self-contained for `npx skills`, resolves companion skills through each host's native mechanism, and replaces Codex-only loop assumptions with capability-aware host-managed worktrees and reviewer agents. Version 0.7.0 added `$engineering:acceptance-verify` for source-read-only QA, browser evidence, strict scenario verdicts, and conditional composition with delivery and bugfix workflows. Version 0.6.0 added the explicit-only `$engineering:bugfix-loop` for evidence-first diagnosis, pre-fix regression proof, minimal remediation, and up to five sequential independent review rounds. Version 0.5.0 added Codex-managed worktree reuse, five-round reviewer batches, project-scoped reviewer-agent setup, Git-root initialization, and Codex runtime and skill-metadata diagnostics. Version 0.4.0 replaced the old `engineering:review-loop` identifier with `$engineering:delivery-loop`; update saved prompts to use the explicit-only name.
 
 Uninstall preserves project files. Remove only installer-owned project files that still match their installed checksums with:
 
@@ -366,6 +398,8 @@ This pack intentionally does not impose strict test-first enforcement, automatic
 - Delivery loop reuses an active host-managed worktree without nesting. New Git CLI worktrees require approval for the exact base, branch, and path and are preserved until separately authorized for removal.
 - External-agent discovery uses only local version and capability probes. Every external run requires fresh consent for provider, role, data scope, worktree, and call or budget bounds; write workers never receive shell or Git authority.
 - Provider setup defaults to `review-only`. An `isolated-writer` policy makes implementation eligible for proposal but never replaces per-run consent or child-worktree isolation.
+- Explicit loops persist package-owned evidence in the Git common directory; records are hash-chained, snapshot-bound, inspectable, local-only, and excluded from uninstall purge unless the user explicitly runs `runs purge --force`.
+- Local experience memory contains redacted outcomes and run references only. It cannot change permissions, hard budgets, accepted risk, external-agent consent, or tracked repository files.
 - Bugfix loop applies the same isolation and authority rules, requires pre-fix evidence, and never treats unreviewed round-five fixes as a clean result.
 - Acceptance verification stays source-read-only, uses the least privileged suitable test identity, and requires new authority before risky external actions.
 - Work-item directories are user-owned, and uninstall purge never removes them.

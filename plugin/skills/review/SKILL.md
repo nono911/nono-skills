@@ -22,7 +22,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - Findings ordered `critical`, `high`, `medium`, then `low`
-- Each finding includes location, evidence, impact, reasoning or reproduction, and remediation direction
+- Each finding includes a stable ID, severity, category, location, evidence, impact, reasoning or reproduction, and remediation direction
 - Residual risks and verification gaps; explicitly state when no actionable findings remain
 
 ## Rules

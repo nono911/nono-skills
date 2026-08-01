@@ -216,6 +216,49 @@ test('agents doctor fails only when an enabled provider is unavailable', async (
   assert.match(stdout.read(), /FAIL claude/);
 });
 
+test('run evidence commands inspect insights and require force for purge', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
+  const stdout = writer();
+  const calls = [];
+  const handlers = createHandlers({
+    packageRoot: root,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.12.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+    loopController: {
+      async listRuns(options) {
+        calls.push(['list', options]);
+        return [{ run_id: 'run-1', status: 'COMPLETE' }];
+      },
+      async showRun(options) {
+        calls.push(['show', options]);
+        return { state: { run_id: options.runId } };
+      },
+      async repositoryInsights(options) {
+        calls.push(['insights', options]);
+        return { completed_runs: 1, recommendations: [] };
+      },
+      async purgeRepositoryEvidence(options) {
+        calls.push(['purge', options]);
+        return { removed_runs: 1, repository: options.worktree };
+      },
+    },
+  });
+
+  assert.equal(await handlers.runs({ runCommand: 'list' }), 0);
+  assert.equal(await handlers.runs({ runCommand: 'show', runId: 'run-1' }), 0);
+  assert.equal(await handlers.insights({}), 0);
+  await assert.rejects(handlers.runs({ runCommand: 'purge', force: false }), /requires --force/);
+  assert.equal(await handlers.runs({ runCommand: 'purge', force: true }), 0);
+  assert.deepEqual(calls.map(([name]) => name), ['list', 'show', 'insights', 'purge']);
+  assert.ok(calls.every(([, options]) => options.worktree === root));
+  assert.match(stdout.read(), /run-1/);
+  assert.match(stdout.read(), /completed_runs/);
+  assert.match(stdout.read(), /Purged 1 local loop run/);
+});
+
 test('purge preflight fails before uninstall when project state is missing', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
   let uninstallCalls = 0;

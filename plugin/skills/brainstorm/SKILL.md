@@ -21,6 +21,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Outputs
 
+- A requirement snapshot separating confirmed intent, evidence-backed inference, and open questions
 - Problem framing and success signals
 - Two to four meaningfully different options with tradeoffs
 - Recommendation, key assumptions, risks, and cheapest next experiment
@@ -28,9 +29,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Rules
 
-- Clarify the outcome before generating solutions.
+- Inspect available user statements and in-scope evidence before questioning. Repository evidence shows current behavior, not desired user intent.
+- Establish the affected user or operator, problem or outcome, success signal, must-have and must-not behavior, and material constraints before ranking options.
+- Mark each material requirement as confirmed, inferred, or unknown.
+- Ask only when an unknown would change user-visible outcomes or option ranking. Ask one to three highest-leverage questions per round; never ask for facts safely discoverable from the repository.
+- State a reversible low-impact assumption and proceed when it cannot materially change the recommendation. Do not recommend while the core user, outcome, or success signal remains unknown.
+- Reflect the settled requirement snapshot before presenting options.
 - Prefer distinct strategies over cosmetic variants.
-- Separate facts, assumptions, and hypotheses.
 - Evaluate user value, complexity, risk, reversibility, and operational cost.
 - Recommend a direction when evidence supports one; do not hide behind an unranked list.
 - Do not implement during exploration unless explicitly asked.

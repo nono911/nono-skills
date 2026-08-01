@@ -45,6 +45,9 @@ const expectedDiscoveryKeywords = [
   'agentic-workflow',
   'coding-workflow',
   'superpowers-alternative',
+  'evidence-driven-development',
+  'adaptive-agent',
+  'agent-evaluation',
   'multi-agent',
   'multi-agent-cli',
   'agent-orchestration',
@@ -212,7 +215,7 @@ test('package discovery metadata describes the engineering-loop product', async 
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
-  assert.match(packageJson.description, /Engineering Agent Skills and review-fix loops for Codex, Claude Code, Gemini CLI/);
+  assert.match(packageJson.description, /Evidence-driven adaptive engineering skills and review-fix loops for Codex, Claude Code, Gemini CLI/);
   assert.deepEqual(packageJson.keywords, expectedDiscoveryKeywords);
   assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords.slice(0, 20));
   assert.match(readme, /^# Nono Skills\n\nEvidence-driven engineering loops and reusable Agent Skills for Codex, Claude Code, Gemini CLI/);
@@ -283,6 +286,9 @@ test('README documents adaptive consent-aware workspaces', async () => {
     readme,
     /The agent asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority/,
   );
+  assert.match(readme, /build a lightweight requirement snapshot/);
+  assert.match(readme, /one to three high-impact questions are asked only when an answer/);
+  assert.match(readme, /complete requests do not acquire an unnecessary interview gate/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
   assert.match(readme, /Choose one installation path for the same agent and scope/);
   assert.match(readme, /`init` is optional/);
@@ -427,25 +433,25 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
       'delivery-loop must include each workflow responsibility exactly once',
     );
   }
-  assert.match(content, /absolute budget is five batches for the entire delivery run/);
-  assert.match(content, /budget is non-renewable/);
-  assert.match(content, /Generic approval, `continue`, extra commit authority/);
-  assert.match(content, /never invokes or requests another review or loop/);
+  assert.match(content, /controller enforces five batches, four fix cycles, and one no-verdict retry/);
+  assert.match(content, /persisted counters are monotonic and non-renewable/);
+  assert.match(content, /leased bounded pass/);
   assert.match(content, /Never review the same HEAD twice/);
-  assert.match(content, /Mark `BUDGET_EXHAUSTED`/);
-  assert.match(content, /One review round means one complete reviewer batch/);
-  assert.match(content, /reuse it and never create a nested worktree/);
+  assert.match(content, /`BUDGET_EXHAUSTED` transition/);
+  assert.match(content, /One round is one batch over one HEAD/);
+  assert.match(content, /Reuse a host-managed worktree without nesting/);
   assert.match(content, /fresh project-scoped read-only reviewer agent/);
   assert.match(content, /never assume a literal invocation prefix/);
-  assert.match(content, /degraded path is outside delivery-loop completion/);
-  assert.match(content, /explicitly activate the companion `plan` skill before implementation/);
+  assert.match(content, /strict control cannot execute or persist/);
+  assert.match(content, /activate `plan` before implementation/);
+  assert.match(content, /references\/evidence-contract\.md/);
   assert.match(content, /references\/agent-delegation\.md/);
   assert.match(content, /explicit per-run consent/);
-  assert.match(content, /one writer per file-ownership boundary/);
-  assert.match(content, /Never invoke an external provider that owns the current host task/);
+  assert.match(content, /one writer per file boundary/);
+  assert.match(content, /never invoke the current host externally/);
   assert.match(content, /`Native subagents \(default\)`, `External CLI agents`, and `Hybrid`/);
-  assert.match(content, /If the user approves without selecting a choice, use Native subagents/);
-  assert.match(content, /Do not probe, propose, or invoke external providers unless the user explicitly selects External or Hybrid/);
+  assert.match(content, /an unspecified choice means Native/);
+  assert.match(content, /Probe or invoke external providers only after External, Hybrid/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
 });
 
@@ -477,6 +483,8 @@ test('delivery-loop bundles a provider-neutral delegation contract and safe brid
   assert.match(reference, /Read this reference only after the user selects External or Hybrid/);
   assert.match(reference, /Never invoke\s+the current host harness as an external child/);
   assert.match(reference, /input_digest/);
+  assert.match(reference, /loop_context/);
+  assert.match(reference, /select --mode <review\|implement>/);
   assert.match(reference, /must not be (?:its|the) sole\s+general reviewer/);
   assert.ok(
     reference.trim().split(/\s+/).length <= 800,
@@ -484,6 +492,7 @@ test('delivery-loop bundles a provider-neutral delegation contract and safe brid
   );
   assert.match(bridge, /buildClaudeArgs/);
   assert.match(bridge, /runExternalAgent/);
+  assert.match(bridge, /selectAgentProviders/);
   assert.match(bridge, /scope_completed/);
   assert.match(bridge, /SIGKILL/);
   assert.match(providerContract, /composeAgentPrompt/);
@@ -519,17 +528,41 @@ test('bugfix-loop requires evidence-first diagnosis and sequential review', asyn
     );
   }
   assert.match(content, /support a root cause before changing production code/);
-  assert.match(content, /fails because of the supported causal path/);
+  assert.match(content, /fails through the supported causal path/);
   assert.match(content, /Run rounds sequentially\. Never start future review rounds in advance/);
-  assert.match(content, /absolute budget is five batches for the entire bugfix run/);
-  assert.match(content, /budget is non-renewable/);
-  assert.match(content, /Generic approval, `continue`, extra commit authority/);
-  assert.match(content, /never invokes or requests another review or loop/);
+  assert.match(content, /controller enforces five batches, four fix cycles, and one no-verdict retry/);
+  assert.match(content, /persisted counters are monotonic and non-renewable/);
+  assert.match(content, /leased bounded pass/);
   assert.match(content, /Never review the same HEAD twice/);
-  assert.match(content, /If the fifth batch finds an actionable defect, do not fix or mutate/);
-  assert.match(content, /Mark `BUDGET_EXHAUSTED`/);
-  assert.match(content, /degraded path is outside bugfix-loop completion/);
+  assert.match(content, /fifth-batch triage confirms an actionable defect/);
+  assert.match(content, /`BUDGET_EXHAUSTED` transition/);
+  assert.match(content, /strict control cannot execute or persist/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
+});
+
+test('both controlled loops bundle identical evidence and controller resources', async () => {
+  const canonicalController = await readFile(
+    path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'),
+    'utf8',
+  );
+  const canonicalEvidence = await readFile(
+    path.join(root, 'plugin', 'runtime', 'evidence-contract.md'),
+    'utf8',
+  );
+  for (const name of ['bugfix-loop', 'delivery-loop']) {
+    assert.equal(
+      await readFile(path.join(root, 'plugin', 'skills', name, 'scripts', 'loop-controller.mjs'), 'utf8'),
+      canonicalController,
+    );
+    assert.equal(
+      await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'evidence-contract.md'), 'utf8'),
+      canonicalEvidence,
+    );
+  }
+  assert.match(canonicalController, /review_batches: Object\.freeze\(\{ limit: 5 \}\)/);
+  assert.match(canonicalController, /fix_cycles: Object\.freeze\(\{ limit: 4 \}\)/);
+  assert.match(canonicalController, /no_verdict_retries: Object\.freeze\(\{ limit: 1 \}\)/);
+  assert.match(canonicalEvidence, /Completed summaries and insights are local, redacted, advisory/);
 });
 
 test('contract rejects deleted bugfix-loop workflow responsibilities', async () => {
@@ -626,7 +659,7 @@ test('package validation rejects a drifted bundled workspace protocol', async ()
   assertValidationFails(result, 'review must bundle the canonical workspace protocol');
 });
 
-test('portable resource sync restores local references and workspace instructions', async () => {
+test('portable resource sync restores workspace, evidence, and controller resources', async () => {
   await withValidationFixture(async (fixtureRoot) => {
     const skillPath = path.join(fixtureRoot, 'plugin', 'skills', 'review', 'SKILL.md');
     const bundledPath = path.join(
@@ -636,6 +669,22 @@ test('portable resource sync restores local references and workspace instruction
       'review',
       'references',
       'workspaces.md',
+    );
+    const controllerPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'bugfix-loop',
+      'scripts',
+      'loop-controller.mjs',
+    );
+    const evidencePath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'delivery-loop',
+      'references',
+      'evidence-contract.md',
     );
     const content = await readFile(skillPath, 'utf8');
     await writeFile(
@@ -647,6 +696,8 @@ test('portable resource sync restores local references and workspace instruction
       'utf8',
     );
     await writeFile(bundledPath, 'stale\n', 'utf8');
+    await writeFile(controllerPath, 'stale\n', 'utf8');
+    await writeFile(evidencePath, 'stale\n', 'utf8');
 
     const result = spawnSync(process.execPath, ['scripts/sync-portable-resources.mjs'], {
       cwd: fixtureRoot,
@@ -654,7 +705,7 @@ test('portable resource sync restores local references and workspace instruction
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable workspace resources for 18 skills.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 18 skills and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });
@@ -1208,6 +1259,29 @@ test('plan uses selected work-item artifacts and repository guidance stays conci
   assert.match(agents, /ask before creating a new durable workspace/);
   assert.match(agents, /\$engineering:<skill>/);
   assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');
+});
+
+test('brainstorm and plan enforce adaptive requirement discovery without redundant questions', async () => {
+  for (const name of ['brainstorm', 'plan']) {
+    const content = await readFile(
+      path.join(root, 'plugin', 'skills', name, 'SKILL.md'),
+      'utf8',
+    );
+    for (const responsibility of expectedRequiredResponsibilityLines[name]) {
+      assert.equal(
+        content.split(responsibility).length - 1,
+        1,
+        `${name} must include each requirement-discovery responsibility exactly once`,
+      );
+      assert.throws(
+        () => assertSkillWorkspaceContract(
+          name,
+          content.replace(`${responsibility}\n`, ''),
+        ),
+        /must include each required responsibility line exactly once/,
+      );
+    }
+  }
 });
 
 test('project initialization bundles repository guidance and a reviewer agent', async () => {

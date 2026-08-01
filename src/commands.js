@@ -13,6 +13,12 @@ import {
   setAgentProviderEnabled as defaultSetAgentProviderEnabled,
   setAgentProviderPolicy as defaultSetAgentProviderPolicy,
 } from '../plugin/skills/delivery-loop/scripts/agent-bridge.mjs';
+import {
+  listRuns as defaultListRuns,
+  purgeRepositoryEvidence as defaultPurgeRepositoryEvidence,
+  repositoryInsights as defaultRepositoryInsights,
+  showRun as defaultShowRun,
+} from '../plugin/runtime/loop-controller.mjs';
 
 async function exists(file) {
   try { await stat(file); return true; }
@@ -32,6 +38,12 @@ export function createHandlers(base) {
     listAgentProviders: defaultListAgentProviders,
     setAgentProviderEnabled: defaultSetAgentProviderEnabled,
     setAgentProviderPolicy: defaultSetAgentProviderPolicy,
+  };
+  const loopController = base.loopController ?? {
+    listRuns: defaultListRuns,
+    showRun: defaultShowRun,
+    repositoryInsights: defaultRepositoryInsights,
+    purgeRepositoryEvidence: defaultPurgeRepositoryEvidence,
   };
   const agentContext = () => ({
     home: base.home,
@@ -204,6 +216,31 @@ export function createHandlers(base) {
           : '';
         stdout.write(`${state} ${candidate.name}: ${candidate.displayName}${candidate.version ? ` ${candidate.version}` : ''}; policy=${candidate.policy ?? 'per-run'}; roles=${roles || 'none'}${identity}; ${candidate.detail}\n`);
       }
+      return 0;
+    },
+
+    async runs(options) {
+      const worktree = path.resolve(base.cwd, options.target ?? '.');
+      if (options.runCommand === 'show') {
+        const result = await loopController.showRun({ worktree, runId: options.runId });
+        stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+        return 0;
+      }
+      if (options.runCommand === 'purge') {
+        if (!options.force) throw new Error('runs purge requires --force');
+        const result = await loopController.purgeRepositoryEvidence({ worktree, confirm: true });
+        stdout.write(`Purged ${result.removed_runs} local loop run(s) from ${result.repository}.\n`);
+        return 0;
+      }
+      const result = await loopController.listRuns({ worktree });
+      stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      return 0;
+    },
+
+    async insights(options) {
+      const worktree = path.resolve(base.cwd, options.target ?? '.');
+      const result = await loopController.repositoryInsights({ worktree });
+      stdout.write(`${JSON.stringify(result, null, 2)}\n`);
       return 0;
     },
 

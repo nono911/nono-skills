@@ -24,6 +24,13 @@ and run the local-only probe:
 node <skill-root>/scripts/agent-bridge.mjs detect --json
 ```
 
+Then match the controller's required guarantees instead of choosing by brand:
+
+```text
+node <skill-root>/scripts/agent-bridge.mjs select --mode <review|implement> \
+  --require <headless,structured-output,no-delegation> --json
+```
+
 The probe may inspect local version, help, and documented offline capability
 commands. It must not authenticate, contact a provider, send repository content,
 consume an agent turn, or mutate configuration. Treat disabled, incompatible,
@@ -81,6 +88,10 @@ The packet must include:
 }
 ```
 
+For a controlled review, include the exact controller-issued `loop_context`
+containing `run_id`, `lease_id`, batch, attempt, and `head_sha`; require the
+worker to echo it. Never invent or reuse a lease.
+
 Implementation packets use `role: implement` and a non-empty disjoint
 `write_scope`; review packets keep it empty. Canonicalize and hash the packet
 without `input_digest`, together with its supplied diff, status, and manifest.
@@ -120,7 +131,7 @@ unrun-check disclosure, questions, risks, and proposed decision records.
 
 Review is `CLEAN` only when the requested scope completed against an unchanged
 snapshot and the normalized findings array is empty. Each finding needs stable
-ID, severity, location, evidence, impact, and remediation direction.
+ID, severity, category, location, evidence, impact, and remediation direction.
 
 Inspect every tracked, untracked, renamed, deleted, generated, and binary child
 change. Transfer only approved paths into the delivery worktree, rerun
