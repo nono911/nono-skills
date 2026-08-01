@@ -73,14 +73,15 @@ test('defaults project initialization to the Git root', async () => {
 
 test('explicit project target overrides Git-root discovery', async () => {
   let discoveryCalls = 0;
+  const cwd = path.join(path.parse(process.cwd()).root, 'tmp', 'current');
   const target = await resolveProjectTarget({
-    cwd: '/tmp/current',
+    cwd,
     target: '../chosen',
     findRoot: async () => {
       discoveryCalls += 1;
       return '/tmp/repo';
     },
   });
-  assert.equal(target, '/tmp/chosen');
+  assert.equal(target, path.resolve(cwd, '../chosen'));
   assert.equal(discoveryCalls, 0);
 });

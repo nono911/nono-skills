@@ -749,7 +749,7 @@ test('external review rejects a dirty snapshot and post-call worktree mutation',
   );
 });
 
-test('runCommand hard-kills a child that ignores the soft timeout', async () => {
+test('runCommand times out a child that does not exit on its own', async () => {
   const started = Date.now();
   const result = await runCommand(
     process.execPath,
@@ -758,6 +758,9 @@ test('runCommand hard-kills a child that ignores the soft timeout', async () => 
   );
   assert.equal(result.code, 124);
   assert.match(result.stderr, /timed out/);
-  assert.ok(Date.now() - started >= 250);
-  assert.ok(Date.now() - started < 2_000);
+  const elapsed = Date.now() - started;
+  // Windows terminates on child.kill('SIGTERM'); POSIX waits for the hard-kill
+  // grace period because the fixture ignores SIGTERM.
+  assert.ok(elapsed >= 150);
+  assert.ok(elapsed < 2_000);
 });

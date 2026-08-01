@@ -9,6 +9,11 @@ const exec = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
 const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 
+test('Git checkouts preserve LF for portable contract validation', async () => {
+  const attributes = await readFile(path.join(root, '.gitattributes'), 'utf8');
+  assert.match(attributes, /^\* text=auto eol=lf\n?$/);
+});
+
 test('release verification binds the GitHub release tag to the package version', async () => {
   const { stdout } = await exec(process.execPath, [
     '.github/scripts/verify-release-tag.mjs',

@@ -205,15 +205,19 @@ test('bundle contains exactly the validated 18-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
-  assert.deepEqual(skillFiles.map((file) => file.split(path.sep)[0]).sort(), expectedSkills);
+  assert.deepEqual(skillFiles.map((file) => file.split('/')[0]).sort(), expectedSkills);
   for (const relative of skillFiles) {
     const content = await readFile(path.join(root, 'plugin', 'skills', relative), 'utf8');
-    const name = relative.split(path.sep)[0];
+    const name = relative.split('/')[0];
     const description = content.match(/^description:\s*"?(.+?)"?$/m)?.[1]?.trim();
     assert.match(content, new RegExp(`^---\\nname: ${name}\\ndescription: .+\\n---`, 's'));
     assert.ok(description, `${name} must define a description`);
     discoveryMetadata.push({ name, description, relative });
     assert.doesNotMatch(content, /TODO|Superpowers|\.codex\/skills/);
+    assert.doesNotThrow(
+      () => assertSkillWorkspaceContract(name, content.replaceAll('\n', '\r\n')),
+      `${name} contract should accept CRLF input`,
+    );
   }
   assert.doesNotThrow(() => assertSkillDiscoveryContract(discoveryMetadata));
 });

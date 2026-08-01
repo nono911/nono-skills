@@ -322,7 +322,10 @@ export function assertSkillWorkspaceContract(name, content) {
   const expectedEnding = expectedDurableEndings[name];
   assert.ok(expectedEnding, `${name} must be in the expected skill inventory`);
 
-  const lines = authoritativeLines(content);
+  // Markdown semantics do not change with the host operating system's line
+  // endings, so validate a canonical representation.
+  const normalizedContent = content.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+  const lines = authoritativeLines(normalizedContent);
   const sections = markdownSections(lines);
   const purposeIndex = uniqueSectionIndex('Purpose', sections, name);
   const workspaceIndex = uniqueSectionIndex('Workspace protocol', sections, name);
@@ -333,7 +336,7 @@ export function assertSkillWorkspaceContract(name, content) {
     `${name} must place the Workspace protocol section immediately after Purpose`,
   );
   assert.equal(
-    sectionBody(content, sections, workspaceIndex).replace(/\n+$/, ''),
+    sectionBody(normalizedContent, sections, workspaceIndex).replace(/\n+$/, ''),
     `\n${workspaceBody}`,
     `${name} must use the exact Workspace protocol section`,
   );
@@ -349,7 +352,7 @@ export function assertSkillWorkspaceContract(name, content) {
 
   const wordBudget = expectedSkillWordBudgets[name];
   if (wordBudget) {
-    const wordCount = content.trim().split(/\s+/).length;
+    const wordCount = normalizedContent.trim().split(/\s+/).length;
     assert.ok(
       wordCount <= wordBudget,
       `${name} must stay within its ${wordBudget}-word progressive-disclosure budget`,

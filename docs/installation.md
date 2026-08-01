@@ -13,7 +13,7 @@ npx nono-skills install
 For repeatable environments, pin an exact npm version:
 
 ```bash
-npx nono-skills@0.13.0 install
+npx nono-skills@0.13.1 install
 ```
 
 Start a new Codex task after install or update so refreshed definitions are loaded. Diagnose or maintain the installation with:

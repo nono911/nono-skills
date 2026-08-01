@@ -10,7 +10,9 @@ export async function listFiles(root, relative = '') {
   const files = [];
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     if (IGNORED_FILE_NAMES.has(entry.name)) continue;
-    const child = path.join(relative, entry.name);
+    // Persist and compare relative paths in one portable format. Node's path.join
+    // still accepts these paths when resolving them on Windows.
+    const child = relative ? `${relative}/${entry.name}` : entry.name;
     if (entry.isDirectory()) files.push(...await listFiles(root, child));
     else if (entry.isFile()) files.push(child);
   }

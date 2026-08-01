@@ -23,7 +23,8 @@ test('npm metadata stays focused on product capabilities', async () => {
 });
 
 test('npm package includes runtime assets and excludes development state', async () => {
-  const { stdout } = await exec('npm', ['pack', '--json', '--dry-run'], { cwd: root });
+  const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const { stdout } = await exec(npm, ['pack', '--json', '--dry-run'], { cwd: root });
   const [{ files }] = JSON.parse(stdout);
   const names = files.map((file) => file.path);
   for (const required of [

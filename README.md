@@ -30,7 +30,7 @@ npx nono-skills install
 Pin the installer for repeatable environments:
 
 ```bash
-npx nono-skills@0.13.0 install
+npx nono-skills@0.13.1 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`.
