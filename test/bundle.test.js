@@ -144,7 +144,7 @@ function assertValidationFails(result, expectedDiagnostic) {
   assert.equal(result.stdout, '');
   if (typeof expectedDiagnostic === 'string') {
     const actualDiagnostic = result.stderr.match(
-      /AssertionError \[ERR_ASSERTION\]: ([^\n]+)/,
+      /AssertionError \[ERR_ASSERTION\]: ([^\r\n]+)/,
     )?.[1];
     assert.equal(actualDiagnostic, expectedDiagnostic);
   } else {
