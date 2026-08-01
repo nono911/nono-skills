@@ -151,6 +151,12 @@ function assertSkillEvalResults(corpus, results) {
   assert.ok(results && typeof results === 'object' && !Array.isArray(results),
     'skill eval results must be an object');
   assert.equal(results.schema_version, 1, 'skill eval results schema_version must be 1');
+  assert.ok(results.host && typeof results.host === 'object' && !Array.isArray(results.host),
+    'skill eval results.host must be an object');
+  for (const name of ['name', 'model', 'version']) {
+    assert.equal(typeof results.host[name], 'string', `skill eval results.host.${name} must be a string`);
+    assert.ok(results.host[name].trim(), `skill eval results.host.${name} must not be blank`);
+  }
   assert.ok(Array.isArray(results.results), 'skill eval results.results must be an array');
 
   const knownCases = new Set(corpus.cases.map(({ id }) => id));
@@ -201,6 +207,92 @@ function evaluateCase(evalCase, result) {
   return failures;
 }
 
+function ratio(numerator, denominator) {
+  return denominator === 0 ? null : numerator / denominator;
+}
+
+function activationReport(corpus, byId) {
+  const perSkill = Object.fromEntries(canonicalSkillNames.map((skill) => [skill, {
+    expected: 0,
+    correct: 0,
+    missed: 0,
+    forbidden_opportunities: 0,
+    forbidden_activations: 0,
+  }]));
+  const caseOwnerMatrix = Object.fromEntries(canonicalSkillNames.map((owner) => [
+    owner,
+    Object.fromEntries(canonicalSkillNames.map((activated) => [activated, 0])),
+  ]));
+  const boundaryConfusions = new Map();
+  let unassertedActivations = 0;
+
+  for (const evalCase of corpus.cases) {
+    const result = byId.get(evalCase.id);
+    if (!result) continue;
+    const activated = new Set(result.activated_skills);
+    for (const skill of result.activated_skills) caseOwnerMatrix[evalCase.skill][skill] += 1;
+    for (const skill of evalCase.expect.activate) {
+      perSkill[skill].expected += 1;
+      if (activated.has(skill)) perSkill[skill].correct += 1;
+      else perSkill[skill].missed += 1;
+    }
+    for (const skill of evalCase.expect.forbid) {
+      perSkill[skill].forbidden_opportunities += 1;
+      if (!activated.has(skill)) continue;
+      perSkill[skill].forbidden_activations += 1;
+      const expected = evalCase.expect.activate.length > 0
+        ? evalCase.expect.activate.join('+')
+        : 'none';
+      const key = `${expected}\u0000${skill}`;
+      const confusion = boundaryConfusions.get(key) ?? {
+        expected,
+        activated: skill,
+        count: 0,
+        case_ids: [],
+      };
+      confusion.count += 1;
+      confusion.case_ids.push(evalCase.id);
+      boundaryConfusions.set(key, confusion);
+    }
+    for (const skill of result.activated_skills) {
+      if (!evalCase.expect.activate.includes(skill) && !evalCase.expect.forbid.includes(skill)) {
+        unassertedActivations += 1;
+      }
+    }
+  }
+
+  const totals = Object.values(perSkill).reduce((summary, skill) => ({
+    expected: summary.expected + skill.expected,
+    correct: summary.correct + skill.correct,
+    missed: summary.missed + skill.missed,
+    forbidden_opportunities: summary.forbidden_opportunities + skill.forbidden_opportunities,
+    forbidden_activations: summary.forbidden_activations + skill.forbidden_activations,
+  }), {
+    expected: 0,
+    correct: 0,
+    missed: 0,
+    forbidden_opportunities: 0,
+    forbidden_activations: 0,
+  });
+  return {
+    ...totals,
+    unasserted_activations: unassertedActivations,
+    asserted_precision: ratio(totals.correct, totals.correct + totals.forbidden_activations),
+    recall: ratio(totals.correct, totals.expected),
+    forbidden_activation_rate: ratio(
+      totals.forbidden_activations,
+      totals.forbidden_opportunities,
+    ),
+    per_skill: perSkill,
+    case_owner_activation_matrix: caseOwnerMatrix,
+    boundary_confusions: [...boundaryConfusions.values()].sort(
+      (left, right) => right.count - left.count
+        || left.expected.localeCompare(right.expected)
+        || left.activated.localeCompare(right.activated),
+    ),
+  };
+}
+
 export function scoreSkillEvalResults(corpus, results, { allowMissing = false } = {}) {
   const inventory = assertSkillEvalCorpus(corpus);
   assertSkillEvalResults(corpus, results);
@@ -220,13 +312,16 @@ export function scoreSkillEvalResults(corpus, results, { allowMissing = false } 
   }
 
   const missing = inventory.cases - results.results.length;
+  const activation = activationReport(corpus, byId);
   return Object.freeze({
     ok: failures.length === 0,
+    host: results.host,
     total: inventory.cases,
     submitted: results.results.length,
     passed,
     failed: failures.length,
     missing,
+    activation,
     failures,
   });
 }

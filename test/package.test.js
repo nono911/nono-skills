@@ -11,18 +11,14 @@ const exec = promisify(execFile);
 const root = path.resolve(import.meta.dirname, '..');
 const expectedSkills = canonicalSkillNames;
 
-test('npm metadata advertises the supported external agent harnesses', async () => {
+test('npm metadata stays focused on product capabilities', async () => {
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
-  for (const keyword of [
-    'multi-agent-cli',
-    'agent-orchestration',
-    'claude-code',
-    'qwen-code',
-    'opencode',
-    'codewhale',
-    'antigravity',
-  ]) {
+  for (const keyword of ['agent-skills', 'software-engineering', 'code-review', 'agent-orchestration']) {
     assert.equal(packageJson.keywords.includes(keyword), true, `missing keyword ${keyword}`);
+  }
+  assert.ok(packageJson.keywords.length <= 15, 'keyword list should remain focused');
+  for (const keyword of ['claude-code', 'qwen-code', 'opencode', 'codewhale', 'antigravity', 'superpowers-alternative']) {
+    assert.equal(packageJson.keywords.includes(keyword), false, `competitor keyword should not be used for discovery: ${keyword}`);
   }
 });
 
@@ -33,6 +29,7 @@ test('npm package includes runtime assets and excludes development state', async
   for (const required of [
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
     'evals/skill-behavior.json', 'scripts/eval-skills.mjs',
+    'evals/host-behavior.json', 'scripts/eval-host.mjs', 'src/host-eval.js',
     'plugin/references/workspaces.md', 'scripts/sync-portable-resources.mjs',
     'plugin/skills/delivery-loop/references/agent-delegation.md',
     'plugin/skills/delivery-loop/scripts/agent-bridge.mjs',

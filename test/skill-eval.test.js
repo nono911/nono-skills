@@ -29,6 +29,7 @@ function satisfyingOutput(evalCase) {
 function perfectResults(corpus) {
   return {
     schema_version: 1,
+    host: { name: 'test-host', model: 'test-model', version: '1.0.0' },
     results: corpus.cases.map((evalCase) => ({
       case_id: evalCase.id,
       activated_skills: evalCase.expect.activate,
@@ -51,6 +52,26 @@ test('behavioral corpus covers every skill and activation category', async () =>
   }
 });
 
+test('behavioral corpus asserts the highest-risk neighboring skill boundaries', async () => {
+  const corpus = await loadSkillEvalCorpus(corpusPath);
+  const boundaries = [
+    ['plan', 'brainstorm'],
+    ['review', 'architecture-review'],
+    ['review', 'security-review'],
+    ['debug', 'bugfix-loop'],
+    ['test', 'acceptance-verify'],
+    ['implement', 'fix-findings'],
+    ['migration', 'database-design'],
+  ];
+  for (const [left, right] of boundaries) {
+    assert.ok(corpus.cases.some((evalCase) => (
+      evalCase.expect.activate.includes(left) && evalCase.expect.forbid.includes(right)
+    ) || (
+      evalCase.expect.activate.includes(right) && evalCase.expect.forbid.includes(left)
+    )), `missing asserted activation boundary ${left}<->${right}`);
+  }
+});
+
 test('behavioral scorer accepts provider-neutral conforming results', async () => {
   const corpus = await loadSkillEvalCorpus(corpusPath);
   const score = scoreSkillEvalResults(corpus, perfectResults(corpus));
@@ -60,11 +81,34 @@ test('behavioral scorer accepts provider-neutral conforming results', async () =
     { ok: true, total: 90, submitted: 90, passed: 90, failed: 0, missing: 0 },
   );
   assert.deepEqual(score.failures, []);
+  assert.equal(score.activation.asserted_precision, 1);
+  assert.equal(score.activation.recall, 1);
+  assert.equal(score.activation.forbidden_activations, 0);
+  assert.equal(score.activation.unasserted_activations, 0);
+  assert.deepEqual(score.activation.boundary_confusions, []);
+});
+
+test('behavioral scorer requires explicit host, model, and version identity', async () => {
+  const corpus = await loadSkillEvalCorpus(corpusPath);
+  const missingHost = perfectResults(corpus);
+  delete missingHost.host;
+  assert.throws(
+    () => scoreSkillEvalResults(corpus, missingHost),
+    /results\.host must be an object/,
+  );
+  const missingVersion = perfectResults(corpus);
+  delete missingVersion.host.version;
+  assert.throws(
+    () => scoreSkillEvalResults(corpus, missingVersion),
+    /results\.host\.version must be a string/,
+  );
 });
 
 test('behavioral scorer reports activation and output failures by case', async () => {
   const corpus = await loadSkillEvalCorpus(corpusPath);
   const results = perfectResults(corpus);
+  const baselinePlanBrainstorm = scoreSkillEvalResults(corpus, results)
+    .activation.case_owner_activation_matrix.plan.brainstorm;
   const target = results.results.find(({ case_id }) => case_id === 'plan-direct');
   target.activated_skills = ['brainstorm'];
   target.output = 'No acceptance evidence was produced.';
@@ -77,6 +121,19 @@ test('behavioral scorer reports activation and output failures by case', async (
   assert.match(score.failures[0].reasons.join('\n'), /expected activation: plan/);
   assert.match(score.failures[0].reasons.join('\n'), /forbidden activation: brainstorm/);
   assert.match(score.failures[0].reasons.join('\n'), /output missing/);
+  assert.equal(score.activation.missed, 1);
+  assert.equal(score.activation.forbidden_activations, 1);
+  assert.equal(score.activation.unasserted_activations, 0);
+  assert.deepEqual(score.activation.boundary_confusions, [{
+    expected: 'plan',
+    activated: 'brainstorm',
+    count: 1,
+    case_ids: ['plan-direct'],
+  }]);
+  assert.equal(
+    score.activation.case_owner_activation_matrix.plan.brainstorm,
+    baselinePlanBrainstorm + 1,
+  );
 });
 
 test('behavioral scorer supports partial exploratory runs explicitly', async () => {
@@ -115,7 +172,8 @@ test('behavioral eval CLI validates the corpus and scores captured host results'
       ['scripts/eval-skills.mjs', 'score', resultsPath],
       { cwd: root },
     );
-    assert.equal(scoreOutput, 'Behavioral eval: 90/90 passed; 0 failed; 0 missing.\n');
+    assert.match(scoreOutput, /^Host: test-host 1\.0\.0; model test-model\.\nBehavioral eval: 90\/90 passed; 0 failed; 0 missing\.\n/);
+    assert.match(scoreOutput, /Activation: asserted precision 1\.000; recall 1\.000; forbidden 0\/\d+; unasserted 0\./);
     assert.equal(stderr, '');
   } finally {
     await rm(fixture, { recursive: true, force: true });

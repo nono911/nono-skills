@@ -26,10 +26,6 @@ const packageVersion = JSON.parse(
 const expectedSkills = canonicalSkillNames;
 const expectedDiscoveryKeywords = [
   'codex',
-  'codex-cli',
-  'openai-codex',
-  'codex-skills',
-  'codex-plugin',
   'agent-skills',
   'ai-coding-agent',
   'software-engineering',
@@ -37,30 +33,12 @@ const expectedDiscoveryKeywords = [
   'code-review',
   'bug-fix',
   'qa-testing',
-  'acceptance-testing',
   'security-review',
-  'delivery-workflow',
   'engineering-loop',
   'review-fix-loop',
-  'agentic-workflow',
-  'coding-workflow',
-  'superpowers-alternative',
-  'evidence-driven-development',
-  'adaptive-agent',
   'agent-evaluation',
   'multi-agent',
-  'multi-agent-cli',
   'agent-orchestration',
-  'claude-code',
-  'qwen-code',
-  'opencode',
-  'codewhale',
-  'antigravity',
-  'gemini-cli',
-  'cursor',
-  'github-copilot',
-  'hermes-agent',
-  'skills-sh',
 ];
 const representativeProtocolClauseIds = [
   'classification.transient-durable',
@@ -215,11 +193,12 @@ test('package discovery metadata describes the engineering-loop product', async 
   const packageJson = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const plugin = JSON.parse(await readFile(path.join(root, 'plugin', '.codex-plugin', 'plugin.json'), 'utf8'));
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
-  assert.match(packageJson.description, /Evidence-driven adaptive engineering skills and review-fix loops for Codex, Claude Code, Gemini CLI/);
+  assert.equal(packageJson.description, 'Reusable engineering skills and bounded review-fix loops for Codex and other Agent Skills hosts.');
   assert.deepEqual(packageJson.keywords, expectedDiscoveryKeywords);
-  assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords.slice(0, 20));
-  assert.match(readme, /^# Nono Skills\n\nEvidence-driven engineering loops and reusable Agent Skills for Codex, Claude Code, Gemini CLI/);
-  assert.match(readme, /lightweight Superpowers alternative/);
+  assert.deepEqual(plugin.keywords, expectedDiscoveryKeywords);
+  assert.match(readme, /^# Nono Skills\n/);
+  assert.match(readme, /A reusable software-engineering skill pack for Codex and other Agent Skills hosts/);
+  assert.doesNotMatch(packageJson.keywords.join(' '), /claude|qwen|opencode|codewhale|antigravity|cursor|copilot|superpowers/);
 });
 
 test('bundle contains exactly the validated 18-skill set', async () => {
@@ -264,84 +243,29 @@ for (const id of representativeProtocolClauseIds) {
   });
 }
 
-test('README documents adaptive consent-aware workspaces', async () => {
+test('README is a concise and honest product introduction', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
-  assert.match(
-    readme,
-    /They do not impose mandatory design or implementation approval gates, worktrees, test-first development, or subagent orchestration unless the user explicitly invokes `delivery-loop` or `bugfix-loop`\./,
-  );
-  assert.match(
-    readme,
-    /Outside those focused workflows, the only built-in gate is consent before the agent creates a durable workspace that the user did not explicitly request\./,
-  );
-  assert.doesNotMatch(readme, /They do not impose mandatory approval gates/);
-  assert.match(readme, /Small tasks stay artifact-free/);
-  assert.match(readme, /docs\/agent\/work\/<work-id>\//);
-  assert.match(readme, /asks once before creating it/);
-  assert.match(
-    readme,
-    /An explicit request for a spec, plan, log, findings tracker, handoff, or named existing work item already grants artifact consent for that scope/,
-  );
-  assert.match(
-    readme,
-    /The agent asks again only for an ambiguous work-item match, material scope expansion, or an action that needs new authority/,
-  );
-  assert.match(readme, /build a lightweight requirement snapshot/);
-  assert.match(readme, /one to three high-impact questions are asked only when an answer/);
-  assert.match(readme, /complete requests do not acquire an unnecessary interview gate/);
+  assert.ok(readme.split('\n').length <= 200, 'README should stay under 200 lines');
+  assert.match(readme, /experimental \(`0\.x`\)/);
+  assert.match(readme, /Pin the installer for repeatable environments/);
+  assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
-  assert.match(readme, /Choose one installation path for the same agent and scope/);
-  assert.match(readme, /`init` is optional/);
-  assert.match(readme, /Initialization no longer creates task artifacts/);
-  assert.match(readme, /Existing 0\.1\.0 singleton files under `docs\/agent\/` are preserved/);
-  assert.match(
-    readme,
-    /Purge never removes user-owned `docs\/agent\/work\/<work-id>\/` directories/,
-  );
-
-  const readmeSkills = [...new Set(
-    [...readme.matchAll(/\$engineering:([a-z][a-z0-9-]*)/g)].map((match) => match[1]),
-  )].sort();
-  assert.deepEqual(readmeSkills, expectedSkills);
+  assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
+  assert.match(readme, /They are not tamper-proof and are not a security boundary/);
+  assert.match(readme, /Review is sequential, not five reviews launched at once/);
+  for (const name of expectedSkills) {
+    assert.match(readme, new RegExp('\\| [^\\n]+ \\| `' + name + '` \\|'));
+  }
 
   const lines = readme.split('\n');
   for (const command of [
     'npx nono-skills doctor',
-    'npx nono-skills agents list',
-    'npx nono-skills agents setup',
     'npx nono-skills agents doctor',
+    'npx nono-skills eval',
     'npx nono-skills update',
     'npx nono-skills uninstall',
   ]) {
     assert.ok(lines.includes(command), `README must document ${command}`);
-  }
-
-  const verifySkills = readme.indexOf('verify the `engineering:*` skills first');
-  const disableReversibly = readme.indexOf('disable it reversibly');
-  const uninstallSuperpowers = readme.indexOf('uninstall Superpowers from the plugin browser');
-  assert.ok(verifySkills >= 0, 'README must verify engineering skills before removing Superpowers');
-  assert.ok(disableReversibly > verifySkills, 'README must disable Superpowers reversibly after verification');
-  assert.ok(uninstallSuperpowers > disableReversibly, 'README must uninstall Superpowers only after disabling it');
-  assert.match(readme, /The CLI never disables or removes Superpowers automatically/);
-  assert.match(readme, /You still invoke only `delivery-loop`; there is no separate skill for Claude,\s+Codex, Qwen, OpenCode, or CodeWhale/);
-  assert.match(readme, /`Native subagents \(default\)`/);
-  assert.match(readme, /If the user approves without choosing, the workflow uses Native subagents/);
-  assert.match(readme, /does not infer external consent from an installed or enabled provider/);
-  assert.match(readme, /Enabling a provider is never consent to run it/);
-  assert.match(readme, /The loop never invokes Claude Code from a Claude Code host task/);
-
-  for (const stalePhrase of ['Project artifacts include', 'Without initialization']) {
-    assert.equal(readme.includes(stalePhrase), false, `README must not contain ${stalePhrase}`);
-  }
-  for (const legacyPath of [
-    'docs/agent/spec.md',
-    'docs/agent/plan.md',
-    'docs/agent/decisions.md',
-    'docs/agent/decision-log.md',
-    'docs/agent/findings.md',
-    'docs/agent/handoff.md',
-  ]) {
-    assert.equal(readme.includes(legacyPath), false, `README must not recommend ${legacyPath}`);
   }
 });
 
@@ -562,7 +486,9 @@ test('both controlled loops bundle identical evidence and controller resources',
   assert.match(canonicalController, /review_batches: Object\.freeze\(\{ limit: 5 \}\)/);
   assert.match(canonicalController, /fix_cycles: Object\.freeze\(\{ limit: 4 \}\)/);
   assert.match(canonicalController, /no_verdict_retries: Object\.freeze\(\{ limit: 1 \}\)/);
-  assert.match(canonicalEvidence, /Completed summaries and insights are local, redacted, advisory/);
+  assert.match(canonicalEvidence, /The controller enforces transitions only after an agent starts a managed run and continues to invoke it/);
+  assert.match(canonicalEvidence, /The hash chain is tamper-evident, not tamper-proof, and is not a security boundary/);
+  assert.doesNotMatch(canonicalEvidence, /scope_approval_required|human\.feedback\.recorded/);
 });
 
 test('contract rejects deleted bugfix-loop workflow responsibilities', async () => {

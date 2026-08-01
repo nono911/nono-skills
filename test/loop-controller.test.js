@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFile as execFileCallback } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, realpath, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -163,6 +163,64 @@ test('linked worktrees share the Git-common evidence store without sharing activ
     showRun({ worktree: repository, runId: started.state.run_id }),
     /does not belong to this worktree/,
   );
+});
+
+test('linked worktrees can start concurrent runs in one Git-common evidence store', async (t) => {
+  const repository = await createRepository(t);
+  const linkedParent = await mkdtemp(path.join(os.tmpdir(), 'nono-linked-concurrent-'));
+  t.after(() => rm(linkedParent, { recursive: true, force: true }));
+  const linked = path.join(linkedParent, 'feature-worktree');
+  await git(repository, 'worktree', 'add', '-b', 'concurrent-feature', linked);
+
+  const [mainRun, linkedRun] = await Promise.all([
+    startRun({ worktree: repository, kind: 'delivery', acceptanceIds: ['AC-main'] }),
+    startRun({ worktree: linked, kind: 'bugfix', acceptanceIds: ['AC-linked'] }),
+  ]);
+  assert.equal(mainRun.created, true);
+  assert.equal(linkedRun.created, true);
+  assert.notEqual(mainRun.state.run_id, linkedRun.state.run_id);
+  assert.equal((await listRuns({ worktree: repository })).length, 2);
+  assert.equal((await showRun({ worktree: repository, runId: mainRun.state.run_id })).state.kind, 'delivery');
+  assert.equal((await showRun({ worktree: linked, runId: linkedRun.state.run_id })).state.kind, 'bugfix');
+});
+
+test('event log recovers after a crash leaves stale state, lock, and temporary files', async (t) => {
+  const repository = await createRepository(t);
+  const started = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  const headSha = await commit(repository, 'crash-recovery', 'implementation before crash');
+  const recorded = await recordMilestone({
+    worktree: repository,
+    runId: started.state.run_id,
+    evidence: evidence(started.state, 'implementation.completed', 'completed', {
+      headSha,
+      extra: { files: ['feature.txt'] },
+    }),
+  });
+  const shown = await showRun({ worktree: repository, runId: started.state.run_id });
+  await writeFile(path.join(shown.runRoot, 'state.json'), `${JSON.stringify(started.state)}\n`);
+  await writeFile(path.join(shown.runRoot, 'state.json.crashed.tmp'), '{incomplete');
+  const lockPath = path.join(shown.runRoot, 'transition.lock');
+  await writeFile(lockPath, 'crashed-process\n');
+  const stale = new Date(Date.now() - 31_000);
+  await utimes(lockPath, stale, stale);
+
+  const recovered = await showRun({ worktree: repository, runId: started.state.run_id });
+  assert.equal(recovered.state.status, 'VERIFYING');
+  assert.equal(recovered.state.event_sequence, 2);
+  assert.equal(recovered.state.current_head, recorded.state.current_head);
+  const verified = await recordVerification({
+    worktree: repository,
+    runId: started.state.run_id,
+    evidence: evidence(recovered.state, 'verification.completed', 'passed', {
+      verification: { performed: ['crash recovery regression passed'], not_run: [] },
+    }),
+  });
+  assert.equal(verified.state.status, 'READY_FOR_REVIEW');
+  assert.equal(verified.state.event_sequence, 3);
 });
 
 test('clean evidence path reaches completion and produces a redacted local summary', async (t) => {

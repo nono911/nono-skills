@@ -1,7 +1,8 @@
-const COMMANDS = new Set(['install', 'init', 'update', 'doctor', 'agents', 'runs', 'insights', 'uninstall']);
+const COMMANDS = new Set(['install', 'init', 'update', 'doctor', 'agents', 'runs', 'insights', 'eval', 'uninstall']);
 const AGENT_COMMANDS = new Set(['list', 'setup', 'enable', 'disable', 'policy', 'doctor']);
 const AGENT_POLICIES = new Set(['review-only', 'isolated-writer']);
 const RUN_COMMANDS = new Set(['list', 'show', 'purge']);
+const EVAL_COMMANDS = new Set(['validate', 'cases', 'score']);
 
 export const HELP = `nono-skills <command> [options]
 
@@ -13,6 +14,7 @@ Commands:
   agents [command]        Inspect or configure optional local agent CLIs
   runs [command]          Inspect or purge repository-local loop evidence
   insights [directory]    Show evidence-backed local run recommendations
+  eval [command]          Validate or score host skill-activation results
   uninstall               Remove the owned plugin installation
 
 Agent commands:
@@ -31,10 +33,17 @@ Run commands:
   runs purge [directory] --force
                           Remove package-owned local run evidence
 
+Eval commands:
+  eval validate           Validate the packaged 90-case corpus
+  eval cases              Print provider-neutral cases as JSONL
+  eval score <results>    Score captured host results and show activation metrics
+
 Options:
   --dry-run               Show project changes without writing
   --force                 Back up and replace conflicting project files
   --purge-project <path>  Remove unchanged installed project artifacts
+  --allow-missing         Permit an explicitly exploratory partial eval
+  --json                  Print the full eval report and confusion matrix
   --version               Print package version
   --help                  Show this help
 `;
@@ -96,12 +105,28 @@ export function parseArgs(argv) {
       if (!result.runId) throw new Error('runs show requires a run ID');
     }
   }
+  if (result.command === 'eval') {
+    result.evalCommand = args.shift() ?? 'validate';
+    if (result.evalCommand === '--help' || result.evalCommand === '-h') {
+      result.help = true;
+      return result;
+    }
+    if (!EVAL_COMMANDS.has(result.evalCommand)) {
+      throw new Error(`Unknown eval command: ${result.evalCommand}`);
+    }
+    if (result.evalCommand === 'score') {
+      result.resultsFile = args.shift();
+      if (!result.resultsFile) throw new Error('eval score requires a results file');
+    }
+  }
   while (args.length) {
     const arg = args.shift();
     if (arg === '--force') result.force = true;
     else if (arg === '--dry-run') result.dryRun = true;
     else if (arg === '--help' || arg === '-h') result.help = true;
     else if (arg === '--purge-project') result.purgeProject = args.shift();
+    else if (arg === '--allow-missing' && result.command === 'eval') result.allowMissing = true;
+    else if (arg === '--json' && result.command === 'eval') result.json = true;
     else if (
       !arg.startsWith('-')
       && ['init', 'runs', 'insights'].includes(result.command)

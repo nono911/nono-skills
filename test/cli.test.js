@@ -61,6 +61,18 @@ test('parseArgs reads run inspection and purge commands', () => {
   assert.throws(() => parseArgs(['runs', 'wat']), /Unknown runs command/);
 });
 
+test('parseArgs reads behavioral eval commands and honest scoring options', () => {
+  assert.equal(parseArgs(['eval']).evalCommand, 'validate');
+  assert.equal(parseArgs(['eval', 'cases']).evalCommand, 'cases');
+  const score = parseArgs(['eval', 'score', 'results.json', '--allow-missing', '--json']);
+  assert.equal(score.evalCommand, 'score');
+  assert.equal(score.resultsFile, 'results.json');
+  assert.equal(score.allowMissing, true);
+  assert.equal(score.json, true);
+  assert.throws(() => parseArgs(['eval', 'score']), /requires a results file/);
+  assert.throws(() => parseArgs(['eval', 'wat']), /Unknown eval command/);
+});
+
 test('run rejects an unknown command', async () => {
   const stdout = output();
   const stderr = output();

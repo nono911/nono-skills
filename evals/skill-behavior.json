@@ -307,7 +307,7 @@
       "prompt": "Use $database-design to model multi-tenant bookings with invariants, constraints, indexes, transaction boundaries, retention, and migration concerns.",
       "expect": {
         "activate": ["database-design"],
-        "forbid": ["api-design"],
+        "forbid": ["api-design", "migration"],
         "output": {
           "contains_all": ["invariant"],
           "contains_any": ["constraint", "transaction", "index"]
@@ -639,7 +639,7 @@
       "prompt": "Use $migration to move tenant data to the new schema with compatibility phases, validation, observability, rollback, and a bounded point of no return.",
       "expect": {
         "activate": ["migration"],
-        "forbid": [],
+        "forbid": ["database-design"],
         "output": {
           "contains_all": ["rollback", "compatibility"],
           "contains_any": ["phase", "sequence"]

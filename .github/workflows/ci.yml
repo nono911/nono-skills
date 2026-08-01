@@ -29,7 +29,17 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           registry-url: https://registry.npmjs.org
-      - run: npm test
-      - run: npm run validate
-      - run: npm run eval:skills
+      - run: npm run prepublishOnly
       - run: npm pack --dry-run
+
+  coverage:
+    name: Coverage on Node 24
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - run: npm run test:coverage

@@ -47,13 +47,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
 - Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated feature worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
-- Otherwise propose the exact base, branch, and worktree path and request one approval for their creation and up to two local commits unless already authorized. The loop-owned implementation commit may be amended before first review; the second is an unpushed review-fix commit that may be amended across later fix cycles.
+- Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.
 - Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.
 - If required isolation is declined, stop this loop and offer ordinary implementation in the checkout only with explicit write and commit authority.
-- Approval covers only the proposed worktree or branch, the implementation commit, and creation or amendment of one loop-owned review-fix commit; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
+- Approval covers isolation and two loop-owned commits; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
 - Preserve unrelated changes and follow repository remote and identity rules before each commit.
 - Do not copy ignored files or secrets or change host worktree rules without authorization.
-- Before editing confirm a fresh isolated read-only reviewer is available. Otherwise disclose the limitation and offer ordinary implementation with non-independent self-review or stop; that path cannot report `CLEAN`.
+- Before editing require a fresh isolated read-only reviewer. Otherwise offer ordinary implementation with disclosed self-review or stop; that path cannot report `CLEAN`.
 
 ## Implement and commit
 

@@ -1,0 +1,35 @@
+name: Publish npm package
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish with npm provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm --version
+      - run: node .github/scripts/verify-release-tag.mjs
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+      - run: npm run prepublishOnly
+      - run: npm pack --dry-run
+      - run: npm publish --provenance --access public

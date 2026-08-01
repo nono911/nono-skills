@@ -1,7 +1,7 @@
 {
   "name": "nono-skills",
-  "version": "0.12.0",
-  "description": "Evidence-driven adaptive engineering skills and review-fix loops for Codex, Claude Code, Gemini CLI, Cursor, Copilot, Hermes, and more.",
+  "version": "0.13.0",
+  "description": "Reusable engineering skills and bounded review-fix loops for Codex and other Agent Skills hosts.",
   "author": "thitikorn.j",
   "type": "module",
   "bin": {
@@ -12,10 +12,12 @@
   },
   "scripts": {
     "test": "node --test",
+    "test:coverage": "node --experimental-test-coverage --test",
     "eval:skills": "node scripts/eval-skills.mjs",
+    "eval:host": "node scripts/eval-host.mjs validate",
     "sync:portable": "node scripts/sync-portable-resources.mjs",
     "validate": "node scripts/validate.mjs",
-    "prepublishOnly": "npm test && npm run validate && npm run eval:skills"
+    "prepublishOnly": "npm test && npm run validate && npm run eval:skills && npm run eval:host"
   },
   "files": [
     "bin/",
@@ -29,10 +31,6 @@
   ],
   "keywords": [
     "codex",
-    "codex-cli",
-    "openai-codex",
-    "codex-skills",
-    "codex-plugin",
     "agent-skills",
     "ai-coding-agent",
     "software-engineering",
@@ -40,30 +38,12 @@
     "code-review",
     "bug-fix",
     "qa-testing",
-    "acceptance-testing",
     "security-review",
-    "delivery-workflow",
     "engineering-loop",
     "review-fix-loop",
-    "agentic-workflow",
-    "coding-workflow",
-    "superpowers-alternative",
-    "evidence-driven-development",
-    "adaptive-agent",
     "agent-evaluation",
     "multi-agent",
-    "multi-agent-cli",
-    "agent-orchestration",
-    "claude-code",
-    "qwen-code",
-    "opencode",
-    "codewhale",
-    "antigravity",
-    "gemini-cli",
-    "cursor",
-    "github-copilot",
-    "hermes-agent",
-    "skills-sh"
+    "agent-orchestration"
   ],
   "license": "MIT",
   "repository": {

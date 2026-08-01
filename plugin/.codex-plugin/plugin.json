@@ -1,7 +1,7 @@
 {
   "name": "engineering",
-  "version": "0.12.0",
-  "description": "Evidence-driven adaptive engineering skills and review-fix loops for OpenAI Codex CLI.",
+  "version": "0.13.0",
+  "description": "Reusable engineering skills and bounded review-fix loops for OpenAI Codex.",
   "author": {
     "name": "thitikorn.j"
   },
@@ -10,10 +10,6 @@
   "license": "MIT",
   "keywords": [
     "codex",
-    "codex-cli",
-    "openai-codex",
-    "codex-skills",
-    "codex-plugin",
     "agent-skills",
     "ai-coding-agent",
     "software-engineering",
@@ -21,20 +17,18 @@
     "code-review",
     "bug-fix",
     "qa-testing",
-    "acceptance-testing",
     "security-review",
-    "delivery-workflow",
     "engineering-loop",
     "review-fix-loop",
-    "agentic-workflow",
-    "coding-workflow",
-    "superpowers-alternative"
+    "agent-evaluation",
+    "multi-agent",
+    "agent-orchestration"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Engineering",
     "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "Evidence-driven adaptive engineering loops and reusable Agent Skills centered on outcomes, persistent verification, bounded agent delegation, material decisions, and human escalation.",
+    "longDescription": "Reusable Agent Skills centered on observable outcomes, evidence, bounded review loops, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],

@@ -259,6 +259,47 @@ test('run evidence commands inspect insights and require force for purge', async
   assert.match(stdout.read(), /Purged 1 local loop run/);
 });
 
+test('eval command validates and scores captured host results without claiming a host run', async () => {
+  const packageRoot = path.resolve(import.meta.dirname, '..');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-eval-'));
+  const corpus = JSON.parse(await readFile(
+    path.join(packageRoot, 'evals', 'skill-behavior.json'),
+    'utf8',
+  ));
+  const results = {
+    schema_version: 1,
+    host: { name: 'test-host', model: 'test-model', version: '1.0.0' },
+    results: corpus.cases.map((evalCase) => ({
+      case_id: evalCase.id,
+      activated_skills: evalCase.expect.activate,
+      output: [
+        ...(evalCase.expect.output?.contains_all ?? []),
+        ...(evalCase.expect.output?.contains_any?.slice(0, 1) ?? []),
+      ].join(' | '),
+    })),
+  };
+  await writeFile(path.join(root, 'results.json'), `${JSON.stringify(results)}\n`);
+  const stdout = writer();
+  const handlers = createHandlers({
+    packageRoot,
+    home: path.join(root, 'home'),
+    cwd: root,
+    packageVersion: '0.13.0',
+    stdout: stdout.stream,
+    stderr: writer().stream,
+  });
+
+  assert.equal(await handlers.eval({ evalCommand: 'validate' }), 0);
+  assert.match(stdout.read(), /This validates the corpus only/);
+  assert.equal(await handlers.eval({
+    evalCommand: 'score',
+    resultsFile: 'results.json',
+    allowMissing: false,
+    json: false,
+  }), 0);
+  assert.match(stdout.read(), /Activation: asserted precision 1\.000; recall 1\.000/);
+});
+
 test('purge preflight fails before uninstall when project state is missing', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'engineering-command-'));
   let uninstallCalls = 0;

@@ -30,14 +30,14 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Inputs
 
-- Observed and expected behavior, impact, frequency, environment, and reproduction evidence
+- Observed versus expected behavior, impact, and reproduction evidence
 - Repository rules, checks, base, worktrees, unrelated changes, and Git rules
 
 ## Outputs
 
 - Pre-fix evidence, a supported causal chain, and a focused failing regression proof
 - One approved isolated fix commit
-- Evidence-linked execution with no more than five review batches, four fix cycles, and one no-verdict retry for the entire run
+- Evidence-linked execution within five review batches, four fix cycles, and one no-verdict retry
 - A second commit only for validated later fixes that pass fresh review
 - Verification, review, commit, and residual-risk evidence
 
@@ -45,13 +45,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
 - Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated bugfix worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
-- Otherwise propose the exact base, branch, and worktree path and request one approval for their creation and up to two local commits unless already authorized. The loop-owned bugfix commit may be amended before first review; the second is an unpushed review-fix commit that may be amended across later fix cycles.
+- Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The bugfix commit may be amended before review; one unpushed review-fix commit may be amended later.
 - Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two named local commits and repeat excluded actions.
 - If required isolation is declined, stop this loop and offer ordinary bug fixing in the checkout only with explicit write and commit authority.
-- Approval covers the proposed isolation, bugfix commit, and one loop-owned amendable review-fix commit; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
-- Preserve unrelated changes and follow repository remote and identity rules before each commit.
+- Approval covers isolation and two loop-owned commits; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
+- Preserve unrelated changes; follow remote and identity rules before each commit.
 - Do not copy ignored files or secrets or change host worktree rules without authorization.
-- Before editing confirm a fresh isolated read-only reviewer is available. Otherwise disclose the limitation and offer ordinary bug fixing with non-independent self-review or stop; that path cannot report `CLEAN`.
+- Before editing require a fresh isolated read-only reviewer. Otherwise offer ordinary bug fixing with disclosed self-review or stop; that path cannot report `CLEAN`.
 
 ## Reproduce and prove
 

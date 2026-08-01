@@ -7,6 +7,7 @@ import { listFiles, sha256File } from './fs-safe.js';
 import { installPlugin, updatePlugin } from './plugin-install.js';
 import { writeJsonAtomic } from './plugin-state.js';
 import { applyProjectInit, planProjectInit, resolveProjectTarget } from './project-init.js';
+import { assertSkillEvalCorpus, loadSkillEvalCorpus, scoreSkillEvalResults } from './skill-eval.js';
 import { purgeProject, uninstallPlugin } from './uninstall.js';
 import {
   listAgentProviders as defaultListAgentProviders,
@@ -241,6 +242,39 @@ export function createHandlers(base) {
       const worktree = path.resolve(base.cwd, options.target ?? '.');
       const result = await loopController.repositoryInsights({ worktree });
       stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      return 0;
+    },
+
+    async eval(options) {
+      const corpus = await loadSkillEvalCorpus(path.join(base.packageRoot, 'evals', 'skill-behavior.json'));
+      if (options.evalCommand === 'cases') {
+        for (const { id, skill, category, prompt } of corpus.cases) {
+          stdout.write(`${JSON.stringify({ case_id: id, skill, category, prompt })}\n`);
+        }
+        return 0;
+      }
+      if (options.evalCommand === 'score') {
+        const resultsPath = path.resolve(base.cwd, options.resultsFile);
+        const results = JSON.parse(await readFile(resultsPath, 'utf8'));
+        const score = scoreSkillEvalResults(corpus, results, { allowMissing: options.allowMissing });
+        if (options.json) {
+          stdout.write(`${JSON.stringify(score, null, 2)}\n`);
+        } else {
+          stdout.write(`Host: ${score.host.name} ${score.host.version}; model ${score.host.model}.\n`);
+          stdout.write(`Behavioral eval: ${score.passed}/${score.total} passed; ${score.failed} failed; ${score.missing} missing.\n`);
+          stdout.write(`Activation: asserted precision ${score.activation.asserted_precision?.toFixed(3) ?? 'n/a'}; recall ${score.activation.recall?.toFixed(3) ?? 'n/a'}; forbidden ${score.activation.forbidden_activations}/${score.activation.forbidden_opportunities}; unasserted ${score.activation.unasserted_activations}.\n`);
+          for (const confusion of score.activation.boundary_confusions) {
+            stdout.write(`CONFUSION expected=${confusion.expected} activated=${confusion.activated} count=${confusion.count} cases=${confusion.case_ids.join(',')}\n`);
+          }
+          for (const failure of score.failures) {
+            stderr.write(`${failure.case_id}: ${failure.reasons.join('; ')}\n`);
+          }
+        }
+        return score.ok ? 0 : 1;
+      }
+      const summary = assertSkillEvalCorpus(corpus);
+      stdout.write(`Validated ${summary.cases} behavioral cases across ${summary.skills} skills and ${summary.categories} categories.\n`);
+      stdout.write('This validates the corpus only. Use eval cases with a host adapter, then eval score on captured results.\n');
       return 0;
     },
 

@@ -70,6 +70,8 @@ node <skill-root>/scripts/loop-controller.mjs review-begin \
 
 Do not edit controller state, event files, budget fields, or hashes directly. Do not replace a rejected transition with prose. A failure to execute or persist strict control ends the named loop; offer ordinary implementation or bug fixing only as a separately approved degraded workflow that cannot claim bounded or independently reviewed completion.
 
+The controller enforces transitions only after an agent starts a managed run and continues to invoke it. Skill activation, controller invocation, reviewer independence, and the truthfulness of supplied evidence remain host- and model-dependent. The hash chain is tamper-evident, not tamper-proof, and is not a security boundary.
+
 ## Fixed and adaptive behavior
 
 The controller may recommend specialists from risk signals and repository-local history. The orchestrator may omit irrelevant specialists or stop early when evidence is complete. It must never change the controller's five review batches, four fix cycles, one no-verdict retry, permissions, external cost, or user-approved scope.

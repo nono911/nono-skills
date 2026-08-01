@@ -36,6 +36,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
 - For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
 - Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.
+- Before finalizing multi-step work, assess whether acceptance outcomes, affected components, cross-cutting risks, and unresolved decisions fit one independently verifiable change. If not, propose the smallest coherent slices and ask once for direction before creating artifacts for them.
 - Add negative, compatibility, rollout, or rollback criteria only when material to the risk.
 - Keep work items outcome-based and independently verifiable; avoid file-by-file pseudo-instructions.
 - Include compatibility, migration, rollout, observability, and rollback work only when relevant.
