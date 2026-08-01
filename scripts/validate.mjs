@@ -23,7 +23,7 @@ await loadSkillEvalCorpus(path.join(root, 'evals', 'skill-behavior.json'));
 
 const skillRoot = path.join(root, 'plugin', 'skills');
 const skillFiles = (await listFiles(skillRoot)).filter((file) => file.endsWith('/SKILL.md'));
-const skillNames = skillFiles.map((file) => file.split(path.sep)[0]);
+const skillNames = skillFiles.map((file) => file.split('/')[0]);
 assertCanonicalSkillInventory(skillNames);
 assert.deepEqual(
   skillNames.sort(),
@@ -35,7 +35,7 @@ const loopController = await readFile(path.join(root, 'plugin', 'runtime', 'loop
 const evidenceContract = await readFile(path.join(root, 'plugin', 'runtime', 'evidence-contract.md'), 'utf8');
 assertWorkspaceProtocolContract(workspaceProtocol);
 for (const relative of skillFiles) {
-  const expectedName = relative.split(path.sep)[0];
+  const expectedName = relative.split('/')[0];
   const content = await readFile(path.join(skillRoot, relative), 'utf8');
   const metadata = await readFile(path.join(skillRoot, expectedName, 'agents', 'openai.yaml'), 'utf8');
   const bundledWorkspaceProtocol = await readFile(
