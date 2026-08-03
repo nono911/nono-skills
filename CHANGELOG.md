@@ -4,7 +4,9 @@ Notable user-visible changes are recorded here. Nono Skills is experimental
 software: minor `0.x` releases may change workflow contracts, so repeatable
 installations should pin an exact version.
 
-## Unreleased — planned for 0.14.0
+## Unreleased
+
+## 0.14.0 — 2026-08-03
 
 ### Changed
 
@@ -41,4 +43,5 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.13.1...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/nono911/nono-skills/compare/v0.13.1...v0.14.0
