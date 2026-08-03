@@ -79,6 +79,16 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   assert.match(failed.failures[0].reasons.join('\n'), /first-action tax ratio/);
 });
 
+test('host result validation rejects a contaminated baseline activation', async () => {
+  const corpus = await loadHostEvalCorpus(corpusPath);
+  const results = conformingResults(corpus);
+  results.results[0].baseline.activated_skills = ['plan'];
+  assert.throws(
+    () => scoreHostEvalResults(corpus, results),
+    /baseline must not activate nono-skills/,
+  );
+});
+
 test('host eval CLI validates cases and runs a fresh-process adapter for both variants', async (t) => {
   const fixture = await mkdtemp(path.join(os.tmpdir(), 'nono-host-eval-'));
   t.after(() => rm(fixture, { recursive: true, force: true }));

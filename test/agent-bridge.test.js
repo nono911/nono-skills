@@ -608,6 +608,55 @@ test('external review findings require Evidence Contract categories', async () =
     }),
     /finding category/,
   );
+
+  const structuredFinding = {
+    id: 'F-1',
+    severity: 'high',
+    category: 'compatibility',
+    location: 'src/example.js:1',
+    evidence_status: 'supported',
+    evidence: {
+      kind: 'static-path',
+      head_sha: taskPacket.head_sha,
+      summary: 'The changed branch bypasses the documented compatibility guard',
+      reference: 'src/example.js:1',
+    },
+    impact: 'Acceptance behavior fails',
+    remediation: 'Preserve the documented contract',
+  };
+  const result = await runExternalAgent({
+    home,
+    provider: 'codex',
+    mode: 'review',
+    cwd: home,
+    prompt: JSON.stringify(taskPacketFor(home)),
+    consent: true,
+    runCommand: providerRunner([], { ...reviewOutput, findings: [structuredFinding] }),
+    runGitCommand: gitRunner(home),
+    env: {},
+  });
+  assert.equal(result.output.findings[0].evidence_status, 'supported');
+
+  await assert.rejects(
+    runExternalAgent({
+      home,
+      provider: 'codex',
+      mode: 'review',
+      cwd: home,
+      prompt: JSON.stringify(taskPacketFor(home)),
+      consent: true,
+      runCommand: providerRunner([], {
+        ...reviewOutput,
+        findings: [{
+          ...structuredFinding,
+          evidence: { ...structuredFinding.evidence, head_sha: taskPacket.base_sha },
+        }],
+      }),
+      runGitCommand: gitRunner(home),
+      env: {},
+    }),
+    /finding evidence head_sha/,
+  );
 });
 
 test('external execution rejects stale identity and incomplete scope for every adapter', async () => {

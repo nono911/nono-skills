@@ -19,6 +19,7 @@ import {
   purgeRepositoryEvidence as defaultPurgeRepositoryEvidence,
   repositoryInsights as defaultRepositoryInsights,
   showRun as defaultShowRun,
+  supersedeLegacyRun as defaultSupersedeLegacyRun,
 } from '../plugin/runtime/loop-controller.mjs';
 
 async function exists(file) {
@@ -43,6 +44,7 @@ export function createHandlers(base) {
   const loopController = base.loopController ?? {
     listRuns: defaultListRuns,
     showRun: defaultShowRun,
+    supersedeLegacyRun: defaultSupersedeLegacyRun,
     repositoryInsights: defaultRepositoryInsights,
     purgeRepositoryEvidence: defaultPurgeRepositoryEvidence,
   };
@@ -231,6 +233,16 @@ export function createHandlers(base) {
         if (!options.force) throw new Error('runs purge requires --force');
         const result = await loopController.purgeRepositoryEvidence({ worktree, confirm: true });
         stdout.write(`Purged ${result.removed_runs} local loop run(s) from ${result.repository}.\n`);
+        return 0;
+      }
+      if (options.runCommand === 'supersede') {
+        if (!options.confirm) throw new Error('runs supersede requires --confirm');
+        const result = await loopController.supersedeLegacyRun({
+          worktree,
+          runId: options.runId,
+          confirm: true,
+        });
+        stdout.write(`Superseded legacy run ${result.superseded_run_id} with v2 run ${result.state.run_id}; legacy evidence remains read-only.\n`);
         return 0;
       }
       const result = await loopController.listRuns({ worktree });

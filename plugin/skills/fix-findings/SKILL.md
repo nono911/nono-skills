@@ -27,11 +27,12 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Rules
 
+- Read `references/finding-rubric.md` before accepting the supplied queue; fix only evidence-supported findings dispositioned `actionable` for the current scope. Never fix residual or `unvalidated` items inside the current batch.
 - Reproduce or independently validate each finding before changing code.
 - Fix the causal path, not only the visible symptom.
 - Handle findings in risk order unless dependencies require another sequence.
 - Keep unrelated refactors separate.
-- Mark `not-reproducible` or `wont-fix` only with evidence or human approval; never close by assertion.
+- Return `not-reproducible`, `out-of-scope`, or `accepted-risk` only with supporting evidence or human approval; never close by assertion.
 - When called by an orchestrating loop, handle one supplied finding batch and return dispositions and verification. Never invoke or request `review`, `delivery-loop`, `bugfix-loop`, or another fix loop; only the parent decides the next phase.
 - When standalone, recommend re-review when warranted but do not start another workflow without explicit authorization.
 

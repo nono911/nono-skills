@@ -13,7 +13,8 @@ After an agent starts a managed run and continues to invoke the controller, the 
 - Fixed run budgets: five review batches, four fix cycles, and one no-verdict retry.
 - Review leases bound to one exact Git HEAD and one declared reviewer batch.
 - Duplicate, stale, replayed, malformed, or out-of-order transitions.
-- Acceptance IDs, finding dispositions, verification evidence shape, and terminal conditions.
+- Acceptance IDs, finding evidence bound to the reviewed HEAD, disposition-specific proof, residual findings, and terminal conditions.
+- Evidence-supported actionability without automatically rewriting claimed impact severity.
 
 The controller cannot force its own invocation. Reviewer independence, tool permissions, source isolation, and the truthfulness of evidence supplied by an agent remain host- and environment-dependent.
 
@@ -27,9 +28,11 @@ Managed runs live outside tracked source under the repository Git common directo
 
 Records are structured, snapshot-bound, and hash-chained. The chain makes later edits detectable when validated; it is not tamper-proof, an audit authority, or a security boundary. Anyone with sufficient filesystem access can alter or delete local evidence.
 
-The schema is designed for outcomes, identifiers, finding summaries, verification labels, and limitations. It rejects known prompt, conversation, source, diff, terminal-output, environment, and secret payload fields. This reduces accidental collection but cannot prove that arbitrary free-text labels are non-sensitive.
+Evidence Contract v2 is designed for outcomes, identifiers, structured finding observations, disposition reasons, verification labels, residuals, and limitations. It rejects known prompt, conversation, source, diff, terminal-output, environment, and secret payload fields. This reduces accidental collection but cannot prove that host-reported observations are true or that arbitrary free-text labels are non-sensitive.
 
-Completed summaries and repository insights are local, redacted, evidence-linked, and advisory. They do not train a model, rewrite skills, change permissions, extend budgets, accept risk, or send telemetry.
+Schema-v1 runs remain readable through list and status operations. The controller rejects resume and mutation instead of silently migrating them. With explicit human confirmation, `runs supersede` may create one linked v2 successor at the current HEAD; it does not alter the v1 chain, import its proof, accept its risks, or delete it.
+
+Completed summaries and repository insights are local, redacted, evidence-linked, and advisory. `clean_with_residuals` is a qualified completion and preserves every unresolved non-actionable item. These records do not train a model, rewrite skills, change permissions, extend budgets, accept risk, or send telemetry.
 
 ## Evaluation boundary
 

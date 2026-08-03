@@ -110,8 +110,8 @@ Universal installations use the names shown by the current host. Do not assume t
 | Layer | Guarantee |
 |---|---|
 | Skill text | Guidance interpreted by the host model; activation and compliance are host-dependent. |
-| Loop controller | Validates transitions, fixed budgets, exact-HEAD review leases, and evidence shape after a managed run has been started and while the agent continues to invoke it. |
-| Evidence records | Local, structured, snapshot-bound, and hash-chained for tamper evidence. They are not tamper-proof and are not a security boundary. |
+| Loop controller | Validates transitions, fixed budgets, exact-HEAD review leases, structured evidence and dispositions, and residual completion after a managed run has started and while the agent continues to invoke it. |
+| Evidence records | Local, structured, snapshot-bound, and hash-chained for tamper evidence. Residual findings remain visible. They are not tamper-proof and are not a security boundary. |
 | Evaluation | Deterministic skill contracts plus paired black-box scenarios measure activation and workflow overhead; they do not prove every host will behave identically. |
 
 The controller cannot force a model to activate a skill or call the controller. Reviewer independence and the truthfulness of supplied evidence also depend on the host and execution environment. See [Assurance boundaries](https://github.com/nono911/nono-skills/blob/main/docs/assurance.md).
@@ -131,6 +131,7 @@ Run evidence is stored outside tracked source under the repository Git common di
 ```bash
 npx nono-skills runs list
 npx nono-skills runs show <run-id>
+npx nono-skills runs supersede <legacy-run-id> --confirm
 npx nono-skills insights
 npx nono-skills runs purge --force
 ```
@@ -160,7 +161,9 @@ npx nono-skills eval score host-results.json --json
 - [Installation, initialization, and updates](https://github.com/nono911/nono-skills/blob/main/docs/installation.md)
 - [Delivery and bugfix loops](https://github.com/nono911/nono-skills/blob/main/docs/engineering-loops.md)
 - [Assurance boundaries and evidence](https://github.com/nono911/nono-skills/blob/main/docs/assurance.md)
+- [Upgrading from v0.13 to v0.14](https://github.com/nono911/nono-skills/blob/main/docs/upgrading-to-0.14.md)
 - [Development, evaluation, and release policy](https://github.com/nono911/nono-skills/blob/main/docs/development.md)
+- [Changelog](https://github.com/nono911/nono-skills/blob/main/CHANGELOG.md)
 
 ## Development
 

@@ -27,6 +27,7 @@
     "scripts/",
     "evals/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "keywords": [

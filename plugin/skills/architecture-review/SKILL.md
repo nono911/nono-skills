@@ -27,6 +27,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Rules
 
+- Read `references/finding-rubric.md` before emitting defects intended for remediation; keep tradeoff advice that does not cross the finding threshold in recommendations.
 - Start from desired capabilities and likely changes, not fashionable architecture.
 - Trace dependency direction, state ownership, contracts, failure propagation, and operational boundaries.
 - Separate structural problems from local code-quality issues.

@@ -31,9 +31,42 @@ assert.deepEqual(
 );
 const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+const findingRubric = await readFile(path.join(root, 'plugin', 'references', 'finding-rubric.md'), 'utf8');
 const loopController = await readFile(path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'), 'utf8');
 const evidenceContract = await readFile(path.join(root, 'plugin', 'runtime', 'evidence-contract.md'), 'utf8');
+const findingSkillNames = new Set([
+  'acceptance-verify',
+  'architecture-review',
+  'bugfix-loop',
+  'delivery-loop',
+  'fix-findings',
+  'release-readiness',
+  'review',
+  'security-review',
+]);
 assertWorkspaceProtocolContract(workspaceProtocol);
+assert.match(findingRubric, /Keep severity independent from evidence strength/);
+assert.match(findingRubric, /`accepted_by\.type: human`/);
+for (const reasonCode of [
+  'IN_SCOPE_VALIDATED',
+  'LOW_SEVERITY',
+  'PREEXISTING_UNRELATED',
+  'DIFFERENT_SUBSYSTEM',
+  'OUTSIDE_APPROVED_SCOPE',
+  'SAME_ROOT_CAUSE',
+  'SUPERSEDED_BY_FIX',
+  'ENV_DEPENDENT',
+  'INSUFFICIENT_REPRO_STEPS',
+  'CONTRADICTED_BY_CHECK',
+  'OWNER_ACCEPTED',
+  'INSUFFICIENT_EVIDENCE',
+  'UNVERIFIED_OBSERVATION',
+]) assert.match(findingRubric, new RegExp(`\\b${reasonCode}\\b`));
+assert.match(loopController, /export const evidenceSchemaVersion = 2/);
+assert.match(loopController, /export const runSchemaVersion = 2/);
+assert.match(loopController, /export async function supersedeLegacyRun/);
+assert.match(evidenceContract, /Every caller-supplied evidence envelope uses schema version 2/);
+assert.match(evidenceContract, /supersede.*--run-id <legacy-run-id> --confirm/s);
 for (const relative of skillFiles) {
   const expectedName = relative.split('/')[0];
   const content = await readFile(path.join(skillRoot, relative), 'utf8');
@@ -52,6 +85,13 @@ for (const relative of skillFiles) {
     workspaceProtocol,
     `${expectedName} must bundle the canonical workspace protocol`,
   );
+  if (findingSkillNames.has(expectedName)) {
+    assert.equal(
+      await readFile(path.join(skillRoot, expectedName, 'references', 'finding-rubric.md'), 'utf8'),
+      findingRubric,
+      `${expectedName} must bundle the canonical finding rubric`,
+    );
+  }
   assert.doesNotMatch(
     content,
     /TODO|Superpowers|\.codex\/skills|\bCodex\b|\$engineering:|\.\.\/\.\.\/references\/workspaces\.md|engineering_reviewer/,

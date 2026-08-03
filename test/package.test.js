@@ -37,7 +37,12 @@ test('npm package includes runtime assets and excludes development state', async
     'bin/cli.js', 'src/cli.js', 'plugin/.codex-plugin/plugin.json',
     'evals/skill-behavior.json', 'scripts/eval-skills.mjs',
     'evals/host-behavior.json', 'scripts/eval-host.mjs', 'src/host-eval.js',
-    'plugin/references/workspaces.md', 'scripts/sync-portable-resources.mjs',
+    'scripts/adapters/codex.mjs', 'src/codex-host-adapter.js',
+    'evals/fixtures/stable-repository/package.json',
+    'evals/fixtures/stable-repository/src/parser.js',
+    'evals/fixtures/stable-repository/test/parser.test.js',
+    'plugin/references/workspaces.md', 'plugin/references/finding-rubric.md',
+    'scripts/sync-portable-resources.mjs',
     'plugin/skills/delivery-loop/references/agent-delegation.md',
     'plugin/skills/delivery-loop/scripts/agent-bridge.mjs',
     'plugin/skills/delivery-loop/scripts/provider-contract.mjs',
@@ -48,7 +53,7 @@ test('npm package includes runtime assets and excludes development state', async
     'plugin/skills/delivery-loop/scripts/providers/opencode.mjs',
     'plugin/skills/delivery-loop/scripts/providers/codewhale.mjs',
     'plugin/skills/delivery-loop/scripts/providers/antigravity.mjs',
-    'templates/AGENTS.md', 'README.md', 'LICENSE',
+    'templates/AGENTS.md', 'README.md', 'CHANGELOG.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
   assert.equal(expectedSkills.length, 18);
   for (const name of expectedSkills) {
@@ -58,9 +63,26 @@ test('npm package includes runtime assets and excludes development state', async
       `plugin/skills/${name}/references/workspaces.md`,
     ]) assert.equal(names.includes(required), true, `missing ${required}`);
   }
+  for (const name of [
+    'acceptance-verify',
+    'architecture-review',
+    'bugfix-loop',
+    'delivery-loop',
+    'fix-findings',
+    'release-readiness',
+    'review',
+    'security-review',
+  ]) {
+    assert.equal(
+      names.includes(`plugin/skills/${name}/references/finding-rubric.md`),
+      true,
+      `missing finding rubric for ${name}`,
+    );
+  }
   assert.equal(names.some((name) => name.startsWith('templates/docs/agent/')), false);
   assert.equal(names.some((name) => name.startsWith('test/')), false);
   assert.equal(names.some((name) => name.startsWith('docs/')), false);
+  assert.equal(names.some((name) => name.startsWith('benchmarks/')), false);
   assert.equal(names.some((name) => name.startsWith('.superpowers/')), false);
   assert.equal(names.some((name) => name.includes('.installer-state')), false);
   assert.equal(names.some((name) => name.includes('backup')), false);

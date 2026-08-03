@@ -69,8 +69,8 @@
     {
       "id": "implement-small-fast-path",
       "skill": "implement",
-      "skill_prompt": "Use $implement to add a missing null guard to the named parser, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
-      "baseline_prompt": "Add a missing null guard to the named parser, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
+      "skill_prompt": "Use $implement to add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
+      "baseline_prompt": "Add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
       "expect": {
         "activate": ["implement"],
         "forbid": ["delivery-loop", "bugfix-loop"],

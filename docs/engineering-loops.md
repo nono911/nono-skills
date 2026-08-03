@@ -20,9 +20,14 @@ Push, merge, deploy, worktree removal, and branch deletion remain separately aut
 3. Start or resume a managed delivery run.
 4. Activate `implement`, verify the affected behavior, and record the exact HEAD.
 5. Acquire a review lease for that HEAD and use a fresh read-only reviewer with `review`.
-6. Triage evidence-backed findings. Activate `fix-findings` only for actionable findings.
+6. Triage findings without changing their claimed impact severity. Activate `fix-findings` only for evidence-supported actionable findings; retain non-blocking, deferred, accepted, and unvalidated items in the residual ledger.
 7. Verify the new HEAD and review it under a fresh lease.
-8. Stop early on `CLEAN`; otherwise continue within the fixed budget and finish with final verification.
+8. Stop early when no actionable findings remain; after final verification report `CLEAN` or `CLEAN_WITH_RESIDUALS` from the controller and always list residuals.
+
+If startup finds an active schema-v1 run, the loop reports its ID and pauses for
+human approval. Approval permits one linked v2 successor at the current HEAD;
+the controller preserves the legacy run unchanged and never purges it as an
+upgrade shortcut.
 
 ## Bugfix loop
 
@@ -47,7 +52,7 @@ The fixed run budget is five review batches, four fix cycles, and one retry for 
 
 ## Reviewer independence
 
-The reviewer must be a fresh project-scoped read-only agent or subagent, receive the complete diff and relevant evidence, and be unable to mutate the worktree or delegate. If the host cannot provide that boundary, the named loop stops. The agent may offer ordinary implementation with disclosed self-review, but that path cannot report independent `CLEAN`.
+The reviewer must be a fresh project-scoped read-only agent or subagent, receive the complete diff and relevant evidence, and be unable to mutate the worktree or delegate. Read-only review may execute existing safe, non-destructive checks but may not change reviewed source. If the host cannot provide that boundary, the named loop stops. The agent may offer ordinary implementation with disclosed self-review, but that path cannot report independent `CLEAN`.
 
 ## Native and external execution
 

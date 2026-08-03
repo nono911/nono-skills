@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFile as execFileCallback } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
-import { mkdtemp, readFile, readdir, realpath, rm, utimes, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, realpath, rm, utimes, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -18,12 +19,24 @@ import {
   recordVerification,
   repositoryInsights,
   resumeBlockedRun,
+  runLoopControllerCli,
   showRun,
   startRun,
+  supersedeLegacyRun,
   triageFindings,
 } from '../plugin/runtime/loop-controller.mjs';
 
 const execFile = promisify(execFileCallback);
+
+function canonicalValue(value) {
+  if (Array.isArray(value)) return value.map(canonicalValue);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonicalValue(value[key])]));
+}
+
+function eventDigest(value) {
+  return `sha256:${createHash('sha256').update(JSON.stringify(canonicalValue(value))).digest('hex')}`;
+}
 
 async function git(repository, ...args) {
   const { stdout } = await execFile('git', ['-C', repository, ...args]);
@@ -49,9 +62,89 @@ async function commit(repository, content, message) {
   return git(repository, 'rev-parse', 'HEAD');
 }
 
+function writer() {
+  let output = '';
+  return {
+    stream: { write(chunk) { output += String(chunk); } },
+    read: () => output,
+  };
+}
+
+async function writeLegacyRun(repository, runId = 'legacy-run') {
+  const canonicalRepository = await realpath(repository);
+  const commonPath = await git(repository, 'rev-parse', '--path-format=absolute', '--git-common-dir');
+  const commonDirectory = await realpath(commonPath);
+  const headSha = await git(repository, 'rev-parse', 'HEAD');
+  const runRoot = path.join(commonDirectory, 'nono-skills', 'runs', runId);
+  const createdAt = '2026-08-01T00:00:00.000Z';
+  const state = {
+    schema_version: 1,
+    run_id: runId,
+    kind: 'delivery',
+    status: 'BLOCKED',
+    parent_run_id: null,
+    worktree: canonicalRepository,
+    base_sha: headSha,
+    current_head: headSha,
+    acceptance_ids: ['AC-1'],
+    risk_signals: [],
+    budgets: {
+      review_batches: { limit: 5, used: 0 },
+      fix_cycles: { limit: 4, used: 0 },
+      no_verdict_retries: { limit: 1, used: 0 },
+    },
+    active_review: null,
+    retry_review: null,
+    reviewed_heads: [],
+    pending_findings: [],
+    open_findings: [],
+    blocked_from: 'VERIFYING',
+    block_reason: 'legacy fixture',
+    created_at: createdAt,
+    updated_at: createdAt,
+    event_sequence: 1,
+  };
+  const event = {
+    schema_version: 1,
+    event_id: 'legacy-event',
+    sequence: 1,
+    previous_event_hash: null,
+    event_type: 'run.blocked',
+    occurred_at: createdAt,
+    evidence: {
+      schema_version: 1,
+      event_type: 'run.blocked',
+      run_id: runId,
+      actor: { provider: 'legacy', role: 'orchestrator', capabilities: [] },
+      snapshot: { base_sha: headSha, head_sha: headSha },
+      acceptance_ids: ['AC-1'],
+      outcome: 'blocked',
+      verification: { performed: [], not_run: [] },
+      limitations: ['legacy fixture'],
+    },
+    state_after: state,
+  };
+  event.event_hash = eventDigest(event);
+  await mkdir(path.join(runRoot, 'events'), { recursive: true });
+  await writeFile(path.join(runRoot, 'manifest.json'), `${JSON.stringify({
+    schema_version: 1,
+    run_id: runId,
+    kind: 'delivery',
+    worktree: canonicalRepository,
+    git_common_directory: commonDirectory,
+    parent_run_id: null,
+    created_at: createdAt,
+  }, null, 2)}\n`);
+  await writeFile(
+    path.join(runRoot, 'events', '000001-run-blocked.json'),
+    `${JSON.stringify(event, null, 2)}\n`,
+  );
+  return { runId, headSha };
+}
+
 function evidence(state, eventType, outcome, values = {}) {
   return {
-    schema_version: 1,
+    schema_version: 2,
     event_type: eventType,
     run_id: state.run_id,
     actor: values.actor ?? {
@@ -93,16 +186,65 @@ async function prepareForReview(repository, state, label = 'implementation') {
   return result.state;
 }
 
-function finding(id, category = 'compatibility') {
+function finding(id, category = 'compatibility', severity = 'high', headSha = 'set-by-caller') {
   return {
     id,
-    severity: 'high',
+    severity,
     category,
     location: 'feature.txt:1',
-    evidence: 'observable incompatible behavior',
+    evidence_status: 'supported',
+    evidence: {
+      kind: 'reproduction',
+      head_sha: headSha,
+      summary: 'observable incompatible behavior',
+      reference: 'feature contract reproduction',
+    },
     impact: 'acceptance behavior fails',
     remediation: 'preserve the expected contract',
   };
+}
+
+function triageDisposition(findingId, disposition, values = {}) {
+  const reasonCodes = {
+    actionable: 'IN_SCOPE_VALIDATED',
+    'non-blocking': 'LOW_SEVERITY',
+    'out-of-scope': 'PREEXISTING_UNRELATED',
+    duplicate: 'SAME_ROOT_CAUSE',
+    stale: 'SUPERSEDED_BY_FIX',
+    'not-reproducible': 'CONTRADICTED_BY_CHECK',
+    'accepted-risk': 'OWNER_ACCEPTED',
+    unvalidated: 'INSUFFICIENT_EVIDENCE',
+  };
+  return {
+    finding_id: findingId,
+    disposition,
+    reason_code: values.reasonCode ?? reasonCodes[disposition],
+    summary: values.summary ?? `${disposition} disposition supported by test evidence`,
+    ...values.extra,
+  };
+}
+
+async function reviewFinding(repository, state, findingItem) {
+  const begun = await beginReview({
+    worktree: repository,
+    runId: state.run_id,
+    headSha: state.current_head,
+    reviewers: ['general'],
+  });
+  return completeReview({
+    worktree: repository,
+    runId: state.run_id,
+    leaseId: begun.lease.lease_id,
+    evidence: evidence(begun.state, 'review.completed', 'findings', {
+      extra: {
+        lease_id: begun.lease.lease_id,
+        findings: [{
+          ...findingItem,
+          evidence: { ...findingItem.evidence, head_sha: state.current_head },
+        }],
+      },
+    }),
+  });
 }
 
 test('run identity persists outside the worktree and resumes independently of host sessions', async (t) => {
@@ -300,7 +442,7 @@ test('failed pre-review verification returns to implementation while blocked ver
     worktree: repository,
     runId: state.run_id,
     evidence: evidence(result.state, 'verification.completed', 'failed', {
-      extra: { finding: finding('VERIFY-1', 'acceptance') },
+      extra: { finding: finding('VERIFY-1', 'acceptance', 'high', result.state.current_head) },
     }),
   });
   assert.equal(result.state.status, 'IMPLEMENTING');
@@ -357,7 +499,7 @@ test('failed final verification becomes an actionable fix and requires fresh rev
     worktree: repository,
     runId: state.run_id,
     evidence: evidence(result.state, 'verification.completed', 'failed', {
-      extra: { finding: finding('VERIFY-FINAL', 'regression') },
+      extra: { finding: finding('VERIFY-FINAL', 'regression', 'high', result.state.current_head) },
     }),
   });
   assert.equal(result.state.status, 'AWAITING_FIX');
@@ -508,7 +650,7 @@ test('fifth actionable batch exhausts immutable budget without mutation', async 
       evidence: evidence(begun.state, 'review.completed', 'findings', {
         extra: {
           lease_id: begun.lease.lease_id,
-          findings: [finding(`F-${batch}`, 'security')],
+          findings: [finding(`F-${batch}`, 'security', 'high', begun.state.current_head)],
         },
       }),
     });
@@ -517,11 +659,7 @@ test('fifth actionable batch exhausts immutable budget without mutation', async 
       runId: state.run_id,
       evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
         extra: {
-          dispositions: [{
-            finding_id: `F-${batch}`,
-            disposition: 'actionable',
-            evidence: 'reproduced against the reviewed HEAD',
-          }],
+          dispositions: [triageDisposition(`F-${batch}`, 'actionable')],
         },
       }),
     });
@@ -570,6 +708,422 @@ test('fifth actionable batch exhausts immutable budget without mutation', async 
     && item.finding_category === 'security'
     && item.supporting_runs.includes(state.run_id)
   )));
+});
+
+test('low findings are non-blocking and cannot consume a fix cycle', async (t) => {
+  const repository = await createRepository(t);
+  let { state } = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  state = await prepareForReview(repository, state, 'low-finding');
+  const reviewed = await reviewFinding(repository, state, finding('LOW-1', 'maintainability', 'low'));
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: {
+          dispositions: [triageDisposition('LOW-1', 'actionable')],
+        },
+      }),
+    }),
+    /low-severity findings cannot be actionable/,
+  );
+
+  const triaged = await triageFindings({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+      extra: {
+        dispositions: [triageDisposition('LOW-1', 'non-blocking')],
+      },
+    }),
+  });
+  assert.equal(triaged.state.status, 'FINAL_VERIFYING');
+  assert.equal(triaged.state.budgets.fix_cycles.used, 0);
+  assert.deepEqual(triaged.state.open_findings, []);
+});
+
+test('non-blocking is reserved for low findings while valid unrelated defects can be out of scope', async (t) => {
+  const repository = await createRepository(t);
+  let { state } = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  state = await prepareForReview(repository, state, 'out-of-scope');
+  const reviewed = await reviewFinding(repository, state, finding('HIGH-1'));
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: {
+          dispositions: [triageDisposition('HIGH-1', 'non-blocking')],
+        },
+      }),
+    }),
+    /non-blocking disposition requires a low-severity finding/,
+  );
+
+  const triaged = await triageFindings({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+      extra: {
+        dispositions: [triageDisposition('HIGH-1', 'out-of-scope', {
+          extra: {
+            causal_relation: 'preexisting',
+            scope_ref: 'AC-1 approved delivery scope',
+          },
+        })],
+      },
+    }),
+  });
+  assert.equal(triaged.state.status, 'FINAL_VERIFYING');
+  assert.equal(triaged.state.budgets.fix_cycles.used, 0);
+});
+
+test('insufficient evidence cannot become actionable and completes with an unvalidated residual', async (t) => {
+  const repository = await createRepository(t);
+  let { state } = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  state = await prepareForReview(repository, state, 'insufficient-evidence');
+  const unsupported = finding('UNVALIDATED-1', 'correctness', 'high');
+  unsupported.evidence_status = 'insufficient';
+  unsupported.evidence = {
+    kind: 'observation',
+    head_sha: 'set-by-caller',
+    summary: 'the behavior looks suspicious but was not reproduced',
+  };
+  const reviewed = await reviewFinding(repository, state, unsupported);
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: { dispositions: [triageDisposition('UNVALIDATED-1', 'actionable')] },
+      }),
+    }),
+    /insufficient evidence must be dispositioned unvalidated/,
+  );
+
+  const triaged = await triageFindings({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+      extra: { dispositions: [triageDisposition('UNVALIDATED-1', 'unvalidated')] },
+    }),
+  });
+  assert.equal(triaged.state.status, 'FINAL_VERIFYING');
+  assert.deepEqual(
+    triaged.state.residual_findings.map((item) => [item.id, item.disposition]),
+    [['UNVALIDATED-1', 'unvalidated']],
+  );
+
+  const verified = await recordVerification({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(triaged.state, 'verification.completed', 'passed', {
+      verification: { performed: ['npm test passed'], not_run: [] },
+    }),
+  });
+  const completed = await completeRun({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(verified.state, 'run.completed', 'completed'),
+  });
+  assert.equal(completed.completion_kind, 'clean_with_residuals');
+  assert.equal(completed.state.completion_kind, 'clean_with_residuals');
+  const summary = JSON.parse(await readFile(
+    path.join(
+      completed.state.worktree,
+      '.git',
+      'nono-skills',
+      'runs',
+      state.run_id,
+      'summary.json',
+    ),
+    'utf8',
+  ));
+  assert.equal(summary.completion_kind, 'clean_with_residuals');
+  assert.deepEqual(summary.residual_findings.map((item) => item.id), ['UNVALIDATED-1']);
+});
+
+test('not-reproducible and accepted-risk require structured proof', async (t) => {
+  const repository = await createRepository(t);
+  let { state } = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  state = await prepareForReview(repository, state, 'structured-dispositions');
+  const begun = await beginReview({
+    worktree: repository,
+    runId: state.run_id,
+    headSha: state.current_head,
+    reviewers: ['general'],
+  });
+  await assert.rejects(
+    completeReview({
+      worktree: repository,
+      runId: state.run_id,
+      leaseId: begun.lease.lease_id,
+      evidence: evidence(begun.state, 'review.completed', 'findings', {
+        extra: {
+          lease_id: begun.lease.lease_id,
+          findings: [finding('STALE-EVIDENCE', 'correctness', 'high', state.base_sha)],
+        },
+      }),
+    }),
+    /evidence head_sha does not match the controlled snapshot/,
+  );
+  const reviewed = await completeReview({
+    worktree: repository,
+    runId: state.run_id,
+    leaseId: begun.lease.lease_id,
+    evidence: evidence(begun.state, 'review.completed', 'findings', {
+      extra: {
+        lease_id: begun.lease.lease_id,
+        findings: [
+          finding('NR-1', 'reliability', 'medium', begun.state.current_head),
+          finding('RISK-1', 'compatibility', 'medium', begun.state.current_head),
+        ],
+      },
+    }),
+  });
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: {
+          dispositions: [
+            triageDisposition('NR-1', 'not-reproducible'),
+            triageDisposition('RISK-1', 'accepted-risk'),
+          ],
+        },
+      }),
+    }),
+    /not-reproducible requires at least one attempted check/,
+  );
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: {
+          dispositions: [
+            triageDisposition('NR-1', 'not-reproducible', {
+              extra: {
+                attempted: [{
+                  check: 'targeted regression',
+                  at_head: state.current_head,
+                  result: 'passed',
+                }],
+              },
+            }),
+            triageDisposition('RISK-1', 'accepted-risk'),
+          ],
+        },
+      }),
+    }),
+    /accepted_by must be an object/,
+  );
+
+  const triaged = await triageFindings({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+      extra: {
+        dispositions: [
+          triageDisposition('NR-1', 'not-reproducible', {
+            extra: {
+              attempted: [{
+                check: 'targeted regression',
+                at_head: state.current_head,
+                result: 'passed',
+              }],
+            },
+          }),
+          triageDisposition('RISK-1', 'accepted-risk', {
+            extra: {
+              accepted_by: {
+                type: 'human',
+                identity: 'human-owner@example.test',
+                approval_ref: 'conversation-decision-1',
+              },
+            },
+          }),
+        ],
+      },
+    }),
+  });
+  assert.deepEqual(
+    triaged.state.residual_findings.map((item) => item.disposition),
+    ['not-reproducible', 'accepted-risk'],
+  );
+});
+
+test('duplicate disposition must reference another known finding', async (t) => {
+  const repository = await createRepository(t);
+  let { state } = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  state = await prepareForReview(repository, state, 'duplicate-evidence');
+  const begun = await beginReview({
+    worktree: repository,
+    runId: state.run_id,
+    headSha: state.current_head,
+    reviewers: ['general'],
+  });
+  const reviewed = await completeReview({
+    worktree: repository,
+    runId: state.run_id,
+    leaseId: begun.lease.lease_id,
+    evidence: evidence(begun.state, 'review.completed', 'findings', {
+      extra: {
+        lease_id: begun.lease.lease_id,
+        findings: [
+          finding('ROOT-1', 'correctness', 'high', state.current_head),
+          finding('DUP-1', 'correctness', 'high', state.current_head),
+        ],
+      },
+    }),
+  });
+
+  await assert.rejects(
+    triageFindings({
+      worktree: repository,
+      runId: state.run_id,
+      evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+        extra: {
+          dispositions: [
+            triageDisposition('ROOT-1', 'actionable'),
+            triageDisposition('DUP-1', 'duplicate', { extra: { duplicate_of: 'UNKNOWN' } }),
+          ],
+        },
+      }),
+    }),
+    /duplicate_of must reference another known finding/,
+  );
+
+  const triaged = await triageFindings({
+    worktree: repository,
+    runId: state.run_id,
+    evidence: evidence(reviewed.state, 'findings.triaged', 'completed', {
+      extra: {
+        dispositions: [
+          triageDisposition('ROOT-1', 'actionable'),
+          triageDisposition('DUP-1', 'duplicate', { extra: { duplicate_of: 'ROOT-1' } }),
+        ],
+      },
+    }),
+  });
+  assert.deepEqual(triaged.state.open_findings.map((item) => item.id), ['ROOT-1']);
+  assert.deepEqual(triaged.state.residual_findings, []);
+});
+
+test('legacy schema v1 runs remain read-only and can be explicitly superseded without deletion', async (t) => {
+  const repository = await createRepository(t);
+  const legacy = await writeLegacyRun(repository);
+  const listed = await listRuns({ worktree: repository });
+  assert.deepEqual(
+    listed.map((item) => [item.run_id, item.read_only, item.superseded_by_run_id]),
+    [[legacy.runId, true, null]],
+  );
+  const shown = await showRun({ worktree: repository, runId: legacy.runId });
+  assert.equal(shown.read_only, true);
+  assert.equal(shown.manifest.schema_version, 1);
+
+  await assert.rejects(
+    resumeBlockedRun({
+      worktree: repository,
+      runId: legacy.runId,
+      evidence: {},
+    }),
+    /Run schema version 1 is read-only/,
+  );
+  await assert.rejects(
+    startRun({ worktree: repository, kind: 'delivery', acceptanceIds: ['AC-2'] }),
+    /uses read-only schema version 1/,
+  );
+  await assert.rejects(
+    supersedeLegacyRun({ worktree: repository, runId: legacy.runId }),
+    /requires explicit confirmation/,
+  );
+
+  const successor = await supersedeLegacyRun({
+    worktree: repository,
+    runId: legacy.runId,
+    confirm: true,
+  });
+  assert.equal(successor.created, true);
+  assert.equal(successor.superseded, true);
+  assert.equal(successor.superseded_run_id, legacy.runId);
+  assert.equal(successor.state.schema_version, 2);
+  assert.equal(successor.state.supersedes_run_id, legacy.runId);
+  assert.deepEqual(successor.state.acceptance_ids, ['AC-1']);
+
+  const repeated = await supersedeLegacyRun({
+    worktree: repository,
+    runId: legacy.runId,
+    confirm: true,
+  });
+  assert.equal(repeated.created, false);
+  assert.equal(repeated.state.run_id, successor.state.run_id);
+
+  const after = await listRuns({ worktree: repository });
+  const legacyListed = after.find((item) => item.run_id === legacy.runId);
+  const successorListed = after.find((item) => item.run_id === successor.state.run_id);
+  assert.equal(legacyListed.read_only, true);
+  assert.equal(legacyListed.superseded_by_run_id, successor.state.run_id);
+  assert.equal(successorListed.supersedes_run_id, legacy.runId);
+  const legacyAfter = await showRun({ worktree: repository, runId: legacy.runId });
+  assert.equal(legacyAfter.superseded_by_run_id, successor.state.run_id);
+  assert.equal(legacyAfter.state.status, 'BLOCKED');
+
+  const resumed = await startRun({
+    worktree: repository,
+    kind: 'delivery',
+    acceptanceIds: ['AC-1'],
+  });
+  assert.equal(resumed.created, false);
+  assert.equal(resumed.state.run_id, successor.state.run_id);
+});
+
+test('bundled controller CLI requires confirmation before superseding a legacy run', async (t) => {
+  const repository = await createRepository(t);
+  const legacy = await writeLegacyRun(repository, 'legacy-cli-run');
+  const rejectedOut = writer();
+  const rejectedErr = writer();
+  assert.equal(await runLoopControllerCli([
+    'supersede', '--worktree', repository, '--run-id', legacy.runId, '--json',
+  ], { stdout: rejectedOut.stream, stderr: rejectedErr.stream }), 1);
+  assert.equal(rejectedOut.read(), '');
+  assert.match(rejectedErr.read(), /requires explicit confirmation/);
+
+  const acceptedOut = writer();
+  const acceptedErr = writer();
+  assert.equal(await runLoopControllerCli([
+    'supersede', '--worktree', repository, '--run-id', legacy.runId, '--confirm', '--json',
+  ], { stdout: acceptedOut.stream, stderr: acceptedErr.stream }), 0);
+  assert.equal(acceptedErr.read(), '');
+  const result = JSON.parse(acceptedOut.read());
+  assert.equal(result.superseded_run_id, legacy.runId);
+  assert.equal(result.state.supersedes_run_id, legacy.runId);
 });
 
 test('evidence rejects sensitive payload keys and detects event corruption', async (t) => {

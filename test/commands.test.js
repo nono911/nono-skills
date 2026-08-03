@@ -236,6 +236,13 @@ test('run evidence commands inspect insights and require force for purge', async
         calls.push(['show', options]);
         return { state: { run_id: options.runId } };
       },
+      async supersedeLegacyRun(options) {
+        calls.push(['supersede', options]);
+        return {
+          superseded_run_id: options.runId,
+          state: { run_id: 'run-v2' },
+        };
+      },
       async repositoryInsights(options) {
         calls.push(['insights', options]);
         return { completed_runs: 1, recommendations: [] };
@@ -250,12 +257,20 @@ test('run evidence commands inspect insights and require force for purge', async
   assert.equal(await handlers.runs({ runCommand: 'list' }), 0);
   assert.equal(await handlers.runs({ runCommand: 'show', runId: 'run-1' }), 0);
   assert.equal(await handlers.insights({}), 0);
+  await assert.rejects(
+    handlers.runs({ runCommand: 'supersede', runId: 'run-v1', confirm: false }),
+    /requires --confirm/,
+  );
+  assert.equal(await handlers.runs({
+    runCommand: 'supersede', runId: 'run-v1', confirm: true,
+  }), 0);
   await assert.rejects(handlers.runs({ runCommand: 'purge', force: false }), /requires --force/);
   assert.equal(await handlers.runs({ runCommand: 'purge', force: true }), 0);
-  assert.deepEqual(calls.map(([name]) => name), ['list', 'show', 'insights', 'purge']);
+  assert.deepEqual(calls.map(([name]) => name), ['list', 'show', 'insights', 'supersede', 'purge']);
   assert.ok(calls.every(([, options]) => options.worktree === root));
   assert.match(stdout.read(), /run-1/);
   assert.match(stdout.read(), /completed_runs/);
+  assert.match(stdout.read(), /Superseded legacy run run-v1 with v2 run run-v2/);
   assert.match(stdout.read(), /Purged 1 local loop run/);
 });
 

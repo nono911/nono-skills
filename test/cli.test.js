@@ -15,7 +15,7 @@ test('parseArgs defaults to help', () => {
   assert.deepEqual(parseArgs([]), {
     command: 'help', target: undefined, force: false, dryRun: false,
     purgeProject: undefined, agentCommand: undefined, provider: undefined, agentPolicy: undefined,
-    runCommand: undefined, runId: undefined,
+    runCommand: undefined, runId: undefined, confirm: false,
     help: true, version: false,
   });
 });
@@ -24,7 +24,7 @@ test('parseArgs reads init target and safety flags', () => {
   assert.deepEqual(parseArgs(['init', 'my repo', '--force', '--dry-run']), {
     command: 'init', target: 'my repo', force: true, dryRun: true,
     purgeProject: undefined, agentCommand: undefined, provider: undefined, agentPolicy: undefined,
-    runCommand: undefined, runId: undefined,
+    runCommand: undefined, runId: undefined, confirm: false,
     help: false, version: false,
   });
 });
@@ -37,7 +37,7 @@ test('parseArgs reads agent bridge commands', () => {
   assert.deepEqual(parseArgs(['agents', 'enable', 'claude']), {
     command: 'agents', target: undefined, force: false, dryRun: false,
     purgeProject: undefined, agentCommand: 'enable', provider: 'claude', agentPolicy: undefined,
-    runCommand: undefined, runId: undefined,
+    runCommand: undefined, runId: undefined, confirm: false,
     help: false, version: false,
   });
   assert.equal(parseArgs(['agents']).agentCommand, 'list');
@@ -56,8 +56,14 @@ test('parseArgs reads run inspection and purge commands', () => {
   const purge = parseArgs(['runs', 'purge', '--force']);
   assert.equal(purge.runCommand, 'purge');
   assert.equal(purge.force, true);
+  const supersede = parseArgs(['runs', 'supersede', 'legacy-1', '/tmp/repo', '--confirm']);
+  assert.equal(supersede.runCommand, 'supersede');
+  assert.equal(supersede.runId, 'legacy-1');
+  assert.equal(supersede.target, '/tmp/repo');
+  assert.equal(supersede.confirm, true);
   assert.equal(parseArgs(['insights', '/tmp/repo']).target, '/tmp/repo');
   assert.throws(() => parseArgs(['runs', 'show']), /requires a run ID/);
+  assert.throws(() => parseArgs(['runs', 'supersede']), /requires a run ID/);
   assert.throws(() => parseArgs(['runs', 'wat']), /Unknown runs command/);
 });
 

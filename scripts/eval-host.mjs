@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -128,7 +128,9 @@ async function capture(options) {
   }
   const captured = { schema_version: 1, host, results };
   const score = scoreHostEvalResults(corpus, captured);
-  await writeFile(path.resolve(options.output), `${JSON.stringify(captured, null, 2)}\n`, { mode: 0o600 });
+  const outputPath = path.resolve(options.output);
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, `${JSON.stringify(captured, null, 2)}\n`, { mode: 0o600 });
   return score;
 }
 

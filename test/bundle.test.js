@@ -257,6 +257,7 @@ test('README is a concise and honest product introduction', async () => {
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
   assert.match(readme, /Review is sequential, not five reviews launched at once/);
+  assert.match(readme, /runs supersede <legacy-run-id> --confirm/);
   for (const name of expectedSkills) {
     assert.match(readme, new RegExp('\\| [^\\n]+ \\| `' + name + '` \\|'));
   }
@@ -490,9 +491,70 @@ test('both controlled loops bundle identical evidence and controller resources',
   assert.match(canonicalController, /review_batches: Object\.freeze\(\{ limit: 5 \}\)/);
   assert.match(canonicalController, /fix_cycles: Object\.freeze\(\{ limit: 4 \}\)/);
   assert.match(canonicalController, /no_verdict_retries: Object\.freeze\(\{ limit: 1 \}\)/);
+  assert.match(canonicalController, /export const evidenceSchemaVersion = 2/);
+  assert.match(canonicalController, /export const runSchemaVersion = 2/);
+  assert.match(canonicalController, /completion_kind: completionKind/);
+  assert.match(canonicalController, /export async function supersedeLegacyRun/);
+  assert.match(canonicalEvidence, /Every caller-supplied evidence envelope uses schema version 2/);
+  assert.match(canonicalEvidence, /clean_with_residuals/);
+  assert.match(canonicalEvidence, /supersede.*--run-id <legacy-run-id> --confirm/s);
   assert.match(canonicalEvidence, /The controller enforces transitions only after an agent starts a managed run and continues to invoke it/);
   assert.match(canonicalEvidence, /The hash chain is tamper-evident, not tamper-proof, and is not a security boundary/);
   assert.doesNotMatch(canonicalEvidence, /scope_approval_required|human\.feedback\.recorded/);
+});
+
+test('finding producers and consumers bundle one calibrated finding rubric', async () => {
+  const canonicalRubric = await readFile(
+    path.join(root, 'plugin', 'references', 'finding-rubric.md'),
+    'utf8',
+  );
+  const findingSkillNames = [
+    'acceptance-verify',
+    'architecture-review',
+    'bugfix-loop',
+    'delivery-loop',
+    'fix-findings',
+    'release-readiness',
+    'review',
+    'security-review',
+  ];
+  for (const name of findingSkillNames) {
+    assert.equal(
+      await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'finding-rubric.md'), 'utf8'),
+      canonicalRubric,
+    );
+  }
+  assert.match(canonicalRubric, /Only `critical`, `high`, or `medium` findings may be actionable/);
+  assert.match(canonicalRubric, /Low findings are non-blocking and do not consume a loop fix cycle/);
+  assert.match(canonicalRubric, /Keep severity independent from evidence strength/);
+  assert.match(canonicalRubric, /`accepted_by\.type: human`/);
+  assert.match(canonicalRubric, /`unvalidated`/);
+  for (const reasonCode of [
+    'IN_SCOPE_VALIDATED',
+    'LOW_SEVERITY',
+    'PREEXISTING_UNRELATED',
+    'DIFFERENT_SUBSYSTEM',
+    'OUTSIDE_APPROVED_SCOPE',
+    'SAME_ROOT_CAUSE',
+    'SUPERSEDED_BY_FIX',
+    'ENV_DEPENDENT',
+    'INSUFFICIENT_REPRO_STEPS',
+    'CONTRADICTED_BY_CHECK',
+    'OWNER_ACCEPTED',
+    'INSUFFICIENT_EVIDENCE',
+    'UNVERIFIED_OBSERVATION',
+  ]) assert.match(canonicalRubric, new RegExp(`\\b${reasonCode}\\b`));
+  assert.match(canonicalRubric, /Good finding:/);
+  assert.match(canonicalRubric, /Rejected as a finding:/);
+});
+
+test('review and debug use explicit evidence-first workflows', async () => {
+  const review = await readFile(path.join(root, 'plugin', 'skills', 'review', 'SKILL.md'), 'utf8');
+  const debug = await readFile(path.join(root, 'plugin', 'skills', 'debug', 'SKILL.md'), 'utf8');
+  assert.match(review, /## Workflow\n\n1\. Establish the exact baseline/);
+  assert.match(review, /6\. Read `references\/finding-rubric\.md`/);
+  assert.match(debug, /## Workflow\n\n1\. Reproduce the symptom at the observed boundary/);
+  assert.match(debug, /4\. Isolate the causal mechanism before patching/);
 });
 
 test('contract rejects deleted bugfix-loop workflow responsibilities', async () => {
@@ -589,7 +651,23 @@ test('package validation rejects a drifted bundled workspace protocol', async ()
   assertValidationFails(result, 'review must bundle the canonical workspace protocol');
 });
 
-test('portable resource sync restores workspace, evidence, and controller resources', async () => {
+test('package validation rejects a drifted bundled finding rubric', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    const bundledPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'review',
+      'references',
+      'finding-rubric.md',
+    );
+    const content = await readFile(bundledPath, 'utf8');
+    await writeFile(bundledPath, `${content}\nDrifted copy.\n`, 'utf8');
+  });
+  assertValidationFails(result, 'review must bundle the canonical finding rubric');
+});
+
+test('portable resource sync restores workspace, finding, evidence, and controller resources', async () => {
   await withValidationFixture(async (fixtureRoot) => {
     const skillPath = path.join(fixtureRoot, 'plugin', 'skills', 'review', 'SKILL.md');
     const bundledPath = path.join(
@@ -607,6 +685,14 @@ test('portable resource sync restores workspace, evidence, and controller resour
       'bugfix-loop',
       'scripts',
       'loop-controller.mjs',
+    );
+    const findingPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'review',
+      'references',
+      'finding-rubric.md',
     );
     const evidencePath = path.join(
       fixtureRoot,
@@ -626,6 +712,7 @@ test('portable resource sync restores workspace, evidence, and controller resour
       'utf8',
     );
     await writeFile(bundledPath, 'stale\n', 'utf8');
+    await writeFile(findingPath, 'stale\n', 'utf8');
     await writeFile(controllerPath, 'stale\n', 'utf8');
     await writeFile(evidencePath, 'stale\n', 'utf8');
 
@@ -635,7 +722,7 @@ test('portable resource sync restores workspace, evidence, and controller resour
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable resources for 18 skills and 2 controlled loops.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 18 skills, 8 finding consumers, and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });

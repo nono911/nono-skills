@@ -601,10 +601,38 @@ function validateStructuredOutput(output, mode, packet, providerName) {
         throw new Error(`${providerName} returned findings outside severity order`);
       }
       previousSeverity = severity;
-      for (const name of ['id', 'category', 'location', 'evidence', 'impact', 'remediation']) {
+      for (const name of ['id', 'category', 'location', 'impact', 'remediation']) {
         if (typeof finding[name] !== 'string' || finding[name].trim() === '') {
           throw new Error(`${providerName} returned invalid structured output: finding ${name}`);
         }
+      }
+      if (!['supported', 'insufficient'].includes(finding.evidence_status)) {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence_status`);
+      }
+      if (finding.evidence === null || typeof finding.evidence !== 'object' || Array.isArray(finding.evidence)) {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence`);
+      }
+      if (!['failing-check', 'reproduction', 'trace', 'static-path', 'observation'].includes(finding.evidence.kind)) {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence kind`);
+      }
+      const expectedEvidenceHead = packet.loop_context?.head_sha ?? packet.head_sha;
+      if (finding.evidence.head_sha !== expectedEvidenceHead) {
+        throw new Error(`${providerName} returned mismatched structured output: finding evidence head_sha`);
+      }
+      if (typeof finding.evidence.summary !== 'string' || finding.evidence.summary.trim() === '') {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence summary`);
+      }
+      if (
+        finding.evidence.reference !== undefined
+        && (typeof finding.evidence.reference !== 'string' || finding.evidence.reference.trim() === '')
+      ) {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence reference`);
+      }
+      if (
+        finding.evidence.digest !== undefined
+        && !/^sha256:[a-f0-9]{64}$/.test(finding.evidence.digest)
+      ) {
+        throw new Error(`${providerName} returned invalid structured output: finding evidence digest`);
       }
       if (findingIds.has(finding.id)) {
         throw new Error(`${providerName} returned duplicate finding ID: ${finding.id}`);

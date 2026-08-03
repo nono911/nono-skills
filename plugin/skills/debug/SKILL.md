@@ -26,13 +26,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - If fixes are authorized: minimal fix, regression test, and verification
 - If diagnosis-only: recommended next action without source edits
 
-## Rules
+## Workflow
 
-- Start at the observed boundary and trace backward through the real runtime and data path.
-- State hypotheses with evidence that would falsify each one; test the cheapest discriminating check first.
-- Change one variable at a time and preserve useful raw evidence.
-- Do not patch before identifying the causal mechanism unless containing an active incident is explicitly authorized.
-- Reproduce again after the fix and run adjacent regression checks.
+1. Reproduce the symptom at the observed boundary and capture the smallest reliable evidence.
+2. Trace backward through the real runtime and data path; state competing hypotheses and what would falsify each one.
+3. Run the cheapest discriminating check first, changing one variable at a time and preserving useful raw evidence.
+4. Isolate the causal mechanism before patching unless containment of an active incident is explicitly authorized.
+5. When fixes are authorized, make the smallest supported change, reproduce again, and run adjacent regression checks.
 
 ## Decision-log updates
 

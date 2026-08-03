@@ -15,15 +15,16 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Evidence control
 
-- After workflow approval, read `references/evidence-contract.md` and use the bundled controller before implementation. Start or resume one repository-local run; never ask the user to operate it.
+- After approval, read `references/evidence-contract.md` and use the bundled controller before implementation. Start or resume one local run. If active schema-v1 blocks startup, show its ID and obtain approval for a linked v2 successor. Never ask the user to operate the controller or silently purge legacy evidence.
+- Before review or finding triage, read `references/finding-rubric.md` and apply its severity and disposition contract.
 - Treat the controller-issued run ID, evidence events, review leases, snapshots, and immutable budgets as authoritative across continuation, compaction, replanning, providers, and child returns. Never edit controller state directly or replace a rejected transition with prose.
-- Record implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v1. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
+- Record implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v2. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
 - Use the controller's capability plan and local insights only as evidence-linked advice for specialist selection. They never expand authority, scope, cost, or budgets or silently modify policy.
 - If strict control cannot execute or persist, stop this named loop. Offer ordinary implementation only with separate authority and never claim bounded or independently reviewed completion.
 
 ## Companions and delegation
 
-- Refer to companion skills by their frontmatter names, such as `implement` or `review`. Invoke them through the host's native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.
+- Refer to companions by frontmatter name, invoke them through the host's native mechanism, and never assume a literal invocation prefix.
 - Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.
 - Keep the original agent as orchestrator and delegate only bounded work.
 - At approval offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`; an unspecified choice means Native.
@@ -71,7 +72,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 3. Give each reviewer the exact snapshot, criteria, checks, full diff, guidance, prior dispositions, and accepted decisions.
 4. Require `CLEAN` or findings with stable ID, severity, category, location, evidence, impact, and remediation.
 5. Add a risk-required read-only specialist to the same batch.
-6. Ingest the review, reject preferences and unsupported, duplicate, or stale findings, then record one evidence-backed disposition for every finding before editing.
+6. Ingest the review, preserve claimed severity, and record one structured disposition for every finding before editing. Low findings are `non-blocking`; unrelated valid defects are `out-of-scope`; insufficient claims are `unvalidated` and never enter a fix cycle.
 7. Keep the original agent as fixer and activate `fix-findings` once for actionable findings. Validate the changed scope and dispositions; never let a reviewer modify the feature.
 8. Create the loop-owned review-fix commit on the first fix cycle and amend only that unpushed commit on later cycles. Ingest the new committed HEAD and verification evidence, then acquire a fresh lease.
 
@@ -93,7 +94,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 2. If final verification changes state, fix and freshly review within the remaining budget; otherwise do not claim `CLEAN` or commit it.
 3. Inspect the worktree and stage only validated delivery-loop fixes.
 4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
-5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, budgets, findings, checks, delegation, relevant local insights, and residual risks.
+5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, budgets, findings, checks, delegation, relevant local insights, and residual risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
 6. Do not claim completion while blocking findings or required checks remain.
 
 ## Decision-log updates

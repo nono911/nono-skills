@@ -132,6 +132,11 @@ function assertHostEvalResults(corpus, results) {
     seen.add(entry.case_id);
     assertVariant(entry.skill, `${entry.case_id}.skill`);
     assertVariant(entry.baseline, `${entry.case_id}.baseline`);
+    assert.deepEqual(
+      entry.baseline.activated_skills,
+      [],
+      `${entry.case_id}.baseline must not activate nono-skills`,
+    );
   }
 }
 

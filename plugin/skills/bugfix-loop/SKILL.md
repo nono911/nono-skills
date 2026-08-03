@@ -1,6 +1,6 @@
 ---
 name: bugfix-loop
-description: "Use only when explicitly invoked to diagnose, reproduce, fix, regression-test, locally commit, and independently review a software bug in an approved isolated Git worktree."
+description: "Use only when explicitly invoked to diagnose, reproduce, fix, regression-test, locally commit, and independently review a bug in an approved isolated Git worktree."
 ---
 
 # Bugfix Loop
@@ -15,15 +15,16 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Evidence control
 
-- After workflow approval, read `references/evidence-contract.md` and use the bundled controller before diagnosis or implementation. Start or resume one repository-local run; never ask the user to operate it.
+- After approval, read `references/evidence-contract.md` and use the bundled controller before diagnosis or implementation. Start or resume one local run. If active schema-v1 blocks startup, show its ID and obtain approval for a linked v2 successor. Never ask the user to operate the controller or silently purge legacy evidence.
+- Before review or finding triage, read `references/finding-rubric.md` and apply its severity and disposition contract.
 - Treat the controller-issued run ID, evidence events, review leases, snapshots, and immutable budgets as authoritative across continuation, compaction, replanning, providers, and child returns. Never edit controller state directly or replace a rejected transition with prose.
-- Record diagnosis, implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v1. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
+- Record diagnosis, implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v2. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
 - Use the controller's capability plan and local insights only as evidence-linked advice for specialist selection. They never expand authority, scope, cost, or budgets or silently modify policy.
 - If strict control cannot execute or persist, stop this named loop. Offer ordinary bug fixing only with separate authority and never claim bounded or independently reviewed completion.
 
 ## Companions
 
-- Refer to companion skills by their frontmatter names, such as `debug` or `review`. Invoke them through the host's native skill mechanism and any namespace assigned at installation; never assume a literal invocation prefix.
+- Refer to companions by frontmatter name, invoke them through the host mechanism, and never assume a literal invocation prefix.
 - Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.
 - Keep the original agent as orchestrator and Git owner. Use fresh agents only for read-only review or justified specialist assessment.
 - Match agents to required roles and enforceable capabilities rather than provider names; Native remains the default and external execution retains its consent boundary.
@@ -76,7 +77,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 3. Give each reviewer the exact snapshot, expected behavior, causal evidence, checks, full diff, guidance, prior dispositions, and accepted decisions.
 4. Require `CLEAN` or findings with stable ID, severity, category, location, evidence, impact, and remediation.
 5. Add a risk-required read-only specialist to the same batch.
-6. Ingest the review, reject preferences and unsupported, duplicate, or stale findings, then record one evidence-backed disposition for every finding before editing.
+6. Ingest the review, preserve claimed severity, and record one structured disposition for every finding before editing. Low findings are `non-blocking`; unrelated valid defects are `out-of-scope`; insufficient claims are `unvalidated` and never enter a fix cycle.
 7. Keep the original agent as fixer and activate `fix-findings` once for actionable findings. Validate the changed scope and dispositions; never let a reviewer modify the bugfix.
 8. Create the loop-owned review-fix commit on the first fix cycle and amend only that unpushed commit on later cycles. Strengthen regression proof, ingest the new committed HEAD and verification evidence, then acquire a fresh lease.
 
@@ -97,7 +98,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 2. If final verification changes state, fix and freshly review within the remaining budget; otherwise do not claim `CLEAN` or commit it.
 3. Inspect the worktree and stage only validated bugfix-loop fixes.
 4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
-5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, causal evidence, budgets, findings, checks, relevant local insights, and residual risks.
+5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, causal evidence, budgets, findings, checks, relevant local insights, and residual risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
 6. Do not claim completion when the cause is unsupported, regression proof is absent without a disclosed limitation, blocking findings remain, or required checks fail.
 
 ## Decision-log updates

@@ -59,6 +59,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Evidence rules
 
+- When a failed scenario produces a finding, read `references/finding-rubric.md` before assigning severity; keep low-impact observations non-blocking.
 - Tie every finding to a scenario ID and exact evidence. Separate observed facts from inferred causes.
 - Sanitize screenshots and runtime excerpts. Do not retain secrets or unrelated user data merely for completeness.
 - Do not claim a full accessibility, performance, security, or cross-browser audit from a narrow acceptance pass. State exactly which checks and viewports ran.

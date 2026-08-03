@@ -25,10 +25,17 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Each finding includes a stable ID, severity, category, location, evidence, impact, reasoning or reproduction, and remediation direction
 - Residual risks and verification gaps; explicitly state when no actionable findings remain
 
-## Rules
+## Workflow
 
-- Establish the exact review boundary and inspect the current artifact, not an assumed stale state.
-- Trace affected runtime and data paths beyond the diff when needed to prove impact.
+1. Establish the exact baseline, target, requirements, and review boundary.
+2. Inspect the complete current diff or artifact before forming a verdict; do not rely on an assumed stale state.
+3. Trace affected runtime, data, compatibility, and failure paths beyond the diff when needed to prove impact.
+4. Evaluate relevant tests and runtime evidence, including important behavior the change leaves untested.
+5. Compare observed behavior with acceptance criteria, public contracts, and repository rules.
+6. Read `references/finding-rubric.md`, then return only findings with calibrated severity, `evidence_status`, and structured evidence bound to the reviewed HEAD, or explicitly state that no actionable findings remain. Preserve impact severity when evidence is insufficient; mark the evidence insufficient instead of downgrading it.
+
+## Guardrails
+
 - Prioritize defects over style preferences. Do not invent issues for report completeness.
 - Distinguish verified defects from questions and speculative risks.
 - Do not modify code or mark a finding fixed without evidence.

@@ -6,12 +6,14 @@ import { canonicalSkillNames } from '../src/plugin-contract.js';
 const root = path.resolve(import.meta.dirname, '..');
 const skillsRoot = path.join(root, 'plugin', 'skills');
 const canonicalWorkspacePath = path.join(root, 'plugin', 'references', 'workspaces.md');
+const canonicalFindingRubricPath = path.join(root, 'plugin', 'references', 'finding-rubric.md');
 const canonicalLoopControllerPath = path.join(root, 'plugin', 'runtime', 'loop-controller.mjs');
 const canonicalEvidenceContractPath = path.join(root, 'plugin', 'runtime', 'evidence-contract.md');
 const legacyWorkspaceInstruction = 'Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 const portableWorkspaceInstruction = 'Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 
 const canonicalWorkspace = await readFile(canonicalWorkspacePath, 'utf8');
+const canonicalFindingRubric = await readFile(canonicalFindingRubricPath, 'utf8');
 const canonicalLoopController = await readFile(canonicalLoopControllerPath, 'utf8');
 const canonicalEvidenceContract = await readFile(canonicalEvidenceContractPath, 'utf8');
 const skillNames = [...canonicalSkillNames].sort();
@@ -34,6 +36,23 @@ for (const skillName of skillNames) {
   await writeFile(referencePath, canonicalWorkspace);
 }
 
+const findingSkillNames = [
+  'acceptance-verify',
+  'architecture-review',
+  'bugfix-loop',
+  'delivery-loop',
+  'fix-findings',
+  'release-readiness',
+  'review',
+  'security-review',
+];
+
+for (const skillName of findingSkillNames) {
+  const rubricPath = path.join(skillsRoot, skillName, 'references', 'finding-rubric.md');
+  await mkdir(path.dirname(rubricPath), { recursive: true });
+  await writeFile(rubricPath, canonicalFindingRubric);
+}
+
 for (const skillName of ['bugfix-loop', 'delivery-loop']) {
   const skillRoot = path.join(skillsRoot, skillName);
   const controllerPath = path.join(skillRoot, 'scripts', 'loop-controller.mjs');
@@ -44,4 +63,4 @@ for (const skillName of ['bugfix-loop', 'delivery-loop']) {
   await writeFile(evidencePath, canonicalEvidenceContract);
 }
 
-process.stdout.write(`Synchronized portable resources for ${skillNames.length} skills and 2 controlled loops.\n`);
+process.stdout.write(`Synchronized portable resources for ${skillNames.length} skills, ${findingSkillNames.length} finding consumers, and 2 controlled loops.\n`);

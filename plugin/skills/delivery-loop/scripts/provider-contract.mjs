@@ -16,6 +16,21 @@ const loopContextSchema = Object.freeze({
   },
   required: ['run_id', 'lease_id', 'batch', 'attempt', 'head_sha'],
 });
+const findingEvidenceSchema = Object.freeze({
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    kind: {
+      type: 'string',
+      enum: ['failing-check', 'reproduction', 'trace', 'static-path', 'observation'],
+    },
+    head_sha: nonEmptyStringSchema,
+    summary: nonEmptyStringSchema,
+    reference: nonEmptyStringSchema,
+    digest: { type: 'string', pattern: '^sha256:[a-f0-9]{64}$' },
+  },
+  required: ['kind', 'head_sha', 'summary'],
+});
 
 const sharedResultProperties = Object.freeze({
   task_id: nonEmptyStringSchema,
@@ -58,11 +73,21 @@ export const reviewSchema = Object.freeze({
           severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] },
           category: nonEmptyStringSchema,
           location: nonEmptyStringSchema,
-          evidence: nonEmptyStringSchema,
+          evidence_status: { type: 'string', enum: ['supported', 'insufficient'] },
+          evidence: findingEvidenceSchema,
           impact: nonEmptyStringSchema,
           remediation: nonEmptyStringSchema,
         },
-        required: ['id', 'severity', 'category', 'location', 'evidence', 'impact', 'remediation'],
+        required: [
+          'id',
+          'severity',
+          'category',
+          'location',
+          'evidence_status',
+          'evidence',
+          'impact',
+          'remediation',
+        ],
       },
     },
   },

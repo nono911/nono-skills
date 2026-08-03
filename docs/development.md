@@ -24,7 +24,9 @@ Canonical shared resources live under `plugin/runtime/` and the root templates. 
 
 The copies are a portability artifact, not independent implementations. Validation checks that generated files match the canonical source. Change the canonical source first, regenerate, and never patch a generated copy alone.
 
-The controller remains one dependency-free module while its state contract is stabilizing. Split it only when field evidence identifies stable module boundaries; a structural rewrite solely to reduce line count would add release risk without changing the assurance boundary.
+The controller remains one dependency-free module while its state contract is stabilizing. Evidence and run schema v2 preserve structured findings, disposition proof, and residual completion; schema-v1 runs are read-only and may only gain a linked v2 successor after explicit confirmation. Split the module only when field evidence identifies stable boundaries.
+
+Every contract-changing release must update `CHANGELOG.md`, document upgrade and rollback boundaries, and keep old evidence inspectable without silently rewriting it.
 
 ## Evaluation corpora
 
@@ -47,6 +49,25 @@ node scripts/eval-host.mjs score host-results.json
 ```
 
 Deterministic validation makes no model calls. Real-host runs are opt-in development work and are never loaded during normal skill use.
+
+The bundled Codex adapter runs each variant in a fresh temporary repository and isolated plugin home. Its preflight installs the candidate plugin and validates the fixture without making a model call:
+
+```bash
+node scripts/adapters/codex.mjs --preflight
+```
+
+Run the five-case pilot only with explicit quota authority and an exact model identifier:
+
+```bash
+node scripts/eval-host.mjs run \
+  --adapter node \
+  --adapter-arg scripts/adapters/codex.mjs \
+  --adapter-arg --model \
+  --adapter-arg gpt-5.6-sol \
+  --output benchmarks/results/codex-0.146.0-gpt-5.6-sol.json
+```
+
+The adapter derives tool timing from Codex JSONL events and records both fixture and candidate-plugin digests in the host identity. Codex does not expose skill-body and reference loads as dedicated JSONL events, so those counts and canonical activation names are structured model reports; treat them as host-observed evidence, not deterministic telemetry. Keep result captures under `benchmarks/results/`, which is excluded from the npm tarball, and publish a scorecard only with the exact host identity and committed capture.
 
 ## Release discipline
 

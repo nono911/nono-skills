@@ -31,12 +31,11 @@ node <skill-root>/scripts/agent-bridge.mjs select --mode <review|implement> \
   --require <headless,structured-output,no-delegation> --json
 ```
 
-The probe may inspect local version, help, and documented offline capability
-commands. It must not authenticate, contact a provider, send repository content,
-consume an agent turn, or mutate configuration. Treat disabled, incompatible,
-interactive-only, unavailable, and current-host providers as ineligible. Use the
-bridge role map: `review-only` never writes; `isolated-writer` merely permits a
-write proposal and grants no run authority.
+The probe may inspect local version, help, and offline capability commands. It
+must not authenticate, contact a provider, send source, consume a turn, or
+mutate configuration. Disabled, incompatible, interactive-only, unavailable,
+and current-host providers are ineligible. In the bridge role map, `review-only`
+never writes; `isolated-writer` permits a write proposal but no run authority.
 
 ## 2. Obtain per-run consent
 
@@ -53,8 +52,8 @@ projects unless the user explicitly requests durable configuration.
 
 ## 3. Build the task packet
 
-Send only accepted requirements, applicable repository rules, immutable base and
-target identity, approved scopes, sanitized evidence, and the output contract.
+Send accepted requirements, repository rules, immutable base and target,
+approved scopes, sanitized evidence, and the output contract.
 Never send the full conversation, secrets, environment values, ignored
 credential files, or unrelated source.
 
@@ -92,9 +91,9 @@ For a controlled review, include the exact controller-issued `loop_context`
 containing `run_id`, `lease_id`, batch, attempt, and `head_sha`; require the
 worker to echo it. Never invent or reuse a lease.
 
-Implementation packets use `role: implement` and a non-empty disjoint
-`write_scope`; review packets keep it empty. Canonicalize and hash the packet
-without `input_digest`, together with its supplied diff, status, and manifest.
+Implementation packets use `role: implement` and a disjoint `write_scope`;
+review packets keep it empty. Canonicalize and hash the packet without
+`input_digest`, together with its diff, status, and manifest.
 
 ## 4. Execute through the bridge
 
@@ -131,7 +130,9 @@ unrun-check disclosure, questions, risks, and proposed decision records.
 
 Review is `CLEAN` only when the requested scope completed against an unchanged
 snapshot and the normalized findings array is empty. Each finding needs stable
-ID, severity, category, location, evidence, impact, and remediation direction.
+ID, severity, category, location, evidence status, structured evidence bound to
+the reviewed HEAD, impact, and remediation direction. Evidence kind does not
+rewrite impact severity; insufficient claims remain unvalidated during triage.
 
 Inspect every tracked, untracked, renamed, deleted, generated, and binary child
 change. Transfer only approved paths into the delivery worktree, rerun

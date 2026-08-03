@@ -27,6 +27,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Rules
 
+- Read `references/finding-rubric.md` before assigning finding severity; keep unsupported concerns and defense-in-depth opportunities separate from confirmed defects.
 - Map trust boundaries and attacker capabilities before applying checklists.
 - Check authentication, authorization, injection, XSS, CSRF, SSRF, secret handling, cryptography, data exposure, dependency risk, abuse controls, and logging where relevant.
 - Never include live secrets, exploit unrelated systems, or perform destructive testing.
