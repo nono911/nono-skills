@@ -251,9 +251,16 @@ test('README is a concise and honest product introduction', async () => {
   const readme = await readFile(path.join(root, 'README.md'), 'utf8');
   assert.ok(readme.split('\n').length <= 200, 'README should stay under 200 lines');
   assert.match(readme, /experimental \(`0\.x`\)/);
-  assert.match(readme, /Pin the installer for repeatable environments/);
+  assert.match(readme, /## Quick start/);
+  assert.match(readme, /## Requirements/);
+  assert.match(readme, /## Why Nono Skills/);
+  assert.match(readme, /## Host support/);
+  assert.match(readme, /no Nono Skills behavioral scorecard published yet/);
+  assert.match(readme, /Pin exact versions in repeatable setups/);
   assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
+  assert.match(readme, /Validated 90 behavioral cases across 18 skills and 5 categories/);
+  assert.match(readme, /CONTRIBUTING\.md/);
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
   assert.match(readme, /Review is sequential, not five reviews launched at once/);
@@ -272,6 +279,14 @@ test('README is a concise and honest product introduction', async () => {
   ]) {
     assert.ok(lines.includes(command), `README must document ${command}`);
   }
+});
+
+test('contribution guidance keeps public changes evidence-aware', async () => {
+  const contributing = await readFile(path.join(root, 'CONTRIBUTING.md'), 'utf8');
+  assert.match(contributing, /Node\.js 20 or newer/);
+  assert.match(contributing, /npm run eval:skills/);
+  assert.match(contributing, /Keep skill bodies host-neutral and concise/);
+  assert.match(contributing, /committed raw capture and exact host identity/);
 });
 
 test('every skill has specific UI metadata and uses the workspace protocol', async () => {

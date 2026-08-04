@@ -1,6 +1,8 @@
 # Installation and maintenance
 
-Nono Skills supports two installation paths. Use one path for the same host and scope to avoid duplicate skill names.
+Nono Skills supports two installation paths. Use the native plugin for Codex and
+the universal Agent Skills installer for other supported hosts. Use one path for
+the same host and scope to avoid duplicate skill names.
 
 ## Native Codex plugin
 
@@ -13,7 +15,7 @@ npx nono-skills install
 For repeatable environments, pin an exact npm version:
 
 ```bash
-npx nono-skills@0.14.0 install
+npx nono-skills@0.14.1 install
 ```
 
 Start a new Codex task after install or update so refreshed definitions are loaded. Diagnose or maintain the installation with:

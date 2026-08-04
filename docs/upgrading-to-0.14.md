@@ -16,17 +16,17 @@ run evidence merely to update the plugin.
 
 ## Update
 
-After v0.14.0 is published:
+After v0.14.1 is published:
 
 ```bash
-npx nono-skills@0.14.0 update
+npx nono-skills@0.14.1 update
 ```
 
 Start a new host task so the updated skills are loaded, then inspect the target
 repository:
 
 ```bash
-npx nono-skills@0.14.0 runs list
+npx nono-skills@0.14.1 runs list
 ```
 
 Terminal v1 runs need no action. They remain visible through `runs list` and
@@ -37,14 +37,14 @@ Terminal v1 runs need no action. They remain visible through `runs list` and
 Review the legacy run first:
 
 ```bash
-npx nono-skills@0.14.0 runs show <v1-run-id>
+npx nono-skills@0.14.1 runs show <v1-run-id>
 ```
 
 If a new managed run should continue that work, explicitly create its linked v2
 successor:
 
 ```bash
-npx nono-skills@0.14.0 runs supersede <v1-run-id> /path/to/repository --confirm
+npx nono-skills@0.14.1 runs supersede <v1-run-id> /path/to/repository --confirm
 ```
 
 The command:

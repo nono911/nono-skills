@@ -6,6 +6,19 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.14.1 — 2026-08-04
+
+### Changed
+
+- Reworked the README around a host-aware quick start, top-level requirements,
+  a concise product rationale, and a recommended documentation path.
+- Added an evidence-calibrated host support matrix that distinguishes native
+  validation from universal installer compatibility and unpublished behavior.
+- Added a loop composition diagram and representative evaluation and managed-run
+  output so new users can see the workflow and evidence shape before installing.
+- Added contribution guidance, license and skill-count badges, and clearer issue
+  reporting links without adding runtime behavior or new skills.
+
 ## 0.14.0 — 2026-08-03
 
 ### Changed
@@ -43,5 +56,6 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.14.1...HEAD
+[0.14.1]: https://github.com/nono911/nono-skills/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/nono911/nono-skills/compare/v0.13.1...v0.14.0
