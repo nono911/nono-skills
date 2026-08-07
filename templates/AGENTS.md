@@ -17,6 +17,13 @@ Keep this file specific to the repository. Replace placeholders with commands an
 - Preserve unrelated behavior and backward compatibility unless the requirement changes it.
 - Verify changed behavior with the strongest safe repository checks available. Report what ran and what remains unverified.
 
+## Communication defaults
+
+- Lead with the outcome, answer, or decision needed; add only evidence and context that help the reader act.
+- Match the user's language and requested depth. Keep progress updates brief and make final responses self-contained.
+- Distinguish verified facts, inferences, assumptions, and unknowns. Preserve material safety, compatibility, cost, and risk caveats.
+- Use established repository vocabulary and avoid routine tool narration, repeated conclusions, and generic filler.
+
 ## Durable task state
 
 Keep simple, one-shot work artifact-free; ask before creating a new durable workspace unless the user explicitly requested durable artifacts or named an existing work item.

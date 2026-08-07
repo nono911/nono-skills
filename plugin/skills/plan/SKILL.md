@@ -23,6 +23,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - A requirement snapshot separating confirmed intent, observed behavior, inferences, and blocking questions
 - A decision-ready spec and concise execution map with an Acceptance Contract of testable criteria
+- A compact Behavior-to-Proof map for multi-criterion or material-risk work
 - For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory
 - A short summary of assumptions and human decisions needed
 
@@ -35,6 +36,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - State reversible low-impact assumptions and proceed when they cannot materially change the contract.
 - Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
 - For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
+- For multi-criterion or material-risk work, present a compact Behavior-to-Proof map linking each acceptance ID to its planned proof; omit the table for a trivial single outcome.
 - Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.
 - Before finalizing multi-step work, assess whether acceptance outcomes, affected components, cross-cutting risks, and unresolved decisions fit one independently verifiable change. If not, propose the smallest coherent slices and ask once for direction before creating artifacts for them.
 - Add negative, compatibility, rollout, or rollback criteria only when material to the risk.

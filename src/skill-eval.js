@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+import { outputAssertionFailures } from './eval-output.js';
 import { canonicalSkillNames } from './plugin-contract.js';
 
 export const skillEvalCategories = Object.freeze([
@@ -183,27 +184,8 @@ function evaluateCase(evalCase, result) {
     if (activated.has(skill)) failures.push(`forbidden activation: ${skill}`);
   }
 
-  const normalizedOutput = result.output.toLocaleLowerCase('en-US');
   const output = evalCase.expect.output;
-  if (output?.contains_all) {
-    for (const text of output.contains_all) {
-      if (!normalizedOutput.includes(text.toLocaleLowerCase('en-US'))) {
-        failures.push(`output missing: ${JSON.stringify(text)}`);
-      }
-    }
-  }
-  if (output?.contains_any && !output.contains_any.some(
-    (text) => normalizedOutput.includes(text.toLocaleLowerCase('en-US')),
-  )) {
-    failures.push(`output missing any of: ${output.contains_any.map(JSON.stringify).join(', ')}`);
-  }
-  if (output?.not_contains) {
-    for (const text of output.not_contains) {
-      if (normalizedOutput.includes(text.toLocaleLowerCase('en-US'))) {
-        failures.push(`output contains forbidden text: ${JSON.stringify(text)}`);
-      }
-    }
-  }
+  if (output) failures.push(...outputAssertionFailures(output, result.output));
   return failures;
 }
 

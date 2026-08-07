@@ -44,6 +44,7 @@ const findingSkillNames = new Set([
   'review',
   'security-review',
 ]);
+const explicitSkillNames = new Set(['bugfix-loop', 'delivery-loop', 'handoff']);
 assertWorkspaceProtocolContract(workspaceProtocol);
 assert.match(findingRubric, /Keep severity independent from evidence strength/);
 assert.match(findingRubric, /`accepted_by\.type: human`/);
@@ -100,12 +101,14 @@ for (const relative of skillFiles) {
   assert.ok(shortDescription && shortDescription.length >= 25 && shortDescription.length <= 64);
   assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
   assert.match(metadata, new RegExp(`default_prompt: ".*\\$${expectedName.replaceAll('-', '\\-')}\\b`));
-  if (expectedName === 'delivery-loop' || expectedName === 'bugfix-loop') {
+  if (explicitSkillNames.has(expectedName)) {
     assert.match(
       metadata,
       /^policy:\n  allow_implicit_invocation: false$/m,
       `${expectedName} must require explicit invocation`,
     );
+  }
+  if (expectedName === 'delivery-loop' || expectedName === 'bugfix-loop') {
     assert.equal(
       await readFile(path.join(skillRoot, expectedName, 'scripts', 'loop-controller.mjs'), 'utf8'),
       loopController,

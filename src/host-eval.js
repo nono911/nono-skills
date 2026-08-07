@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
+import { outputAssertionFailures } from './eval-output.js';
 import { canonicalSkillNames } from './plugin-contract.js';
 
 const outputAssertionNames = new Set(['contains_all', 'contains_any', 'not_contains']);
@@ -140,21 +141,6 @@ function assertHostEvalResults(corpus, results) {
   }
 }
 
-function outputFailures(contract, output) {
-  const failures = [];
-  const normalized = output.toLocaleLowerCase('en-US');
-  for (const text of contract.contains_all ?? []) {
-    if (!normalized.includes(text.toLocaleLowerCase('en-US'))) failures.push(`output missing: ${JSON.stringify(text)}`);
-  }
-  if (contract.contains_any && !contract.contains_any.some((text) => normalized.includes(text.toLocaleLowerCase('en-US')))) {
-    failures.push(`output missing any of: ${contract.contains_any.map(JSON.stringify).join(', ')}`);
-  }
-  for (const text of contract.not_contains ?? []) {
-    if (normalized.includes(text.toLocaleLowerCase('en-US'))) failures.push(`output contains forbidden text: ${JSON.stringify(text)}`);
-  }
-  return failures;
-}
-
 function performanceFailures(contract, skill, baseline) {
   const failures = [];
   const compare = (name, actual, operator, expected) => {
@@ -199,7 +185,7 @@ export function scoreHostEvalResults(corpus, results, { allowMissing = false } =
     for (const skill of evalCase.expect.forbid) {
       if (activated.has(skill)) reasons.push(`forbidden activation: ${skill}`);
     }
-    reasons.push(...outputFailures(evalCase.expect.output, result.skill.output));
+    reasons.push(...outputAssertionFailures(evalCase.expect.output, result.skill.output));
     const performance = performanceFailures(
       evalCase.expect.performance,
       { ...result.skill.metrics, activated_skills: result.skill.activated_skills.length },

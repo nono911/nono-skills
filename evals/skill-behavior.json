@@ -6,11 +6,13 @@
     "architecture-review",
     "brainstorm",
     "bugfix-loop",
+    "communicate-clearly",
     "database-design",
     "debug",
     "delivery-loop",
     "estimate",
     "fix-findings",
+    "handoff",
     "implement",
     "migration",
     "plan",
@@ -301,6 +303,67 @@
       }
     },
     {
+      "id": "communicate-clearly-direct",
+      "skill": "communicate-clearly",
+      "category": "direct",
+      "prompt": "Use $communicate-clearly to draft, but not create, a platform-neutral onboarding epic with an outcome-focused title, scope, testable acceptance criteria, and child-task relationships.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": ["handoff"],
+        "output": {
+          "contains_all": ["scope", "acceptance"],
+          "contains_any": ["outcome", "goal"],
+          "not_contains": ["created successfully"]
+        }
+      }
+    },
+    {
+      "id": "communicate-clearly-indirect",
+      "skill": "communicate-clearly",
+      "category": "indirect",
+      "prompt": "Explain to a nontechnical stakeholder, in two short paragraphs, why adding an optional response field is backward compatible and does not require a database migration.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": ["migration"]
+      }
+    },
+    {
+      "id": "communicate-clearly-incomplete",
+      "skill": "communicate-clearly",
+      "category": "incomplete",
+      "prompt": "Draft a project-management epic for improving onboarding, but the affected user, desired outcome, scope, target platform, and acceptance behavior are not known.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": [],
+        "output": {
+          "contains_any": ["question", "clarify", "missing"]
+        }
+      }
+    },
+    {
+      "id": "communicate-clearly-negative",
+      "skill": "communicate-clearly",
+      "category": "negative",
+      "prompt": "Implement the approved null guard, add its regression test, and run the affected checks; communication is not the primary task.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["communicate-clearly"]
+      }
+    },
+    {
+      "id": "communicate-clearly-edge",
+      "skill": "communicate-clearly",
+      "category": "edge",
+      "prompt": "Summarize this security status in one sentence without implying resolution: containment is unverified, customer impact is unknown, and investigation continues.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": [],
+        "output": {
+          "contains_all": ["unverified", "unknown"]
+        }
+      }
+    },
+    {
       "id": "database-design-direct",
       "skill": "database-design",
       "category": "direct",
@@ -579,16 +642,82 @@
       }
     },
     {
+      "id": "handoff-direct",
+      "skill": "handoff",
+      "category": "direct",
+      "prompt": "Use $handoff to prepare a chat-only continuation packet for the next agent. The objective is AC-2, AC-1 is complete, targeted tests pass, the branch is feature/export, and the next action is to implement cancellation handling.",
+      "expect": {
+        "activate": ["handoff"],
+        "forbid": ["communicate-clearly"],
+        "output": {
+          "contains_all": ["objective", "next"],
+          "contains_any": ["verification", "tests"]
+        }
+      }
+    },
+    {
+      "id": "handoff-indirect",
+      "skill": "handoff",
+      "category": "indirect",
+      "prompt": "Prepare a continuation packet so another coding agent can resume the unfinished work without replaying this conversation; reference existing artifacts instead of copying them.",
+      "expect": {
+        "activate": [],
+        "forbid": ["handoff"]
+      }
+    },
+    {
+      "id": "handoff-incomplete",
+      "skill": "handoff",
+      "category": "incomplete",
+      "prompt": "Use $handoff for the next agent, but no objective, repository, work item, current state, verification, or intended next-session focus is available.",
+      "expect": {
+        "activate": ["handoff"],
+        "forbid": [],
+        "output": {
+          "contains_any": ["missing", "objective", "re-check"]
+        }
+      }
+    },
+    {
+      "id": "handoff-negative",
+      "skill": "handoff",
+      "category": "negative",
+      "prompt": "Give the same user a concise status update about today's completed checks and remaining blocker; no session or ownership transfer is requested.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": ["handoff"]
+      }
+    },
+    {
+      "id": "handoff-edge",
+      "skill": "handoff",
+      "category": "edge",
+      "prompt": "Use $handoff on notes containing token sk_test_NONO_REDACT_ME, customer email customer+nono@example.invalid, raw prompt NONO_PRIVATE_PROMPT, and log line NONO_SECRET_LOG_LINE; preserve only sanitized evidence needed by the next owner.",
+      "expect": {
+        "activate": ["handoff"],
+        "forbid": [],
+        "output": {
+          "contains_any": ["redact", "sanitized", "sensitive"],
+          "not_contains": [
+            "sk_test_NONO_REDACT_ME",
+            "customer+nono@example.invalid",
+            "NONO_PRIVATE_PROMPT",
+            "NONO_SECRET_LOG_LINE"
+          ]
+        }
+      }
+    },
+    {
       "id": "implement-direct",
       "skill": "implement",
       "category": "direct",
-      "prompt": "Use $implement to add booking cancellation from the approved requirement, preserve compatibility, add focused tests, and verify the change.",
+      "prompt": "Use $implement with strict TDD to add booking cancellation from the approved requirement, preserve compatibility, prove RED before production edits, reach GREEN with the minimum change, and verify each acceptance criterion.",
       "expect": {
         "activate": ["implement"],
         "forbid": ["fix-findings"],
         "output": {
           "contains_any": ["implemented", "changed"],
-          "contains_all": ["verification"]
+          "contains_all": ["RED", "GREEN", "verification"]
         }
       }
     },
@@ -695,7 +824,7 @@
         "activate": ["plan"],
         "forbid": ["brainstorm"],
         "output": {
-          "contains_all": ["AC-", "verification"],
+          "contains_all": ["AC-", "verification", "proof"],
           "contains_any": ["boundary", "evidence"],
           "not_contains": ["cannot finalize"]
         }
@@ -967,12 +1096,12 @@
       "id": "test-direct",
       "skill": "test",
       "category": "direct",
-      "prompt": "Use $test to add focused unit and integration regression coverage for duplicate payment events through stable public behavior seams.",
+      "prompt": "Use $test as the TDD companion for duplicate payment handling: establish RED through a stable public behavior seam, then report GREEN after the minimal implementation and refactor checks.",
       "expect": {
         "activate": ["test"],
         "forbid": ["acceptance-verify"],
         "output": {
-          "contains_all": ["test"],
+          "contains_all": ["test", "RED", "GREEN"],
           "contains_any": ["expected", "assert", "coverage"]
         }
       }

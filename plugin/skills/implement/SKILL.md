@@ -23,14 +23,18 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Scoped source, test, configuration, migration, or documentation changes
 - Updated existing plan status and handoff when those artifacts are in use and work remains
-- Verification evidence and a concise change summary
+- Acceptance-linked verification evidence and a concise change summary
 
 ## Rules
 
 - Trace current behavior before editing and follow established project patterns unless evidence justifies a change.
 - Prefer the smallest coherent vertical slice over speculative infrastructure.
 - Keep compatibility unless a breaking change is explicitly authorized.
-- Add or update tests for changed behavior when a viable harness exists.
+- Before production edits, map each applicable acceptance criterion or changed observable behavior to its strongest practical proof. Use a compact Behavior-to-Proof table only for multiple criteria or material risk.
+- When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.
+- Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.
+- Do not manufacture a red phase for documentation, generated output, exploratory prototypes, behavior already covered by a passing test, or work without a viable deterministic harness. Use the strongest safe proof and disclose why test-first was not used.
+- Add or update tests for changed behavior when a viable harness exists, then run broader checks in proportion to risk.
 - Do not silently weaken tests, validation, security, typing, or error handling to make checks pass.
 
 ## Decision-log updates

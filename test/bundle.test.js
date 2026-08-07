@@ -93,7 +93,7 @@ function assertValidationPasses(result) {
   );
   assert.equal(
     result.stdout,
-    `Validated engineering plugin ${packageVersion} with 18 skills.\n`,
+    `Validated engineering plugin ${packageVersion} with 20 skills.\n`,
   );
   assert.equal(result.stderr, '');
 }
@@ -184,6 +184,17 @@ test('plugin manifest matches the npm package', async () => {
   assert.equal(plugin.skills, './skills/');
   assert.equal(plugin.author.name.length > 0, true);
   assert.equal(plugin.interface.displayName, 'Engineering');
+  assert.ok(
+    plugin.interface.defaultPrompt.includes(
+      'Use $engineering:handoff to prepare a continuation handoff for the next agent.',
+    ),
+    'explicit-only handoff starter must name the native Codex skill',
+  );
+  assert.equal(
+    plugin.interface.defaultPrompt.includes('Prepare a continuation handoff for the next agent.'),
+    false,
+    'plugin manifest must not advertise a bare prompt for an explicit-only skill',
+  );
   assert.equal(packageJson.repository.url, 'git+https://github.com/nono911/nono-skills.git');
   assert.equal(packageJson.publishConfig.access, 'public');
   assert.equal(plugin.repository, 'https://github.com/nono911/nono-skills');
@@ -201,7 +212,7 @@ test('package discovery metadata describes the engineering-loop product', async 
   assert.doesNotMatch(packageJson.keywords.join(' '), /claude|qwen|opencode|codewhale|antigravity|cursor|copilot|superpowers/);
 });
 
-test('bundle contains exactly the validated 18-skill set', async () => {
+test('bundle contains exactly the validated 20-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -259,7 +270,7 @@ test('README is a concise and honest product introduction', async () => {
   assert.match(readme, /Pin exact versions in repeatable setups/);
   assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
-  assert.match(readme, /Validated 90 behavioral cases across 18 skills and 5 categories/);
+  assert.match(readme, /Validated 100 behavioral cases across 20 skills and 5 categories/);
   assert.match(readme, /CONTRIBUTING\.md/);
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
@@ -319,7 +330,7 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    if (name === 'delivery-loop' || name === 'bugfix-loop') {
+    if (['bugfix-loop', 'delivery-loop', 'handoff'].includes(name)) {
       assert.match(
         metadata,
         /^policy:\n  allow_implicit_invocation: false$/m,
@@ -623,7 +634,7 @@ for (const [name, budget] of Object.entries(expectedSkillWordBudgets)) {
   });
 }
 
-for (const name of ['bugfix-loop', 'delivery-loop']) {
+for (const name of ['bugfix-loop', 'delivery-loop', 'handoff']) {
   test(`package validation rejects implicit ${name} metadata`, async () => {
     const result = await validateMutatedFixture(async (fixtureRoot) => {
       const metadataPath = path.join(
@@ -737,7 +748,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable resources for 18 skills, 8 finding consumers, and 2 controlled loops.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 20 skills, 8 finding consumers, and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });
@@ -757,7 +768,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 18 canonical skills',
+    'plugin skill inventory must contain exactly the 20 canonical skills',
   );
 });
 
@@ -1287,10 +1298,58 @@ test('plan uses selected work-item artifacts and repository guidance stays conci
   }
   assert.match(plan, /Acceptance Contract/);
   assert.match(plan, /`AC-<number>`/);
+  assert.match(plan, /Behavior-to-Proof/);
   assert.match(agents, /docs\/agent\/work\/<work-id>\//);
   assert.match(agents, /ask before creating a new durable workspace/);
   assert.match(agents, /\$engineering:<skill>/);
   assert.ok(agents.length < 3_500, 'AGENTS.md should remain concise');
+});
+
+test('communicate-clearly stays human-facing and maps work items through connectors', async () => {
+  const rootPath = path.join(root, 'plugin', 'skills', 'communicate-clearly');
+  const skill = await readFile(path.join(rootPath, 'SKILL.md'), 'utf8');
+  const workItems = await readFile(path.join(rootPath, 'references', 'work-items.md'), 'utf8');
+  const metadata = await readFile(path.join(rootPath, 'agents', 'openai.yaml'), 'utf8');
+
+  for (const responsibility of expectedRequiredResponsibilityLines['communicate-clearly']) {
+    assert.equal(skill.split(responsibility).length - 1, 1);
+  }
+  assert.match(skill, /read `references\/work-items\.md`/);
+  assert.match(skill, /Without both, produce a draft/);
+  assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
+  assert.match(workItems, /Map at runtime/);
+  assert.match(workItems, /If no capable connector is available, return a copyable draft/);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('communicate-clearly', skill));
+});
+
+test('handoff is explicit, redacted, artifact-aware, and non-mutating', async () => {
+  const rootPath = path.join(root, 'plugin', 'skills', 'handoff');
+  const skill = await readFile(path.join(rootPath, 'SKILL.md'), 'utf8');
+  const metadata = await readFile(path.join(rootPath, 'agents', 'openai.yaml'), 'utf8');
+
+  for (const responsibility of expectedRequiredResponsibilityLines.handoff) {
+    assert.equal(skill.split(responsibility).length - 1, 1);
+  }
+  assert.match(skill, /Use only when explicitly asked/);
+  assert.match(metadata, /^policy:\n  allow_implicit_invocation: false$/m);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('handoff', skill));
+});
+
+test('implementation and testing preserve TDD sequencing and acceptance-linked proof', async () => {
+  for (const name of ['implement', 'test']) {
+    const content = await readFile(
+      path.join(root, 'plugin', 'skills', name, 'SKILL.md'),
+      'utf8',
+    );
+    for (const responsibility of expectedRequiredResponsibilityLines[name]) {
+      assert.equal(content.split(responsibility).length - 1, 1);
+      assert.throws(
+        () => assertSkillWorkspaceContract(name, content.replace(`${responsibility}\n`, '')),
+        /must include each required responsibility line exactly once/,
+      );
+    }
+    assert.doesNotThrow(() => assertSkillWorkspaceContract(name, content));
+  }
 });
 
 test('brainstorm and plan enforce adaptive requirement discovery without redundant questions', async () => {

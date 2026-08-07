@@ -58,9 +58,25 @@ function conformingResults(corpus) {
 
 test('black-box corpus defines bounded fast paths and requirement discovery cases', async () => {
   const corpus = await loadHostEvalCorpus(corpusPath);
-  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 5 });
+  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 7 });
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-complete-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'delivery-large-scope-slicing'));
+  assert.ok(corpus.cases.some((entry) => entry.id === 'communicate-simple-fast-path'));
+  assert.ok(corpus.cases.some((entry) => entry.id === 'handoff-chat-fast-path'));
+});
+
+test('black-box corpus does not claim unobserved TDD action ordering', async () => {
+  const corpus = await loadHostEvalCorpus(corpusPath);
+  const implement = corpus.cases.find((entry) => entry.id === 'implement-small-fast-path');
+  const asserted = [
+    ...(implement.expect.output.contains_all ?? []),
+    ...(implement.expect.output.contains_any ?? []),
+  ];
+  assert.equal(asserted.includes('RED'), false);
+  assert.equal(asserted.includes('GREEN'), false);
+
+  const assurance = await readFile(path.join(root, 'docs', 'assurance.md'), 'utf8');
+  assert.match(assurance, /does not observe or prove file-edit or test-execution ordering/);
 });
 
 test('black-box scorer combines behavior and skill-tax budgets', async () => {
@@ -68,7 +84,7 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   const results = conformingResults(corpus);
   const score = scoreHostEvalResults(corpus, results);
   assert.equal(score.ok, true);
-  assert.equal(score.passed, 5);
+  assert.equal(score.passed, 7);
   assert.equal(score.performance.median_first_action_tax_ratio, 1);
 
   results.results[0].skill.metrics.questions = 4;
@@ -77,6 +93,16 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   assert.equal(failed.ok, false);
   assert.match(failed.failures[0].reasons.join('\n'), /questions/);
   assert.match(failed.failures[0].reasons.join('\n'), /first-action tax ratio/);
+});
+
+test('positive output assertions treat hyphenated and spaced wording as equivalent', async () => {
+  const corpus = await loadHostEvalCorpus(corpusPath);
+  const results = conformingResults(corpus);
+  const communication = results.results.find(
+    (entry) => entry.case_id === 'communicate-simple-fast-path',
+  );
+  communication.skill.output = 'The optional field is backward-compatible and requires no migration.';
+  assert.equal(scoreHostEvalResults(corpus, results).ok, true);
 });
 
 test('host result validation rejects a contaminated baseline activation', async () => {

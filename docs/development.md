@@ -56,7 +56,7 @@ The bundled Codex adapter runs each variant in a fresh temporary repository and 
 node scripts/adapters/codex.mjs --preflight
 ```
 
-Run the five-case pilot only with explicit quota authority and an exact model identifier:
+Run the seven-case pilot only with explicit quota authority and an exact model identifier:
 
 ```bash
 node scripts/eval-host.mjs run \

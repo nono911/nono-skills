@@ -1,4 +1,4 @@
 interface:
   display_name: "Test"
-  short_description: "Design focused tests for behavior and regression risk"
-  default_prompt: "Use $test to prove the important behavior and regression risks in this scope."
+  short_description: "Design focused behavioral proof and TDD feedback"
+  default_prompt: "Use $test to establish focused behavioral proof with red-green sequencing when implementation is in scope."

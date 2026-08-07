@@ -46,6 +46,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Approval and isolation
 
+- Before isolation approval, decide whether the request fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, a worktree, or a controller run.
 - Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
 - Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated feature worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
 - Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.
@@ -60,7 +61,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 1. Create a CLI worktree and branch only when approved and required; otherwise remain in the approved isolated environment.
 2. For multi-step work activate `plan` before implementation; keep small well-defined features artifact-light and follow workspace consent for durable state.
-3. Keep the original agent as orchestrator and explicitly activate the companion `implement` skill to deliver the smallest complete feature with appropriate tests.
+3. Keep the original agent as orchestrator and activate `implement` for the smallest complete TDD-preferred feature with acceptance-linked proof.
 4. For a material runnable journey activate source-read-only `acceptance-verify`, resolve validated failures, and rerun affected scenarios.
 5. Validate delegated scope and claims, verify in proportion to risk, and exclude out-of-scope changes.
 6. Stage only in-scope changes, create the authorized implementation commit, then ingest its implementation and verification evidence.
@@ -94,7 +95,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 2. If final verification changes state, fix and freshly review within the remaining budget; otherwise do not claim `CLEAN` or commit it.
 3. Inspect the worktree and stage only validated delivery-loop fixes.
 4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
-5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, budgets, findings, checks, delegation, relevant local insights, and residual risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
+5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized. Lead the report with outcome, commits, acceptance-to-proof mapping, budgets, findings, checks, delegation, insights, and risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
 6. Do not claim completion while blocking findings or required checks remain.
 
 ## Decision-log updates

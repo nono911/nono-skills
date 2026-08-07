@@ -36,7 +36,7 @@ Run commands:
                           Remove package-owned local run evidence
 
 Eval commands:
-  eval validate           Validate the packaged 90-case corpus
+  eval validate           Validate the packaged 100-case corpus
   eval cases              Print provider-neutral cases as JSONL
   eval score <results>    Score captured host results and show activation metrics
 

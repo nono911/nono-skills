@@ -23,11 +23,15 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Focused automated tests and minimal necessary test utilities
 - Exact commands and results
+- Acceptance-linked proof showing `RED`, `GREEN`, or a disclosed non-TDD limitation when implementation is in scope
 - Documented gaps that cannot be tested safely or deterministically
 
 ## Rules
 
 - Prefer behavior assertions over implementation-detail assertions.
+- Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.
+- When paired with implementation and a viable deterministic harness, establish `RED` first with the smallest behavioral test and confirm it fails for the intended reason rather than setup error; after implementation, establish `GREEN` and keep it green through refactoring.
+- Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.
 - For a bug, first demonstrate the failure when practical, then verify the fix.
 - Cover happy path, meaningful boundaries, errors, permissions, and regression risk in proportion to impact.
 - Use real components where practical; mock only unstable or external boundaries.

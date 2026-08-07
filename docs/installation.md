@@ -15,7 +15,7 @@ npx nono-skills install
 For repeatable environments, pin an exact npm version:
 
 ```bash
-npx nono-skills@0.14.1 install
+npx nono-skills@0.15.0 install
 ```
 
 Start a new Codex task after install or update so refreshed definitions are loaded. Diagnose or maintain the installation with:
@@ -34,7 +34,7 @@ The installer owns only its plugin registration and checksum-recorded source fil
 npx skills@latest add nono911/nono-skills
 ```
 
-The open `skills` CLI selects skills, supported agents, project or global scope, and copy or symlink mode. Install all 18 skills when using `delivery-loop` or `bugfix-loop` because those workflows compose companion skills.
+The open `skills` CLI selects skills, supported agents, project or global scope, and copy or symlink mode. Install the complete pack when using `delivery-loop` or `bugfix-loop` so every technical companion is available; `communicate-clearly` and `handoff` remain optional in a partial installation.
 
 Maintain this installation with:
 

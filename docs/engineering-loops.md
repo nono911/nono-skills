@@ -16,13 +16,13 @@ Push, merge, deploy, worktree removal, and branch deletion remain separately aut
 ## Delivery loop
 
 1. Confirm acceptance outcomes, affected risks, repository rules, isolation, and authority.
-2. Use `plan` for multi-step work; broad work should be proposed as independently verifiable slices.
+2. Before isolation, use `plan` to split broad work into the smallest independently verifiable slices and ask which slice to deliver.
 3. Start or resume a managed delivery run.
-4. Activate `implement`, verify the affected behavior, and record the exact HEAD.
+4. Activate `implement`, prefer red-green-refactor when the behavior has a viable deterministic harness, map acceptance outcomes to proof, and record the exact HEAD.
 5. Acquire a review lease for that HEAD and use a fresh read-only reviewer with `review`.
 6. Triage findings without changing their claimed impact severity. Activate `fix-findings` only for evidence-supported actionable findings; retain non-blocking, deferred, accepted, and unvalidated items in the residual ledger.
 7. Verify the new HEAD and review it under a fresh lease.
-8. Stop early when no actionable findings remain; after final verification report `CLEAN` or `CLEAN_WITH_RESIDUALS` from the controller and always list residuals.
+8. Stop early when no actionable findings remain; after final verification lead with the outcome, report the compact acceptance-to-proof mapping, print `CLEAN` or `CLEAN_WITH_RESIDUALS` from the controller, and always list residuals.
 
 If startup finds an active schema-v1 run, the loop reports its ID and pauses for
 human approval. Approval permits one linked v2 successor at the current HEAD;
@@ -57,3 +57,9 @@ The reviewer must be a fresh project-scoped read-only agent or subagent, receive
 ## Native and external execution
 
 Native agents or subagents from the active host are the default. External or Hybrid execution is used only after explicit selection and consent. External results must echo the task identity, role, source scope, snapshot, and result contract. A provider that implemented a change cannot be the sole general reviewer for that change.
+
+## Test-first boundary
+
+General implementation is TDD-preferred, not blindly TDD-mandatory. When changed behavior is deterministic through a viable automated harness, the agent demonstrates the intended failing test before production edits, implements the minimum passing change, and keeps the proof green through refactoring. Documentation, generated output, exploratory prototypes, already-covered behavior, and work without a meaningful deterministic harness use the strongest safe alternative with the limitation disclosed.
+
+An explicit user request for TDD or test-first development is a requirement. If no meaningful red phase can be demonstrated, the agent stops and reports the blocker instead of silently claiming TDD.

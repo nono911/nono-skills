@@ -69,13 +69,14 @@
     {
       "id": "implement-small-fast-path",
       "skill": "implement",
-      "skill_prompt": "Use $implement to add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
-      "baseline_prompt": "Add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add the smallest regression test, and report the verification performed.",
+      "skill_prompt": "Use $implement to add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add and run the smallest regression test, and report exact verification plus any TDD limitation.",
+      "baseline_prompt": "Add the missing null guard to parseItems in src/parser.js so null or undefined input returns an empty array, preserve existing public behavior, add and run the smallest regression test, and report exact verification plus any TDD limitation.",
       "expect": {
         "activate": ["implement"],
         "forbid": ["delivery-loop", "bugfix-loop"],
         "output": {
-          "contains_any": ["test", "verification", "verified"]
+          "contains_all": ["test"],
+          "contains_any": ["verification", "verified"]
         },
         "performance": {
           "max_questions": 0,
@@ -107,6 +108,49 @@
           "max_loaded_skill_bodies": 2,
           "max_loaded_references": 2,
           "max_first_action_tax_ratio": 5
+        }
+      }
+    },
+    {
+      "id": "communicate-simple-fast-path",
+      "skill": "communicate-clearly",
+      "skill_prompt": "Use $communicate-clearly to answer in one direct sentence: an optional backward-compatible API response field is being added, persistence is unchanged, and no migration is required.",
+      "baseline_prompt": "Answer in one direct sentence: an optional backward-compatible API response field is being added, persistence is unchanged, and no migration is required.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": ["handoff", "implement", "plan"],
+        "output": {
+          "contains_all": ["backward compatible", "no migration"]
+        },
+        "performance": {
+          "max_questions": 0,
+          "max_activated_skills": 1,
+          "max_tool_calls_before_first_action": 1,
+          "max_loaded_skill_bodies": 1,
+          "max_loaded_references": 1,
+          "max_first_action_tax_ratio": 3
+        }
+      }
+    },
+    {
+      "id": "handoff-chat-fast-path",
+      "skill": "handoff",
+      "skill_prompt": "Use $handoff to prepare a chat-only continuation packet from these supplied facts: objective AC-2, AC-1 complete, tests pass, no blocker, next action implement cancellation handling. Do not write files.",
+      "baseline_prompt": "Prepare a chat-only continuation packet from these supplied facts: objective AC-2, AC-1 complete, tests pass, no blocker, next action implement cancellation handling. Do not write files.",
+      "expect": {
+        "activate": ["handoff"],
+        "forbid": ["communicate-clearly", "implement"],
+        "output": {
+          "contains_all": ["objective", "next"],
+          "contains_any": ["tests", "verification"]
+        },
+        "performance": {
+          "max_questions": 0,
+          "max_activated_skills": 1,
+          "max_tool_calls_before_first_action": 3,
+          "max_loaded_skill_bodies": 1,
+          "max_loaded_references": 1,
+          "max_first_action_tax_ratio": 4
         }
       }
     }

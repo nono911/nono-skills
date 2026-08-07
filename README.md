@@ -3,7 +3,7 @@
 [![CI](https://github.com/nono911/nono-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/nono911/nono-skills/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/nono-skills)](https://www.npmjs.com/package/nono-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/nono911/nono-skills/blob/main/LICENSE)
-[![Skills: 18](https://img.shields.io/badge/skills-18-5c6ac4.svg)](#skills)
+[![Skills: 20](https://img.shields.io/badge/skills-20-5c6ac4.svg)](#skills)
 
 A reusable software-engineering skill pack for Codex and other Agent Skills hosts. It gives capable coding agents concise intent, evidence requirements, and escalation rules without forcing every task through a large workflow.
 
@@ -25,11 +25,11 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 16 ordinary skills remain lightweight and model-directed. The two managed loops activate only when explicitly requested, require consent for isolation and commits, and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 18 ordinary skills remain lightweight and model-directed. The two managed loops activate only when explicitly requested, require consent for isolation and commits, and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
-- 18 focused skills spanning discovery, implementation, review, testing, debugging, design, migration, QA, and release readiness.
+- 20 focused skills spanning discovery, implementation, review, testing, communication, handoff, design, migration, QA, and release readiness.
 - `delivery-loop` for features and `bugfix-loop` for proven defects.
 - Native Codex packaging under the `engineering` namespace and portable Agent Skills folders.
 - Deterministic contract validation plus paired black-box scenarios for measuring host behavior and workflow overhead.
@@ -49,7 +49,7 @@ flowchart LR
 ### Native Codex plugin
 
 ```bash
-npx nono-skills@0.14.1 install
+npx nono-skills@0.15.0 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`. Optional repository scaffolding is available through `npx nono-skills init`; existing differing files are not overwritten unless `--force` is explicit.
@@ -80,6 +80,16 @@ For ordinary work, ask naturally:
 Implement user authentication and verify the affected behavior.
 ```
 
+Communication can activate when explaining or shaping human-readable work is the primary task. Handoff remains explicit:
+
+```text
+$engineering:communicate-clearly
+Turn this release status into a concise stakeholder update.
+
+$engineering:handoff
+Prepare a continuation packet for the next agent; do not write files.
+```
+
 Invoke a managed loop explicitly when you want approved worktree isolation, bounded sequential review, and verified remediation:
 
 ```text
@@ -98,7 +108,7 @@ The packaged corpus can be checked without making a model call:
 
 ```console
 $ npx nono-skills eval
-Validated 90 behavioral cases across 18 skills and 5 categories.
+Validated 100 behavioral cases across 20 skills and 5 categories.
 This validates the corpus only. Use eval cases with a host adapter, then eval score on captured results.
 ```
 
@@ -126,6 +136,8 @@ A completed managed run writes a redacted `summary.json` outside tracked source.
 | Explore a product or technical direction | `brainstorm` |
 | Turn defined work into acceptance-linked steps | `plan` |
 | Build a general software change | `implement` |
+| Explain, summarize, report, or shape human-readable work items | `communicate-clearly` |
+| Prepare a safe continuation packet for another owner | `handoff` |
 | Review a diff without editing it | `review` |
 | Correct validated findings | `fix-findings` |
 | QA a runnable user journey without changing source | `acceptance-verify` |

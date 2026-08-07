@@ -40,6 +40,8 @@ Repository tests validate deterministic contracts and controller behavior. The s
 
 Scored host captures report asserted activation precision and recall, forbidden and unasserted activations, per-skill counts, a full case-owner activation matrix, and sparse boundary confusions. These checks improve observability and regression detection. They do not guarantee identical behavior across models, hosts, prompts, repositories, or tool configurations.
 
+The current host evaluator does not observe or prove file-edit or test-execution ordering. TDD sequencing remains guided by skill instructions until an adapter captures ordered execution evidence; final-response labels such as `RED` and `GREEN` are not scored as proof of that sequence.
+
 ## Claim vocabulary
 
 Project documentation uses these terms deliberately:

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Communicate Clearly"
+  short_description: "Make human-facing communication direct and useful"
+  default_prompt: "Use $communicate-clearly to explain this clearly and preserve decision-critical facts."

@@ -6,6 +6,32 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.15.0 — 2026-08-07
+
+### Added
+
+- Added `communicate-clearly` for direct, audience-aware explanations, status
+  reports, decision requests, and platform-neutral project work items. Detailed
+  work-item shaping loads only when that output is requested.
+- Added explicit-only `handoff` packets that reference authoritative state,
+  redact sensitive data, and identify the next executable action without
+  mutating source or Git state.
+- Added compact Behavior-to-Proof mapping for multi-criterion or material-risk
+  plans and implementations.
+
+### Changed
+
+- Made general implementation TDD-preferred when deterministic behavior has a
+  viable automated harness. Explicit TDD requests now require a demonstrated
+  red phase or a disclosed blocker.
+- Connected delivery-loop scope slicing, test-first feedback, acceptance-linked
+  proof, and outcome-first final reporting without changing controller budgets.
+- Added concise repository communication defaults and expanded the behavioral
+  corpus to 100 cases across 20 skills.
+- Kept host scoring within its observable boundary: semantic phrase assertions
+  normalize hyphenated wording, while final `RED` and `GREEN` labels are not
+  treated as proof of TDD execution order.
+
 ## 0.14.1 — 2026-08-04
 
 ### Changed
@@ -56,6 +82,7 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/nono911/nono-skills/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/nono911/nono-skills/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/nono911/nono-skills/compare/v0.13.1...v0.14.0

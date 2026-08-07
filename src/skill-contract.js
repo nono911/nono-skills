@@ -10,11 +10,13 @@ export const expectedDurableEndings = Object.freeze({
   'architecture-review': "When durable state is approved, append structural tradeoffs or accepted architecture risk to the selected work item's decisions.md and track actionable defects in findings.md; otherwise report them in the final response.",
   brainstorm: "When durable state is approved, append the accepted direction, recurring tradeoffs, assumptions, and next experiment to the selected work item's decisions.md; otherwise include them in the final response.",
   'bugfix-loop': "When durable state is approved, update the selected work item's findings.md with reproduction, root-cause, regression, review-round, and verification evidence and append material remediation or accepted-risk decisions to decisions.md; otherwise report loop state and decisions in the final response.",
+  'communicate-clearly': "When durable state is approved, append only communication choices that change scope, ownership, acceptance, or stakeholder action to the selected work item's decisions.md; otherwise return the communication in the final response.",
   'database-design': "When durable state is approved, append invariant, consistency, migration, and operational choices to the selected work item's decisions.md; otherwise include them in the final response.",
   debug: "When durable state is approved, append the validated root cause, rejected material hypotheses, and consequential fix choices to the selected work item's decisions.md and create handoff.md only when work remains; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed debugging scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
   'delivery-loop': "When durable state is approved, update the selected work item's findings.md with review-round status and verification evidence and append material remediation or accepted-risk decisions to decisions.md; otherwise report loop state and decisions in the final response.",
   estimate: "When durable state is approved, append scope interpretations, estimation model changes, and accepted schedule tradeoffs to the selected work item's decisions.md; otherwise include them in the final response.",
   'fix-findings': "When durable state is approved, update the selected work item's findings.md with status and verification evidence, and append material remediation tradeoffs to decisions.md; otherwise report state changes and decisions in the final response.",
+  handoff: "When durable state is approved and work remains or ownership changes, update the selected work item's handoff.md with the continuation packet; otherwise return the packet in the final response.",
   implement: "When durable state is approved, append the decision to the selected work item's `decisions.md` and update its plan or handoff when applicable; otherwise include it in the final response.",
   migration: "When durable state is approved, append compatibility, sequencing, rollback, and point-of-no-return choices to the selected work item's decisions.md; otherwise include them in the final response.",
   plan: "When durable state is approved, append the decision to the selected work item's `decisions.md`; otherwise include it in the final response.",
@@ -28,7 +30,9 @@ export const expectedDurableEndings = Object.freeze({
 export const expectedSkillWordBudgets = Object.freeze({
   'acceptance-verify': 1100,
   'bugfix-loop': 1500,
+  'communicate-clearly': 650,
   'delivery-loop': 1500,
+  handoff: 550,
 });
 
 export const expectedRequiredResponsibilityLines = Object.freeze({
@@ -55,6 +59,27 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
   'release-readiness': Object.freeze([
     '- For a selected work item, read its acceptance criteria, current plan state, findings, and verification evidence when available before judging readiness; reading this state neither authorizes release nor by itself requires artifact mutation.',
   ]),
+  'communicate-clearly': Object.freeze([
+    '- Lead with the answer, outcome, or requested decision. Follow with only decision-relevant evidence, uncertainty, blockers, and a next action that actually exists.',
+    '- Keep simple answers to a sentence or short paragraph. Add headings, lists, tables, examples, or background only when they materially improve comprehension.',
+    '- External creation or mutation requires the user\'s scoped request and a capable connector. Without both, produce a draft and state that no external item changed.',
+    '- Compose with the technical skill that owns implementation, review, testing, or debugging. This skill owns human-facing communication, not the underlying engineering operation.',
+  ]),
+  handoff: Object.freeze([
+    '- Reference specs, plans, decisions, issues, commits, diffs, and evidence by path, identifier, or URL. Do not duplicate content already authoritative elsewhere.',
+    '- Redact secrets, credentials, tokens, personal data, raw prompts, private reasoning, environment values, and unnecessary logs. Preserve only the minimum sanitized evidence needed to continue.',
+    '- Do not edit production source, stage, commit, push, merge, deploy, change external work items, or alter workflow status as part of preparing the handoff.',
+  ]),
+  implement: Object.freeze([
+    '- Before production edits, map each applicable acceptance criterion or changed observable behavior to its strongest practical proof. Use a compact Behavior-to-Proof table only for multiple criteria or material risk.',
+    '- When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.',
+    '- Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.',
+  ]),
+  test: Object.freeze([
+    '- Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.',
+    '- When paired with implementation and a viable deterministic harness, establish `RED` first with the smallest behavioral test and confirm it fails for the intended reason rather than setup error; after implementation, establish `GREEN` and keep it green through refactoring.',
+    '- Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.',
+  ]),
   plan: Object.freeze([
     '- Summarize the affected user or operator, desired observable behavior, must-have and must-not behavior, constraints, and success signals; separate confirmed intent, observed current behavior, inferences, and unknowns.',
     '- Ask only when an unresolved choice changes user-visible behavior, acceptance criteria, scope, compatibility, or irreversible risk. Ask one to three highest-leverage questions per round; never ask for facts safely discoverable from the repository.',
@@ -62,6 +87,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- State reversible low-impact assumptions and proceed when they cannot materially change the contract.',
     '- Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.',
     '- For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.',
+    '- For multi-criterion or material-risk work, present a compact Behavior-to-Proof map linking each acceptance ID to its planned proof; omit the table for a trivial single outcome.',
     '- Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.',
     '- Before finalizing multi-step work, assess whether acceptance outcomes, affected components, cross-cutting risks, and unresolved decisions fit one independently verifiable change. If not, propose the smallest coherent slices and ask once for direction before creating artifacts for them.',
     '- Add negative, compatibility, rollout, or rollback criteria only when material to the risk.',
@@ -88,8 +114,9 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.',
     '- Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.',
     '- Before editing require a fresh isolated read-only reviewer. Otherwise offer ordinary implementation with disclosed self-review or stop; that path cannot report `CLEAN`.',
+    '- Before isolation approval, decide whether the request fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, a worktree, or a controller run.',
     '2. For multi-step work activate `plan` before implementation; keep small well-defined features artifact-light and follow workspace consent for durable state.',
-    '3. Keep the original agent as orchestrator and explicitly activate the companion `implement` skill to deliver the smallest complete feature with appropriate tests.',
+    '3. Keep the original agent as orchestrator and activate `implement` for the smallest complete TDD-preferred feature with acceptance-linked proof.',
     '1. Before every round, obtain a controller review lease for the exact HEAD and capability-matched reviewer batch. Use a fresh project-scoped read-only reviewer agent or subagent, activate `review`, and forbid delegation or mutation. If unavailable, stop; a non-independent fallback cannot report `CLEAN`.',
     '2. The controller exclusively owns the review-batch counter; the original orchestrator owns transitions. Every child performs one leased bounded pass, returns Evidence Contract output, and never invokes or requests another review or loop.',
     '6. Ingest the review, preserve claimed severity, and record one structured disposition for every finding before editing. Low findings are `non-blocking`; unrelated valid defects are `out-of-scope`; insufficient claims are `unvalidated` and never enter a fix cycle.',
@@ -99,7 +126,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- The controller enforces five batches, four fix cycles, and one no-verdict retry for the entire delivery run. Its persisted counters are monotonic and non-renewable; `continue`, extra commit authority, provider changes, or more-round requests never reset or extend them.',
     '- Never review the same HEAD twice. The sole no-verdict retry reuses its numbered batch and a fresh lease.',
     '- If fifth-batch triage confirms an actionable defect, accept the controller\'s `BUDGET_EXHAUSTED` transition, do not mutate, and report its recovery record. A narrower linked run needs explicit approval and never makes this run `CLEAN`.',
-    '5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized and report commits, budgets, findings, checks, delegation, relevant local insights, and residual risks. Always print the controller\'s `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.',
+    '5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized. Lead the report with outcome, commits, acceptance-to-proof mapping, budgets, findings, checks, delegation, insights, and risks. Always print the controller\'s `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.',
   ]),
   'bugfix-loop': Object.freeze([
     '- After approval, read `references/evidence-contract.md` and use the bundled controller before diagnosis or implementation. Start or resume one local run. If active schema-v1 blocks startup, show its ID and obtain approval for a linked v2 successor. Never ask the user to operate the controller or silently purge legacy evidence.',

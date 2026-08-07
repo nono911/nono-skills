@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "Reusable engineering skills and bounded review-fix loops for OpenAI Codex.",
   "author": {
     "name": "thitikorn.j"
@@ -27,14 +27,16 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Engineering",
-    "shortDescription": "Plan, build, review, debug, and release software.",
-    "longDescription": "Reusable Agent Skills centered on observable outcomes, evidence, bounded review loops, material decisions, and human escalation.",
+    "shortDescription": "Plan, build, verify, review, and communicate software.",
+    "longDescription": "Reusable Agent Skills centered on observable outcomes, test-first feedback, clear communication, evidence, bounded review loops, material decisions, and human escalation.",
     "developerName": "thitikorn.j",
     "category": "Developer Tools",
     "capabilities": ["Interactive", "Write"],
     "defaultPrompt": [
       "Plan this engineering task.",
       "Implement this change and verify it.",
+      "Explain this engineering update clearly for its audience.",
+      "Use $engineering:handoff to prepare a continuation handoff for the next agent.",
       "Review the current change for defects.",
       "Use $engineering:acceptance-verify to QA this user journey with browser evidence.",
       "Use $engineering:bugfix-loop to prove and fix this bug with regression evidence.",
