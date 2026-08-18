@@ -25,6 +25,7 @@ export const expectedDurableEndings = Object.freeze({
   review: "When durable state is approved, track defects and their lifecycle in the selected work item's findings.md and append only review-scope or accepted-risk decisions to decisions.md; otherwise report them in the final response.",
   'security-review': "When durable state is approved, track sanitized vulnerabilities in the selected work item's findings.md and append accepted security tradeoffs, threat assumptions, compensating controls, or risk acceptance to decisions.md; otherwise report them in the final response.",
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+  'write-guide': "When durable state is approved, append material audience, scope, version, verification-boundary, or accepted-documentation-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.",
 });
 
 export const expectedSkillWordBudgets = Object.freeze({
@@ -33,6 +34,7 @@ export const expectedSkillWordBudgets = Object.freeze({
   'communicate-clearly': 650,
   'delivery-loop': 1500,
   handoff: 550,
+  'write-guide': 850,
 });
 
 export const expectedRequiredResponsibilityLines = Object.freeze({
@@ -69,6 +71,17 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Reference specs, plans, decisions, issues, commits, diffs, and evidence by path, identifier, or URL. Do not duplicate content already authoritative elsewhere.',
     '- Redact secrets, credentials, tokens, personal data, raw prompts, private reasoning, environment values, and unnecessary logs. Preserve only the minimum sanitized evidence needed to continue.',
     '- Do not edit production source, stage, commit, push, merge, deploy, change external work items, or alter workflow status as part of preparing the handoff.',
+  ]),
+  'write-guide': Object.freeze([
+    '- Never invent commands, paths, UI labels, permissions, prerequisites, screenshots, or successful outcomes.',
+    '- Do not ask the user to enumerate discoverable features, routes, controls, or viewports; inspect the repository and runnable surface first.',
+    '3. For a UI guide or multi-feature surface, read `references/ui-guides.md`; autonomously discover the runnable surface, routes, roles, visible actions, and layout evidence before asking, then map material outcomes to guides, captures, and verification.',
+    '5. Use `acceptance-verify` when a runnable user journey or rendered UI is material; keep unexecuted or partially observed behavior explicitly unverified or blocked.',
+    '7. When producing a file, read `references/output-formats.md`; preserve the established documentation format, otherwise keep Markdown or MDX as canonical source and treat PDF, DOCX, or HTML as derived output.',
+    '8. Capture actual rendered UI at material decision points or state changes using the repository\'s supported layout ranges; embed only useful, sanitized images with accessible text.',
+    '- A request to create or update a local guide authorizes only the in-scope documentation change, not product-code changes, external publishing, or product decisions.',
+    '- For UI guides, capture actual rendered states at material checkpoints rather than every click; when many controls share one surface, prefer one contextual capture plus a concise action table.',
+    '- A PDF or other paginated deliverable is incomplete until every rendered page passes visual inspection after the latest meaningful change.',
   ]),
   implement: Object.freeze([
     '- Before production edits, map each applicable acceptance criterion or changed observable behavior to its strongest practical proof. Use a compact Behavior-to-Proof table only for multiple criteria or material risk.',

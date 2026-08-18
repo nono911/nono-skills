@@ -21,6 +21,7 @@ export const canonicalSkillNames = Object.freeze([
   'review',
   'security-review',
   'test',
+  'write-guide',
 ]);
 
 export const initialSkillMetadataBudget = 8_000;

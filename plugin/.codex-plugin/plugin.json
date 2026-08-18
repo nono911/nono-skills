@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "description": "Reusable engineering skills and bounded review-fix loops for OpenAI Codex.",
   "author": {
     "name": "thitikorn.j"
@@ -36,6 +36,7 @@
       "Plan this engineering task.",
       "Implement this change and verify it.",
       "Explain this engineering update clearly for its audience.",
+      "Create a verified user guide for this product behavior.",
       "Use $engineering:handoff to prepare a continuation handoff for the next agent.",
       "Review the current change for defects.",
       "Use $engineering:acceptance-verify to QA this user journey with browser evidence.",

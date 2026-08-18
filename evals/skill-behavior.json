@@ -20,7 +20,8 @@
     "release-readiness",
     "review",
     "security-review",
-    "test"
+    "test",
+    "write-guide"
   ],
   "cases": [
     {
@@ -1144,6 +1145,66 @@
       "expect": {
         "activate": ["test"],
         "forbid": []
+      }
+    },
+    {
+      "id": "write-guide-direct",
+      "skill": "write-guide",
+      "category": "direct",
+      "prompt": "Use $write-guide in this repository: find and run the relevant web app, discover its routes, roles, visible actions, and layout ranges without asking me to enumerate them, then create an onboarding guide with verified steps and useful screenshots.",
+      "expect": {
+        "activate": ["write-guide"],
+        "forbid": ["communicate-clearly"],
+        "output": {
+          "contains_any": ["Prerequisites", "Steps", "guide"],
+          "contains_all": ["verified", "screenshot", "action"]
+        }
+      }
+    },
+    {
+      "id": "write-guide-indirect",
+      "skill": "write-guide",
+      "category": "indirect",
+      "prompt": "Update our help-center article so a new customer can configure single sign-on using the current UI labels and commands, with expected results and troubleshooting grounded in the repository and running app.",
+      "expect": {
+        "activate": ["write-guide"],
+        "forbid": []
+      }
+    },
+    {
+      "id": "write-guide-incomplete",
+      "skill": "write-guide",
+      "category": "incomplete",
+      "prompt": "Write an operator manual for this service, but the intended operator, supported release, deployment mode, canonical documentation location, and runnable environment are not identified.",
+      "expect": {
+        "activate": ["write-guide"],
+        "forbid": [],
+        "output": {
+          "contains_any": ["discover", "inspect", "UNVERIFIED", "BLOCKED"]
+        }
+      }
+    },
+    {
+      "id": "write-guide-negative",
+      "skill": "write-guide",
+      "category": "negative",
+      "prompt": "Explain the current release status to an executive in three direct sentences; do not create or update durable documentation.",
+      "expect": {
+        "activate": ["communicate-clearly"],
+        "forbid": ["write-guide"]
+      }
+    },
+    {
+      "id": "write-guide-edge",
+      "skill": "write-guide",
+      "category": "edge",
+      "prompt": "Update the administrator guide for permanent account deletion, but do not delete real data or claim the destructive UI journey passed when no safe nonproduction target is available.",
+      "expect": {
+        "activate": ["write-guide"],
+        "forbid": [],
+        "output": {
+          "contains_any": ["UNVERIFIED", "BLOCKED", "not verified"]
+        }
       }
     }
   ]

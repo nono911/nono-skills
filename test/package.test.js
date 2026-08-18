@@ -53,9 +53,11 @@ test('npm package includes runtime assets and excludes development state', async
     'plugin/skills/delivery-loop/scripts/providers/opencode.mjs',
     'plugin/skills/delivery-loop/scripts/providers/codewhale.mjs',
     'plugin/skills/delivery-loop/scripts/providers/antigravity.mjs',
+    'plugin/skills/write-guide/references/ui-guides.md',
+    'plugin/skills/write-guide/references/output-formats.md',
     'templates/AGENTS.md', 'README.md', 'CHANGELOG.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
-  assert.equal(expectedSkills.length, 20);
+  assert.equal(expectedSkills.length, 21);
   for (const name of expectedSkills) {
     for (const required of [
       `plugin/skills/${name}/SKILL.md`,

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Guide"
+  short_description: "Create verified, audience-focused product guides"
+  default_prompt: "Use $write-guide to discover current product behavior and create an accurate, evidence-backed guide."

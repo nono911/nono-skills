@@ -93,7 +93,7 @@ function assertValidationPasses(result) {
   );
   assert.equal(
     result.stdout,
-    `Validated engineering plugin ${packageVersion} with 20 skills.\n`,
+    `Validated engineering plugin ${packageVersion} with 21 skills.\n`,
   );
   assert.equal(result.stderr, '');
 }
@@ -212,7 +212,7 @@ test('package discovery metadata describes the engineering-loop product', async 
   assert.doesNotMatch(packageJson.keywords.join(' '), /claude|qwen|opencode|codewhale|antigravity|cursor|copilot|superpowers/);
 });
 
-test('bundle contains exactly the validated 20-skill set', async () => {
+test('bundle contains exactly the validated 21-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -270,7 +270,7 @@ test('README is a concise and honest product introduction', async () => {
   assert.match(readme, /Pin exact versions in repeatable setups/);
   assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
-  assert.match(readme, /Validated 100 behavioral cases across 20 skills and 5 categories/);
+  assert.match(readme, /Validated 105 behavioral cases across 21 skills and 5 categories/);
   assert.match(readme, /CONTRIBUTING\.md/);
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
@@ -748,7 +748,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable resources for 20 skills, 8 finding consumers, and 2 controlled loops.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 21 skills, 8 finding consumers, and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });
@@ -768,7 +768,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 20 canonical skills',
+    'plugin skill inventory must contain exactly the 21 canonical skills',
   );
 });
 
@@ -1320,6 +1320,41 @@ test('communicate-clearly stays human-facing and maps work items through connect
   assert.match(workItems, /Map at runtime/);
   assert.match(workItems, /If no capable connector is available, return a copyable draft/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('communicate-clearly', skill));
+});
+
+test('write-guide owns evidence-grounded durable product guidance', async () => {
+  const rootPath = path.join(root, 'plugin', 'skills', 'write-guide');
+  const skill = await readFile(path.join(rootPath, 'SKILL.md'), 'utf8');
+  const uiGuides = await readFile(path.join(rootPath, 'references', 'ui-guides.md'), 'utf8');
+  const outputFormats = await readFile(path.join(rootPath, 'references', 'output-formats.md'), 'utf8');
+  const metadata = await readFile(path.join(rootPath, 'agents', 'openai.yaml'), 'utf8');
+
+  for (const responsibility of expectedRequiredResponsibilityLines['write-guide']) {
+    assert.equal(skill.split(responsibility).length - 1, 1);
+    assert.throws(
+      () => assertSkillWorkspaceContract('write-guide', skill.replace(`${responsibility}\n`, '')),
+      /must include each required responsibility line exactly once/,
+    );
+  }
+  assert.match(skill, /`UNVERIFIED` or `BLOCKED`/);
+  assert.match(skill, /Use `communicate-clearly` principles/);
+  assert.match(uiGuides, /There is no universal screenshot size/);
+  assert.match(uiGuides, /Do not ask the user to enumerate features, routes, controls, roles, or viewports/);
+  assert.match(uiGuides, /accessibility tree, and visible DOM together/);
+  assert.match(uiGuides, /Do not submit mutations, upload files, export data, purchase, message externally/);
+  assert.match(uiGuides, /Stop after navigation and route reconciliation yield no new in-scope outcomes/);
+  assert.match(uiGuides, /`1440x900` desktop, `768x1024` tablet, and `390x844` mobile/);
+  assert.match(uiGuides, /Playwright `scale: "css"`/);
+  assert.match(uiGuides, /material action -> guide section -> capture -> verification status/);
+  assert.match(outputFormats, /Markdown or MDX as canonical source/);
+  assert.match(outputFormats, /Keep it as a reproducible derivative, never the only editable source/);
+  assert.match(outputFormats, /Render every page to images/);
+  assert.match(outputFormats, /Avoid orphan headings at a page bottom/);
+  assert.match(outputFormats, /Repeat table headers on continued pages/);
+  assert.match(outputFormats, /does not create wasteful or unexplained blank pages/);
+  assert.match(outputFormats, /Repeat until the latest render has no material visual or pagination defect/);
+  assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
+  assert.doesNotThrow(() => assertSkillWorkspaceContract('write-guide', skill));
 });
 
 test('handoff is explicit, redacted, artifact-aware, and non-mutating', async () => {
