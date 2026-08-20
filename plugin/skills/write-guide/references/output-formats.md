@@ -2,16 +2,18 @@
 
 Read this reference when creating a file, exporting a guide, or changing an established documentation format.
 
+The guide workflow applies this selection automatically. The user does not need to invoke a PDF companion when the selected or default output includes PDF.
+
 ## Select the source and outputs
 
-1. Preserve the repository's canonical documentation system and conventions when they exist, including its source format, navigation, components, asset layout, build, and lint commands.
-2. Otherwise use Markdown or MDX as canonical source under `docs/guides/<guide-slug>/`, with images in the established asset directory or a nearby `assets/` directory. Keep links relative and portable.
-3. Build HTML or a documentation site from canonical source rather than maintaining a second hand-edited copy.
-4. Create PDF only when requested or clearly required for offline or fixed-layout delivery. Keep it as a reproducible derivative, never the only editable source.
-5. Create DOCX only when an editable Word handoff is requested. Render it for visual QA before delivery.
+1. Honor an explicit output format or destination unless it conflicts with a repository requirement or cannot be produced safely.
+2. Preserve the repository's canonical documentation system and conventions when updating existing documentation, including its source format, navigation, components, asset layout, build, and lint commands. Do not add PDF merely because the page is called a guide.
+3. For a new standalone guide with no established destination or format, use Markdown or MDX as canonical source under `docs/guides/<guide-slug>/` and also create a visually verified PDF when the host has a suitable capability. Keep links relative and images in the established asset directory or a nearby `assets/` directory.
+4. When PDF is selected or defaulted, activate the host's available PDF skill or equivalent creation, rendering, and inspection capability. Keep PDF as a reproducible derivative, never the only editable source.
+5. Build HTML or a documentation site from canonical source rather than maintaining a second hand-edited copy. Create DOCX only when an editable Word handoff is requested and render it for visual QA.
 6. Publishing to a help center, CMS, wiki, or website requires scoped authority and a capable connector. Otherwise provide local or copyable artifacts only.
 
-If the requested renderer is unavailable, still produce the canonical source when useful, mark the export `BLOCKED`, and name the missing capability. Do not add a heavy dependency, redesign the documentation stack, or publish externally merely to create an export.
+If a requested or default PDF renderer is unavailable, still produce the canonical source when useful, mark the PDF export `BLOCKED`, and name the missing capability. Do not add a heavy dependency, redesign the documentation stack, or publish externally merely to create an export.
 
 ## Verify source-based documentation
 

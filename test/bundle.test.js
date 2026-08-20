@@ -495,13 +495,17 @@ test('bugfix-loop requires evidence-first diagnosis and sequential review', asyn
   assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
 });
 
-test('both controlled loops bundle identical evidence and controller resources', async () => {
+test('both controlled loops bundle identical evidence, branch naming, and controller resources', async () => {
   const canonicalController = await readFile(
     path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'),
     'utf8',
   );
   const canonicalEvidence = await readFile(
     path.join(root, 'plugin', 'runtime', 'evidence-contract.md'),
+    'utf8',
+  );
+  const canonicalBranchNaming = await readFile(
+    path.join(root, 'plugin', 'references', 'branch-naming.md'),
     'utf8',
   );
   for (const name of ['bugfix-loop', 'delivery-loop']) {
@@ -512,6 +516,10 @@ test('both controlled loops bundle identical evidence and controller resources',
     assert.equal(
       await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'evidence-contract.md'), 'utf8'),
       canonicalEvidence,
+    );
+    assert.equal(
+      await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'branch-naming.md'), 'utf8'),
+      canonicalBranchNaming,
     );
   }
   assert.match(canonicalController, /review_batches: Object\.freeze\(\{ limit: 5 \}\)/);
@@ -527,6 +535,12 @@ test('both controlled loops bundle identical evidence and controller resources',
   assert.match(canonicalEvidence, /The controller enforces transitions only after an agent starts a managed run and continues to invoke it/);
   assert.match(canonicalEvidence, /The hash chain is tamper-evident, not tamper-proof, and is not a security boundary/);
   assert.doesNotMatch(canonicalEvidence, /scope_approval_required|human\.feedback\.recorded/);
+  assert.match(canonicalBranchNaming, /Repository instructions, documented conventions/);
+  assert.match(canonicalBranchNaming, /derive a host-neutral name from the primary change outcome/);
+  assert.match(canonicalBranchNaming, /applies this reference automatically before branch approval/);
+  assert.match(canonicalBranchNaming, /does not need to invoke a naming helper or supply a prefix/);
+  assert.match(canonicalBranchNaming, /`hotfix\/` only for an explicitly urgent production repair/);
+  assert.match(canonicalBranchNaming, /Do not use an agent or vendor prefix such as `codex\/`/);
 });
 
 test('finding producers and consumers bundle one calibrated finding rubric', async () => {
@@ -693,6 +707,22 @@ test('package validation rejects a drifted bundled finding rubric', async () => 
   assertValidationFails(result, 'review must bundle the canonical finding rubric');
 });
 
+test('package validation rejects a drifted bundled branch naming contract', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    const bundledPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'delivery-loop',
+      'references',
+      'branch-naming.md',
+    );
+    const content = await readFile(bundledPath, 'utf8');
+    await writeFile(bundledPath, `${content}\nDrifted copy.\n`, 'utf8');
+  });
+  assertValidationFails(result, 'delivery-loop must bundle the canonical branch naming contract');
+});
+
 test('portable resource sync restores workspace, finding, evidence, and controller resources', async () => {
   await withValidationFixture(async (fixtureRoot) => {
     const skillPath = path.join(fixtureRoot, 'plugin', 'skills', 'review', 'SKILL.md');
@@ -728,6 +758,14 @@ test('portable resource sync restores workspace, finding, evidence, and controll
       'references',
       'evidence-contract.md',
     );
+    const branchNamingPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'bugfix-loop',
+      'references',
+      'branch-naming.md',
+    );
     const content = await readFile(skillPath, 'utf8');
     await writeFile(
       skillPath,
@@ -741,6 +779,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     await writeFile(findingPath, 'stale\n', 'utf8');
     await writeFile(controllerPath, 'stale\n', 'utf8');
     await writeFile(evidencePath, 'stale\n', 'utf8');
+    await writeFile(branchNamingPath, 'stale\n', 'utf8');
 
     const result = spawnSync(process.execPath, ['scripts/sync-portable-resources.mjs'], {
       cwd: fixtureRoot,
@@ -1347,7 +1386,13 @@ test('write-guide owns evidence-grounded durable product guidance', async () => 
   assert.match(uiGuides, /Playwright `scale: "css"`/);
   assert.match(uiGuides, /material action -> guide section -> capture -> verification status/);
   assert.match(outputFormats, /Markdown or MDX as canonical source/);
-  assert.match(outputFormats, /Keep it as a reproducible derivative, never the only editable source/);
+  assert.match(outputFormats, /new standalone guide with no established destination or format/);
+  assert.match(outputFormats, /also create a visually verified PDF when the host has a suitable capability/);
+  assert.match(outputFormats, /activate the host's available PDF skill or equivalent/);
+  assert.match(outputFormats, /applies this selection automatically/);
+  assert.match(outputFormats, /does not need to invoke a PDF companion/);
+  assert.match(outputFormats, /Keep PDF as a reproducible derivative, never the only editable source/);
+  assert.match(outputFormats, /mark the PDF export `BLOCKED`/);
   assert.match(outputFormats, /Render every page to images/);
   assert.match(outputFormats, /Avoid orphan headings at a page bottom/);
   assert.match(outputFormats, /Repeat table headers on continued pages/);

@@ -21,7 +21,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Outputs
 
-- A guide at the requested or established local location, or a copyable final-response guide
+- An established-format update or copyable guide; a new standalone guide with unspecified format defaults to editable source plus visually verified PDF when supported
 - Only needed sections, commonly goal, prerequisites, steps, expected results, troubleshooting, and version scope
 - Sanitized image assets and accessible relative embeds for material observed UI states when the guide covers a visual journey
 - A compact verification note identifying evidence used and any claims that remain `UNVERIFIED` or `BLOCKED`
@@ -34,7 +34,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 4. Trace material steps to source, command help, configuration, tests, or observed runtime. Distinguish documented behavior from executed behavior.
 5. Use `acceptance-verify` when a runnable user journey or rendered UI is material; keep unexecuted or partially observed behavior explicitly unverified or blocked.
 6. Draft in the repository's established style and vocabulary. Use numbered actions for sequences, exact copyable commands, and expected results where readers need confirmation.
-7. When producing a file, read `references/output-formats.md`; preserve the established documentation format, otherwise keep Markdown or MDX as canonical source and treat PDF, DOCX, or HTML as derived output.
+7. When producing a file, read `references/output-formats.md`; preserve established documentation, select contextual defaults, and activate an available format-specific skill or host capability for each derivative.
 8. Capture actual rendered UI at material decision points or state changes using the repository's supported layout ranges; embed only useful, sanitized images with accessible text.
 9. Recheck commands, paths, links, UI labels, permissions, prerequisites, captures, and version assumptions. For paginated output, render and inspect every page after the latest change.
 10. Report the guide and asset locations, then summarize what was verified, what was not, and any product defect or documentation risk discovered.

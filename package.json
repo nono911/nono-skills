@@ -1,6 +1,6 @@
 {
   "name": "nono-skills",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "Reusable engineering skills and bounded review-fix loops for Codex and other Agent Skills hosts.",
   "author": "thitikorn.j",
   "type": "module",

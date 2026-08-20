@@ -6,6 +6,8 @@
 
 Invoking a loop does not by itself authorize a new worktree, commits, push, merge, deploy, production mutation, external providers, or cleanup. A host-managed worktree is reused when practical. Otherwise the agent proposes the base revision, branch, worktree path, and up to two local commits for one approval.
 
+Host-managed branch names are preserved. For a CLI-created branch, repository conventions and explicit user choices take precedence; otherwise the loop derives a host-neutral prefix from the primary change, such as `feature/`, `fix/`, `hotfix/`, `docs/`, or `refactor/`. An agent-name prefix such as `codex/` is never the default.
+
 The two commits are:
 
 1. The implementation or bugfix commit, amendable before first review.

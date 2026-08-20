@@ -7,6 +7,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const skillsRoot = path.join(root, 'plugin', 'skills');
 const canonicalWorkspacePath = path.join(root, 'plugin', 'references', 'workspaces.md');
 const canonicalFindingRubricPath = path.join(root, 'plugin', 'references', 'finding-rubric.md');
+const canonicalBranchNamingPath = path.join(root, 'plugin', 'references', 'branch-naming.md');
 const canonicalLoopControllerPath = path.join(root, 'plugin', 'runtime', 'loop-controller.mjs');
 const canonicalEvidenceContractPath = path.join(root, 'plugin', 'runtime', 'evidence-contract.md');
 const legacyWorkspaceInstruction = 'Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
@@ -14,6 +15,7 @@ const portableWorkspaceInstruction = 'Read `references/workspaces.md` once per a
 
 const canonicalWorkspace = await readFile(canonicalWorkspacePath, 'utf8');
 const canonicalFindingRubric = await readFile(canonicalFindingRubricPath, 'utf8');
+const canonicalBranchNaming = await readFile(canonicalBranchNamingPath, 'utf8');
 const canonicalLoopController = await readFile(canonicalLoopControllerPath, 'utf8');
 const canonicalEvidenceContract = await readFile(canonicalEvidenceContractPath, 'utf8');
 const skillNames = [...canonicalSkillNames].sort();
@@ -57,10 +59,13 @@ for (const skillName of ['bugfix-loop', 'delivery-loop']) {
   const skillRoot = path.join(skillsRoot, skillName);
   const controllerPath = path.join(skillRoot, 'scripts', 'loop-controller.mjs');
   const evidencePath = path.join(skillRoot, 'references', 'evidence-contract.md');
+  const branchNamingPath = path.join(skillRoot, 'references', 'branch-naming.md');
   await mkdir(path.dirname(controllerPath), { recursive: true });
   await mkdir(path.dirname(evidencePath), { recursive: true });
+  await mkdir(path.dirname(branchNamingPath), { recursive: true });
   await writeFile(controllerPath, canonicalLoopController, { mode: 0o755 });
   await writeFile(evidencePath, canonicalEvidenceContract);
+  await writeFile(branchNamingPath, canonicalBranchNaming);
 }
 
 process.stdout.write(`Synchronized portable resources for ${skillNames.length} skills, ${findingSkillNames.length} finding consumers, and 2 controlled loops.\n`);

@@ -1,6 +1,6 @@
 ---
 name: delivery-loop
-description: "Use only when explicitly invoked to deliver a feature in approved isolated Git worktrees through orchestrated implementation, optional delegated agents, local commits, fresh read-only review rounds, validated fixes, and re-review until clean."
+description: "Use only when explicitly invoked to deliver a feature in an approved isolated Git worktree through implementation, local commits, bounded independent review, and validated fixes."
 ---
 
 # Delivery Loop
@@ -48,7 +48,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Before isolation approval, decide whether the request fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, a worktree, or a controller run.
 - Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
-- Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated feature worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
+- Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree with an unambiguous base, read `references/branch-naming.md` before proposing its branch, and never move a detached task or check out its branch elsewhere.
 - Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.
 - Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.
 - If required isolation is declined, stop this loop and offer ordinary implementation in the checkout only with explicit write and commit authority.

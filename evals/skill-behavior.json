@@ -1151,13 +1151,13 @@
       "id": "write-guide-direct",
       "skill": "write-guide",
       "category": "direct",
-      "prompt": "Use $write-guide in this repository: find and run the relevant web app, discover its routes, roles, visible actions, and layout ranges without asking me to enumerate them, then create an onboarding guide with verified steps and useful screenshots.",
+      "prompt": "Use $write-guide in this repository: find and run the relevant web app, discover its routes, roles, visible actions, and layout ranges without asking me to enumerate them, then create an onboarding guide with verified steps and useful screenshots. No documentation system, destination, or output format is established.",
       "expect": {
         "activate": ["write-guide"],
         "forbid": ["communicate-clearly"],
         "output": {
           "contains_any": ["Prerequisites", "Steps", "guide"],
-          "contains_all": ["verified", "screenshot", "action"]
+          "contains_all": ["verified", "screenshot", "action", "PDF"]
         }
       }
     },

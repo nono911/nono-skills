@@ -49,7 +49,7 @@ flowchart LR
 ### Native Codex plugin
 
 ```bash
-npx nono-skills@0.15.1 install
+npx nono-skills@0.15.2 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`. Optional repository scaffolding is available through `npx nono-skills init`; existing differing files are not overwritten unless `--force` is explicit.
@@ -102,7 +102,7 @@ be cancelled, and unknown bookings return not found. Add regression tests.
 Do not push.
 ```
 
-Universal installations use the skill names shown by their host; do not assume the Codex `$engineering:` prefix. Native subagents are the default. External or Hybrid execution requires explicit selection and per-run consent.
+Universal installations use the skill names shown by their host; do not assume the Codex `$engineering:` prefix. Native subagents are the default. External or Hybrid execution requires explicit selection and per-run consent. When no documentation system or output format exists, a new standalone guide defaults to editable source plus a visually verified PDF. Managed loops preserve host-managed branches; CLI-created branches follow repository conventions or a context-derived prefix such as `feature/`, `fix/`, `docs/`, or `refactor/`.
 
 ## What the output looks like
 

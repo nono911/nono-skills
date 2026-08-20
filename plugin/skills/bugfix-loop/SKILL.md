@@ -1,13 +1,13 @@
 ---
 name: bugfix-loop
-description: "Use only when explicitly invoked to diagnose, reproduce, fix, regression-test, locally commit, and independently review a bug in an approved isolated Git worktree."
+description: "Use only when explicitly invoked to prove, fix, regression-test, commit, and review a bug in an isolated Git worktree."
 ---
 
 # Bugfix Loop
 
 ## Purpose
 
-Prove a defect, fix its supported cause with regression protection, and independently review the result.
+Prove and fix a defect with regression protection and independent review.
 
 ## Workspace protocol
 
@@ -45,7 +45,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Approval and isolation
 
 - Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
-- Reuse a host-managed worktree without nesting; otherwise reuse only a dedicated bugfix worktree with an unambiguous base. Do not move a detached task or check its branch out elsewhere.
+- Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree with an unambiguous base, read `references/branch-naming.md` before proposing its branch, and never move a detached task or check out its branch elsewhere.
 - Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The bugfix commit may be amended before review; one unpushed review-fix commit may be amended later.
 - Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two named local commits and repeat excluded actions.
 - If required isolation is declined, stop this loop and offer ordinary bug fixing in the checkout only with explicit write and commit authority.

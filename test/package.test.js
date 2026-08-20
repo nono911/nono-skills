@@ -42,6 +42,7 @@ test('npm package includes runtime assets and excludes development state', async
     'evals/fixtures/stable-repository/src/parser.js',
     'evals/fixtures/stable-repository/test/parser.test.js',
     'plugin/references/workspaces.md', 'plugin/references/finding-rubric.md',
+    'plugin/references/branch-naming.md',
     'scripts/sync-portable-resources.mjs',
     'plugin/skills/delivery-loop/references/agent-delegation.md',
     'plugin/skills/delivery-loop/scripts/agent-bridge.mjs',
@@ -55,6 +56,8 @@ test('npm package includes runtime assets and excludes development state', async
     'plugin/skills/delivery-loop/scripts/providers/antigravity.mjs',
     'plugin/skills/write-guide/references/ui-guides.md',
     'plugin/skills/write-guide/references/output-formats.md',
+    'plugin/skills/delivery-loop/references/branch-naming.md',
+    'plugin/skills/bugfix-loop/references/branch-naming.md',
     'templates/AGENTS.md', 'README.md', 'CHANGELOG.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
   assert.equal(expectedSkills.length, 21);

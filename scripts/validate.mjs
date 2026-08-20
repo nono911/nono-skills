@@ -32,6 +32,7 @@ assert.deepEqual(
 const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
 const findingRubric = await readFile(path.join(root, 'plugin', 'references', 'finding-rubric.md'), 'utf8');
+const branchNaming = await readFile(path.join(root, 'plugin', 'references', 'branch-naming.md'), 'utf8');
 const loopController = await readFile(path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'), 'utf8');
 const evidenceContract = await readFile(path.join(root, 'plugin', 'runtime', 'evidence-contract.md'), 'utf8');
 const findingSkillNames = new Set([
@@ -48,6 +49,8 @@ const explicitSkillNames = new Set(['bugfix-loop', 'delivery-loop', 'handoff']);
 assertWorkspaceProtocolContract(workspaceProtocol);
 assert.match(findingRubric, /Keep severity independent from evidence strength/);
 assert.match(findingRubric, /`accepted_by\.type: human`/);
+assert.match(branchNaming, /derive a host-neutral name from the primary change outcome/);
+assert.match(branchNaming, /Do not use an agent or vendor prefix/);
 for (const reasonCode of [
   'IN_SCOPE_VALIDATED',
   'LOW_SEVERITY',
@@ -118,6 +121,11 @@ for (const relative of skillFiles) {
       await readFile(path.join(skillRoot, expectedName, 'references', 'evidence-contract.md'), 'utf8'),
       evidenceContract,
       `${expectedName} must bundle the canonical evidence contract`,
+    );
+    assert.equal(
+      await readFile(path.join(skillRoot, expectedName, 'references', 'branch-naming.md'), 'utf8'),
+      branchNaming,
+      `${expectedName} must bundle the canonical branch naming contract`,
     );
   }
 }
