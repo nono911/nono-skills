@@ -1,13 +1,13 @@
 ---
 name: plan
-description: Use when a software direction is defined enough to map multi-step, cross-cutting, risky, or long-running work into a verifiable execution plan; use brainstorm first when the direction is still open.
+description: Use when a software direction is defined enough to map multi-step, cross-cutting, risky, or long-running work into a proportionate, verifiable execution plan; use brainstorm first when the direction is still open.
 ---
 
 # Plan
 
 ## Purpose
 
-Turn the request and repository evidence into a decision-ready spec and a concise, verifiable execution map. Plan to the level warranted by risk; do not add ceremony to trivial work.
+Turn the request and repository evidence into the smallest decision-ready spec and execution map that can verify the requested outcome. Plan to the level warranted by current scope and risk; do not add ceremony or speculative architecture.
 
 ## Workspace protocol
 
@@ -22,7 +22,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - A requirement snapshot separating confirmed intent, observed behavior, inferences, and blocking questions
-- A decision-ready spec and concise execution map with an Acceptance Contract of testable criteria
+- A decision-ready spec and smallest coherent execution map with an Acceptance Contract of testable criteria
 - A compact Behavior-to-Proof map for multi-criterion or material-risk work
 - For approved durable work, updated `spec.md` and `plan.md` in the selected work-item directory
 - A short summary of assumptions and human decisions needed
@@ -34,14 +34,18 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Ask only when an unresolved choice changes user-visible behavior, acceptance criteria, scope, compatibility, or irreversible risk. Ask one to three highest-leverage questions per round; never ask for facts safely discoverable from the repository.
 - Do not call a spec decision-ready or finalize its Acceptance Contract while such a blocking choice remains. Use `brainstorm` when the product or technical direction is still genuinely open.
 - State reversible low-impact assumptions and proceed when they cannot materially change the contract.
+- Default to the smallest sufficient change that satisfies confirmed outcomes and constraints; prefer existing paths, patterns, and components before adding new ones.
+- Every proposed component and plan item must map to a current requirement, acceptance criterion, repository fact, or material risk. Remove work justified only by generic flexibility, hypothetical scale, or unspecified future reuse.
+- For a small reversible change, prefer one to three outcome-based steps and a direct proof path; exceed that only when repository evidence or material risk requires separate work.
 - Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
 - For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
 - For multi-criterion or material-risk work, present a compact Behavior-to-Proof map linking each acceptance ID to its planned proof; omit the table for a trivial single outcome.
 - Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.
 - Before finalizing multi-step work, assess whether acceptance outcomes, affected components, cross-cutting risks, and unresolved decisions fit one independently verifiable change. If not, propose the smallest coherent slices and ask once for direction before creating artifacts for them.
 - Add negative, compatibility, rollout, or rollback criteria only when material to the risk.
+- Keep optional enhancements and future possibilities out of the current plan. Mention a deferred item only when useful, label it `Not now`, and state the concrete evidence or threshold that would justify revisiting it.
+- Do not add a new abstraction, dependency, service, data store, migration, feature flag, observability stack, or rollout mechanism unless the current acceptance contract, repository evidence, or material risk requires it.
 - Keep work items outcome-based and independently verifiable; avoid file-by-file pseudo-instructions.
-- Include compatibility, migration, rollout, observability, and rollback work only when relevant.
 - Do not edit production code while the request is planning-only.
 - Re-plan when new evidence invalidates a premise rather than defending the old plan.
 

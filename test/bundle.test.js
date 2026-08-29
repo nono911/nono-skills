@@ -1432,7 +1432,7 @@ test('implementation and testing preserve TDD sequencing and acceptance-linked p
   }
 });
 
-test('brainstorm and plan enforce adaptive requirement discovery without redundant questions', async () => {
+test('brainstorm and plan enforce adaptive discovery and proportionate scope', async () => {
   for (const name of ['brainstorm', 'plan']) {
     const content = await readFile(
       path.join(root, 'plugin', 'skills', name, 'SKILL.md'),
@@ -1442,7 +1442,7 @@ test('brainstorm and plan enforce adaptive requirement discovery without redunda
       assert.equal(
         content.split(responsibility).length - 1,
         1,
-        `${name} must include each requirement-discovery responsibility exactly once`,
+        `${name} must include each discovery and scope responsibility exactly once`,
       );
       assert.throws(
         () => assertSkillWorkspaceContract(

@@ -58,11 +58,21 @@ function conformingResults(corpus) {
 
 test('black-box corpus defines bounded fast paths and requirement discovery cases', async () => {
   const corpus = await loadHostEvalCorpus(corpusPath);
-  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 7 });
+  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 9 });
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-complete-fast-path'));
+  assert.ok(corpus.cases.some((entry) => entry.id === 'plan-small-scope-calibration'));
+  assert.ok(corpus.cases.some((entry) => entry.id === 'brainstorm-small-scope-calibration'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'delivery-large-scope-slicing'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'communicate-simple-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'handoff-chat-fast-path'));
+  const planSmall = corpus.cases.find((entry) => entry.id === 'plan-small-scope-calibration');
+  const brainstormSmall = corpus.cases.find(
+    (entry) => entry.id === 'brainstorm-small-scope-calibration',
+  );
+  assert.equal(planSmall.expect.performance.max_output_words, 220);
+  assert.equal(brainstormSmall.expect.performance.max_output_words, 180);
+  assert.equal(planSmall.expect.output.not_contains, undefined);
+  assert.equal(brainstormSmall.expect.output.not_contains, undefined);
 });
 
 test('black-box corpus does not claim unobserved TDD action ordering', async () => {
@@ -84,7 +94,7 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   const results = conformingResults(corpus);
   const score = scoreHostEvalResults(corpus, results);
   assert.equal(score.ok, true);
-  assert.equal(score.passed, 7);
+  assert.equal(score.passed, 9);
   assert.equal(score.performance.median_first_action_tax_ratio, 1);
 
   results.results[0].skill.metrics.questions = 4;
@@ -93,6 +103,16 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   assert.equal(failed.ok, false);
   assert.match(failed.failures[0].reasons.join('\n'), /questions/);
   assert.match(failed.failures[0].reasons.join('\n'), /first-action tax ratio/);
+
+  const planSmall = results.results.find(
+    (entry) => entry.case_id === 'plan-small-scope-calibration',
+  );
+  planSmall.skill.output = Array.from({ length: 221 }, () => 'word').join(' ');
+  const verbose = scoreHostEvalResults(corpus, results);
+  const planFailure = verbose.failures.find(
+    (entry) => entry.case_id === 'plan-small-scope-calibration',
+  );
+  assert.match(planFailure.reasons.join('\n'), /output words was 221, budget 220/);
 });
 
 test('positive output assertions treat hyphenated and spaced wording as equivalent', async () => {
@@ -135,6 +155,7 @@ test('host eval CLI validates cases and runs a fresh-process adapter for both va
           max_tool_calls_before_first_action: 1,
           max_loaded_skill_bodies: 1,
           max_loaded_references: 0,
+          max_output_words: 10,
           max_first_action_tax_ratio: 2,
         },
       },

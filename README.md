@@ -25,7 +25,7 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 19 ordinary skills remain lightweight and model-directed. The two managed loops activate only when explicitly requested, require consent for isolation and commits, and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 19 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only when explicitly requested, require consent for isolation and commits, and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
@@ -49,7 +49,7 @@ flowchart LR
 ### Native Codex plugin
 
 ```bash
-npx nono-skills@0.15.2 install
+npx nono-skills@0.15.3 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`. Optional repository scaffolding is available through `npx nono-skills init`; existing differing files are not overwritten unless `--force` is explicit.

@@ -12,6 +12,7 @@ const performanceBudgetNames = new Set([
   'max_tool_calls_before_first_action',
   'max_loaded_skill_bodies',
   'max_loaded_references',
+  'max_output_words',
   'max_first_action_tax_ratio',
 ]);
 const metricNames = Object.freeze([
@@ -152,9 +153,15 @@ function performanceFailures(contract, skill, baseline) {
   if (contract.max_tool_calls_before_first_action !== undefined) compare('tool calls before first action', skill.tool_calls_before_first_action, (a, b) => a <= b, contract.max_tool_calls_before_first_action);
   if (contract.max_loaded_skill_bodies !== undefined) compare('loaded skill bodies', skill.loaded_skill_bodies, (a, b) => a <= b, contract.max_loaded_skill_bodies);
   if (contract.max_loaded_references !== undefined) compare('loaded references', skill.loaded_references, (a, b) => a <= b, contract.max_loaded_references);
+  if (contract.max_output_words !== undefined) compare('output words', skill.output_words, (a, b) => a <= b, contract.max_output_words);
   const ratio = (skill.time_to_first_action_ms + 1) / (baseline.time_to_first_action_ms + 1);
   if (contract.max_first_action_tax_ratio !== undefined) compare('first-action tax ratio', ratio, (a, b) => a <= b, contract.max_first_action_tax_ratio);
   return { failures, ratio };
+}
+
+function outputWordCount(value) {
+  const normalized = String(value).trim();
+  return normalized ? normalized.split(/\s+/u).length : 0;
 }
 
 function median(values) {
@@ -188,7 +195,11 @@ export function scoreHostEvalResults(corpus, results, { allowMissing = false } =
     reasons.push(...outputAssertionFailures(evalCase.expect.output, result.skill.output));
     const performance = performanceFailures(
       evalCase.expect.performance,
-      { ...result.skill.metrics, activated_skills: result.skill.activated_skills.length },
+      {
+        ...result.skill.metrics,
+        activated_skills: result.skill.activated_skills.length,
+        output_words: outputWordCount(result.skill.output),
+      },
       result.baseline.metrics,
     );
     reasons.push(...performance.failures);

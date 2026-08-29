@@ -6,6 +6,21 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.15.3 — 2026-08-29
+
+### Changed
+
+- `brainstorm` and `plan` now default to the smallest sufficient direction,
+  require every proposed component or plan item to map to current evidence,
+  acceptance, or material risk, and keep hypothetical future work outside the
+  active scope with explicit reconsideration triggers.
+- Small reversible decisions no longer require an artificial option quota or
+  oversized execution map; new abstractions and operational machinery require
+  a present, evidence-backed reason.
+- Black-box host evaluation now measures output-word budgets for small planning
+  and brainstorming tasks instead of rejecting brittle technology or section
+  keywords, so concise scope is tested without penalizing valid explanations.
+
 ## 0.15.2 — 2026-08-20
 
 ### Changed
@@ -112,7 +127,8 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.15.2...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.15.3...HEAD
+[0.15.3]: https://github.com/nono911/nono-skills/compare/v0.15.2...v0.15.3
 [0.15.2]: https://github.com/nono911/nono-skills/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/nono911/nono-skills/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/nono911/nono-skills/compare/v0.14.1...v0.15.0

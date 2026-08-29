@@ -24,6 +24,29 @@
       }
     },
     {
+      "id": "plan-small-scope-calibration",
+      "skill": "plan",
+      "skill_prompt": "Use $plan for this approved change: add a reset button to one existing filter panel so it restores the current defaults. The filters already live in client state and no persistence, analytics, cross-page behavior, or backend change is requested.",
+      "baseline_prompt": "Plan this approved change: add a reset button to one existing filter panel so it restores the current defaults. The filters already live in client state and no persistence, analytics, cross-page behavior, or backend change is requested.",
+      "expect": {
+        "activate": ["plan"],
+        "forbid": ["brainstorm", "delivery-loop"],
+        "output": {
+          "contains_all": ["acceptance"],
+          "contains_any": ["smallest", "minimal", "existing"]
+        },
+        "performance": {
+          "max_questions": 0,
+          "max_activated_skills": 2,
+          "max_tool_calls_before_first_action": 5,
+          "max_loaded_skill_bodies": 2,
+          "max_loaded_references": 1,
+          "max_output_words": 220,
+          "max_first_action_tax_ratio": 4
+        }
+      }
+    },
+    {
       "id": "plan-blocking-discovery",
       "skill": "plan",
       "skill_prompt": "Use $plan to plan changes to product notifications, but the affected user, delivery channel, required behavior, and success signal have not been decided.",
@@ -62,6 +85,29 @@
           "max_tool_calls_before_first_action": 3,
           "max_loaded_skill_bodies": 1,
           "max_loaded_references": 1,
+          "max_first_action_tax_ratio": 4
+        }
+      }
+    },
+    {
+      "id": "brainstorm-small-scope-calibration",
+      "skill": "brainstorm",
+      "skill_prompt": "Use $brainstorm for a reset button on one existing filter panel. The filters already live in client state, success means restoring the current defaults, and no persistence, analytics, cross-page behavior, or backend change is requested. Explore only materially different approaches and recommend one.",
+      "baseline_prompt": "Explore approaches for a reset button on one existing filter panel. The filters already live in client state, success means restoring the current defaults, and no persistence, analytics, cross-page behavior, or backend change is requested. Recommend one.",
+      "expect": {
+        "activate": ["brainstorm"],
+        "forbid": ["plan", "delivery-loop"],
+        "output": {
+          "contains_all": ["recommend"],
+          "contains_any": ["smallest", "minimal", "existing"]
+        },
+        "performance": {
+          "max_questions": 0,
+          "max_activated_skills": 1,
+          "max_tool_calls_before_first_action": 3,
+          "max_loaded_skill_bodies": 1,
+          "max_loaded_references": 1,
+          "max_output_words": 180,
           "max_first_action_tax_ratio": 4
         }
       }
