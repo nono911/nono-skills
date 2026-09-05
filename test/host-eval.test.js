@@ -58,10 +58,11 @@ function conformingResults(corpus) {
 
 test('black-box corpus defines bounded fast paths and requirement discovery cases', async () => {
   const corpus = await loadHostEvalCorpus(corpusPath);
-  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 9 });
+  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 10 });
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-complete-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-small-scope-calibration'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'brainstorm-small-scope-calibration'));
+  assert.ok(corpus.cases.some((entry) => entry.id === 'implement-low-impact-verification'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'delivery-large-scope-slicing'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'communicate-simple-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'handoff-chat-fast-path'));
@@ -69,8 +70,16 @@ test('black-box corpus defines bounded fast paths and requirement discovery case
   const brainstormSmall = corpus.cases.find(
     (entry) => entry.id === 'brainstorm-small-scope-calibration',
   );
+  const implementLowImpact = corpus.cases.find(
+    (entry) => entry.id === 'implement-low-impact-verification',
+  );
+  const communication = corpus.cases.find(
+    (entry) => entry.id === 'communicate-simple-fast-path',
+  );
   assert.equal(planSmall.expect.performance.max_output_words, 220);
   assert.equal(brainstormSmall.expect.performance.max_output_words, 180);
+  assert.equal(implementLowImpact.expect.performance.max_tool_calls, 6);
+  assert.equal(communication.expect.performance.max_output_words, 24);
   assert.equal(planSmall.expect.output.not_contains, undefined);
   assert.equal(brainstormSmall.expect.output.not_contains, undefined);
 });
@@ -94,7 +103,7 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   const results = conformingResults(corpus);
   const score = scoreHostEvalResults(corpus, results);
   assert.equal(score.ok, true);
-  assert.equal(score.passed, 9);
+  assert.equal(score.passed, 10);
   assert.equal(score.performance.median_first_action_tax_ratio, 1);
 
   results.results[0].skill.metrics.questions = 4;
@@ -113,6 +122,16 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
     (entry) => entry.case_id === 'plan-small-scope-calibration',
   );
   assert.match(planFailure.reasons.join('\n'), /output words was 221, budget 220/);
+
+  const implementLowImpact = results.results.find(
+    (entry) => entry.case_id === 'implement-low-impact-verification',
+  );
+  implementLowImpact.skill.metrics.tool_calls = 7;
+  const overtested = scoreHostEvalResults(corpus, results);
+  const implementationFailure = overtested.failures.find(
+    (entry) => entry.case_id === 'implement-low-impact-verification',
+  );
+  assert.match(implementationFailure.reasons.join('\n'), /tool calls was 7, budget 6/);
 });
 
 test('positive output assertions treat hyphenated and spaced wording as equivalent', async () => {
@@ -152,6 +171,7 @@ test('host eval CLI validates cases and runs a fresh-process adapter for both va
         performance: {
           max_questions: 0,
           max_activated_skills: 1,
+          max_tool_calls: 2,
           max_tool_calls_before_first_action: 1,
           max_loaded_skill_bodies: 1,
           max_loaded_references: 0,

@@ -13,16 +13,19 @@ Keep this file specific to the repository. Replace placeholders with commands an
 
 ## Durable rules
 
+- Treat a request for action as authority for in-scope reversible repository work and non-destructive validation. Continue to a verified outcome instead of stopping at acknowledgement or a plan.
+- Explicit task instructions override default skill recommendations. Infer routine details from context and repository evidence; ask only when a missing choice materially changes behavior, scope, compatibility, or irreversible risk.
 - Treat executable code, configuration, tests, migrations, and observed behavior as stronger evidence than stale prose.
 - Preserve unrelated behavior and backward compatibility unless the requirement changes it.
-- Verify changed behavior with the strongest safe repository checks available. Report what ran and what remains unverified.
+- Verify changed behavior with the strongest safe repository checks available. After relevant required checks pass, broaden or repeat verification only when a failure, subsequent edit, repository rule, or unresolved material risk justifies it. Report what ran and what remains unverified.
 
 ## Communication defaults
 
 - Lead with the outcome, answer, or decision needed; add only evidence and context that help the reader act.
 - Match the user's language and requested depth. Keep progress updates brief and make final responses self-contained.
 - Distinguish verified facts, inferences, assumptions, and unknowns. Preserve material safety, compatibility, cost, and risk caveats.
-- Use established repository vocabulary and avoid routine tool narration, repeated conclusions, and generic filler.
+- Prefer concise paragraphs. Use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.
+- Use established repository vocabulary and avoid routine tool narration, canned transitions, invented labels, repeated conclusions, unrequested contrast framing, and generic filler.
 
 ## Durable task state
 

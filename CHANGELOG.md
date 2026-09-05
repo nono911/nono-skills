@@ -6,6 +6,21 @@ installations should pin an exact version.
 
 ## Unreleased
 
+### Changed
+
+- Aligned shared skill behavior with current GPT-6 Astra guidance while keeping
+  the pack model- and host-neutral: explicit user instructions outrank skill
+  defaults, routine details are inferred from context, and already-authorized
+  work proceeds before a material question pauses it.
+- Calibrated `implement` and `test` to avoid implementation-mirroring tests and
+  repeated broad verification for reversible low-impact work once meaningful
+  required checks pass.
+- Tightened `communicate-clearly` and repository guidance around concise prose,
+  purposeful formatting, direct language, and one conclusion.
+- Extended paired host evaluation with total tool-call budgets, an Astra-relevant
+  low-impact implementation case, and a concise-output budget for simple
+  communication.
+
 ## 0.15.3 — 2026-08-29
 
 ### Changed

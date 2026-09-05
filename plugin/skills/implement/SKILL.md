@@ -34,7 +34,8 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.
 - Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.
 - Do not manufacture a red phase for documentation, generated output, exploratory prototypes, behavior already covered by a passing test, or work without a viable deterministic harness. Use the strongest safe proof and disclose why test-first was not used.
-- Add or update tests for changed behavior when a viable harness exists, then run broader checks in proportion to risk.
+- Add or update tests only when they provide meaningful proof of changed behavior or regression risk. For a reversible low-impact change, do not add a test that merely mirrors the implementation.
+- Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.
 - Do not silently weaken tests, validation, security, typing, or error handling to make checks pass.
 
 ## Decision-log updates

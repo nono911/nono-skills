@@ -36,7 +36,7 @@ Completed summaries and repository insights are local, redacted, evidence-linked
 
 ## Evaluation boundary
 
-Repository tests validate deterministic contracts and controller behavior. The skill-behavior corpus validates expected activation metadata and output contracts without model calls. The paired host evaluator runs fresh skill-enabled and skill-disabled sessions through a user-supplied adapter and measures activation, questions, reference loading, pre-action calls, first-action skill tax, and duration tax.
+Repository tests validate deterministic contracts and controller behavior. The skill-behavior corpus validates expected activation metadata and output contracts without model calls. The paired host evaluator runs fresh skill-enabled and skill-disabled sessions through a user-supplied adapter and measures activation, questions, reference loading, total and pre-action calls, output length, first-action skill tax, and duration tax.
 
 Scored host captures report asserted activation precision and recall, forbidden and unasserted activations, per-skill counts, a full case-owner activation matrix, and sparse boundary confusions. These checks improve observability and regression detection. They do not guarantee identical behavior across models, hosts, prompts, repositories, or tool configurations.
 

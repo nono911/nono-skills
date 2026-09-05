@@ -135,6 +135,30 @@
       }
     },
     {
+      "id": "implement-low-impact-verification",
+      "skill": "implement",
+      "skill_prompt": "Use $implement to add a description field to package.json with the value Nono Skills host evaluation fixture. This is a reversible metadata-only edit with no runtime behavior change. Do not add a test that merely mirrors the string; run the smallest meaningful existing validation, report exact verification, and do not ask a follow-up question.",
+      "baseline_prompt": "Add a description field to package.json with the value Nono Skills host evaluation fixture. This is a reversible metadata-only edit with no runtime behavior change. Do not add a test that merely mirrors the string; run the smallest meaningful existing validation, report exact verification, and do not ask a follow-up question.",
+      "expect": {
+        "activate": ["implement"],
+        "forbid": ["test", "delivery-loop", "bugfix-loop"],
+        "output": {
+          "contains_all": ["package.json"],
+          "contains_any": ["verification", "verified"]
+        },
+        "performance": {
+          "max_questions": 0,
+          "max_activated_skills": 1,
+          "max_tool_calls": 6,
+          "max_tool_calls_before_first_action": 4,
+          "max_loaded_skill_bodies": 1,
+          "max_loaded_references": 1,
+          "max_output_words": 160,
+          "max_first_action_tax_ratio": 4
+        }
+      }
+    },
+    {
       "id": "delivery-large-scope-slicing",
       "skill": "delivery-loop",
       "skill_prompt": "Use $delivery-loop for a feature spanning web, mobile, API, database, worker, billing, authentication, and reporting with eight independent acceptance outcomes and two unresolved product decisions. Assess whether this fits one independently verifiable change before creating artifacts or editing.",
@@ -174,6 +198,7 @@
           "max_tool_calls_before_first_action": 1,
           "max_loaded_skill_bodies": 1,
           "max_loaded_references": 1,
+          "max_output_words": 24,
           "max_first_action_tax_ratio": 3
         }
       }

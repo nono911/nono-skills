@@ -2,6 +2,14 @@
 
 Use this protocol before deciding whether to create, select, or update workflow artifacts. The active skill still owns its task-specific behavior.
 
+## Operating stance
+
+The user's explicit task instructions take precedence over defaults in this protocol; higher-priority host, repository, and safety constraints still apply.
+
+Infer routine details from context and repository evidence. Complete safe discovery and already-authorized work before asking; pause only when missing input or authority could materially change the outcome.
+
+When this protocol requires a pause, name the blocking rule and concrete unresolved condition.
+
 ## 1. Classify persistence
 
 Classify the task as transient or durable using judgment, not fixed size thresholds.

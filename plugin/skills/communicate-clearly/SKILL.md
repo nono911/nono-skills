@@ -30,9 +30,9 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Identify what the reader needs to understand, decide, or do. Follow the user's requested language, depth, tone, and format over defaults in this skill.
 - Lead with the answer, outcome, or requested decision. Follow with only decision-relevant evidence, uncertainty, blockers, and a next action that actually exists.
 - Answer every material part of the request exactly once. Do not repeat the prompt, narrate routine tool use, add generic introductions or closings, or duplicate a conclusion in a second summary.
-- Keep simple answers to a sentence or short paragraph. Add headings, lists, tables, examples, or background only when they materially improve comprehension.
+- Default to concise paragraphs. Keep simple answers to a sentence or short paragraph; use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.
 - Distinguish observed facts, supported inferences, assumptions, and unknowns. Do not expose private chain-of-thought; provide concise reasons and evidence instead.
-- Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon.
+- Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon. Avoid canned transitions, invented labels, unrequested contrast framing, and repeated conclusions.
 - Preserve exact code, commands, structured data, logs, quotations, legal text, and user-designated verbatim content. Never shorten away safety, compatibility, cost, or uncertainty that changes a decision.
 - Keep progress updates brief and new-information-only. Make the final response self-contained even when earlier updates are collapsed.
 - When work items are the primary output, read `references/work-items.md`. Shape the content here; let the active project-management connector discover and apply the platform's native schema.

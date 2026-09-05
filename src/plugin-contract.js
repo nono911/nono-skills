@@ -33,6 +33,10 @@ function protocolClause(id, text) {
 export const workspaceProtocolClauses = Object.freeze([
   protocolClause('document.title', '# Adaptive Workspaces'),
   protocolClause('document.purpose', 'Use this protocol before deciding whether to create, select, or update workflow artifacts. The active skill still owns its task-specific behavior.'),
+  protocolClause('stance.heading', '## Operating stance'),
+  protocolClause('stance.user-priority', 'The user\'s explicit task instructions take precedence over defaults in this protocol; higher-priority host, repository, and safety constraints still apply.'),
+  protocolClause('stance.follow-through', 'Infer routine details from context and repository evidence. Complete safe discovery and already-authorized work before asking; pause only when missing input or authority could materially change the outcome.'),
+  protocolClause('stance.transparency', 'When this protocol requires a pause, name the blocking rule and concrete unresolved condition.'),
   protocolClause('classification.heading', '## 1. Classify persistence'),
   protocolClause('classification.transient-durable', 'Classify the task as transient or durable using judgment, not fixed size thresholds.'),
   protocolClause('classification.transient-default', 'Durable state is justified when the user asks for it, work is likely to cross agent tasks or owners, multiple outcomes need tracking, migration/security/release/compatibility risk is material, findings need a fix lifecycle, or decisions must survive the conversation. Keep localized one-shot work transient unless the user asks otherwise.'),

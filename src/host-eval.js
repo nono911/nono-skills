@@ -9,6 +9,7 @@ const performanceBudgetNames = new Set([
   'min_questions',
   'max_questions',
   'max_activated_skills',
+  'max_tool_calls',
   'max_tool_calls_before_first_action',
   'max_loaded_skill_bodies',
   'max_loaded_references',
@@ -150,6 +151,7 @@ function performanceFailures(contract, skill, baseline) {
   if (contract.min_questions !== undefined) compare('questions', skill.questions, (a, b) => a >= b, contract.min_questions);
   if (contract.max_questions !== undefined) compare('questions', skill.questions, (a, b) => a <= b, contract.max_questions);
   if (contract.max_activated_skills !== undefined) compare('activated skills', skill.activated_skills, (a, b) => a <= b, contract.max_activated_skills);
+  if (contract.max_tool_calls !== undefined) compare('tool calls', skill.tool_calls, (a, b) => a <= b, contract.max_tool_calls);
   if (contract.max_tool_calls_before_first_action !== undefined) compare('tool calls before first action', skill.tool_calls_before_first_action, (a, b) => a <= b, contract.max_tool_calls_before_first_action);
   if (contract.max_loaded_skill_bodies !== undefined) compare('loaded skill bodies', skill.loaded_skill_bodies, (a, b) => a <= b, contract.max_loaded_skill_bodies);
   if (contract.max_loaded_references !== undefined) compare('loaded references', skill.loaded_references, (a, b) => a <= b, contract.max_loaded_references);

@@ -56,15 +56,15 @@ The bundled Codex adapter runs each variant in a fresh temporary repository and 
 node scripts/adapters/codex.mjs --preflight
 ```
 
-Run the seven-case pilot only with explicit quota authority and an exact model identifier:
+Run the ten-case pilot only with explicit quota authority and an exact model identifier. The example targets GPT-6 Astra, but captures for other supported hosts and models remain valid when their identity is recorded exactly:
 
 ```bash
 node scripts/eval-host.mjs run \
   --adapter node \
   --adapter-arg scripts/adapters/codex.mjs \
   --adapter-arg --model \
-  --adapter-arg gpt-5.6-sol \
-  --output benchmarks/results/codex-0.146.0-gpt-5.6-sol.json
+  --adapter-arg gpt-6-astra \
+  --output benchmarks/results/codex-<version>-gpt-6-astra.json
 ```
 
 The adapter derives tool timing from Codex JSONL events and records both fixture and candidate-plugin digests in the host identity. Codex does not expose skill-body and reference loads as dedicated JSONL events, so those counts and canonical activation names are structured model reports; treat them as host-observed evidence, not deterministic telemetry. Keep result captures under `benchmarks/results/`, which is excluded from the npm tarball, and publish a scorecard only with the exact host identity and committed capture.

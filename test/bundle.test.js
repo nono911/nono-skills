@@ -41,6 +41,9 @@ const expectedDiscoveryKeywords = [
   'agent-orchestration',
 ];
 const representativeProtocolClauseIds = [
+  'stance.user-priority',
+  'stance.follow-through',
+  'stance.transparency',
   'classification.transient-durable',
   'classification.transient-default',
   'repository.primary-folder',
@@ -1464,6 +1467,11 @@ test('project initialization bundles repository guidance and a reviewer agent', 
     path.join(root, 'templates', '.codex', 'agents', 'engineering-reviewer.toml'),
     'utf8',
   );
+  const guidance = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
+  assert.match(guidance, /Continue to a verified outcome instead of stopping at acknowledgement or a plan/);
+  assert.match(guidance, /Explicit task instructions override default skill recommendations/);
+  assert.match(guidance, /broaden or repeat verification only when a failure, subsequent edit, repository rule, or unresolved material risk justifies it/);
+  assert.match(guidance, /Prefer concise paragraphs/);
   assert.match(reviewer, /^name = "engineering_reviewer"$/m);
   assert.match(reviewer, /^sandbox_mode = "read-only"$/m);
   assert.match(reviewer, /\$engineering:review/);

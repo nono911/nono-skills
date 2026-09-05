@@ -34,6 +34,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.
 - For a bug, first demonstrate the failure when practical, then verify the fix.
 - Cover happy path, meaningful boundaries, errors, permissions, and regression risk in proportion to impact.
+- Stop when the smallest reliable set proves the requested behavior and required checks pass. Broaden or repeat only when a failure, subsequent edit, or uncovered material risk justifies it.
 - Use real components where practical; mock only unstable or external boundaries.
 - Eliminate flaky timing, shared-state leakage, order dependence, and production dependencies.
 - Do not change production semantics merely to make a weak test pass.

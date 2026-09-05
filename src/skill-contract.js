@@ -67,7 +67,8 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
   ]),
   'communicate-clearly': Object.freeze([
     '- Lead with the answer, outcome, or requested decision. Follow with only decision-relevant evidence, uncertainty, blockers, and a next action that actually exists.',
-    '- Keep simple answers to a sentence or short paragraph. Add headings, lists, tables, examples, or background only when they materially improve comprehension.',
+    '- Default to concise paragraphs. Keep simple answers to a sentence or short paragraph; use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.',
+    '- Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon. Avoid canned transitions, invented labels, unrequested contrast framing, and repeated conclusions.',
     '- External creation or mutation requires the user\'s scoped request and a capable connector. Without both, produce a draft and state that no external item changed.',
     '- Compose with the technical skill that owns implementation, review, testing, or debugging. This skill owns human-facing communication, not the underlying engineering operation.',
   ]),
@@ -92,11 +93,14 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Before production edits, map each applicable acceptance criterion or changed observable behavior to its strongest practical proof. Use a compact Behavior-to-Proof table only for multiple criteria or material risk.',
     '- When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.',
     '- Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.',
+    '- Add or update tests only when they provide meaningful proof of changed behavior or regression risk. For a reversible low-impact change, do not add a test that merely mirrors the implementation.',
+    '- Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.',
   ]),
   test: Object.freeze([
     '- Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.',
     '- When paired with implementation and a viable deterministic harness, establish `RED` first with the smallest behavioral test and confirm it fails for the intended reason rather than setup error; after implementation, establish `GREEN` and keep it green through refactoring.',
     '- Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.',
+    '- Stop when the smallest reliable set proves the requested behavior and required checks pass. Broaden or repeat only when a failure, subsequent edit, or uncovered material risk justifies it.',
   ]),
   plan: Object.freeze([
     '- Summarize the affected user or operator, desired observable behavior, must-have and must-not behavior, constraints, and success signals; separate confirmed intent, observed current behavior, inferences, and unknowns.',
