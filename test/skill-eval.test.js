@@ -90,6 +90,17 @@ test('explicit handoff activation and redaction cases are non-vacuous', async ()
   }
 });
 
+test('managed loops activate from explicit workflow intent without requiring a skill name', async () => {
+  const corpus = await loadSkillEvalCorpus(corpusPath);
+  for (const name of ['bugfix-loop', 'delivery-loop']) {
+    const direct = corpus.cases.find((entry) => entry.id === `${name}-direct`);
+    const ordinary = corpus.cases.find((entry) => entry.id === `${name}-indirect`);
+    assert.ok(direct.expect.activate.includes(name));
+    assert.equal(direct.prompt.includes(`$${name}`), false);
+    assert.ok(ordinary.expect.forbid.includes(name));
+  }
+});
+
 test('behavioral scorer rejects leaked handoff redaction sentinels', async () => {
   const corpus = await loadSkillEvalCorpus(corpusPath);
   const results = perfectResults(corpus);

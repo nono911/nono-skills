@@ -10,6 +10,15 @@ Infer routine details from context and repository evidence. Complete safe discov
 
 When this protocol requires a pause, name the blocking rule and concrete unresolved condition.
 
+## Completion claims
+
+When reporting completion for an action task, use `COMPLETE`, `PARTIAL`, or `BLOCKED`; managed loops and specialist verdicts retain their stricter named outcomes.
+
+- Use `COMPLETE` only when the requested in-scope outcome is satisfied, applicable acceptance criteria are met, and required verification passed. A source edit or an unexecuted check is not completion.
+- Use `PARTIAL` when useful in-scope work exists but requested scope, required proof, or authorized follow-through remains; state what remains and the next executable action.
+- Use `BLOCKED` only when a concrete dependency, missing authority, unavailable capability, or failed required check prevents safe progress; name the condition that would resume work.
+- Separate directly observed evidence from inference and unverified claims. Never convert skipped, unavailable, stale, or partial verification into success.
+
 ## 1. Classify persistence
 
 Classify the task as transient or durable using judgment, not fixed size thresholds.

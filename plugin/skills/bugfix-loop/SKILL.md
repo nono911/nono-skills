@@ -1,6 +1,6 @@
 ---
 name: bugfix-loop
-description: "Use only when explicitly invoked to prove, fix, regression-test, commit, and review a bug in an isolated Git worktree."
+description: "Use when user requests an isolated bugfix with regression proof, commits, independent review, and fixes; use debug and implement for fixes."
 ---
 
 # Bugfix Loop
@@ -27,6 +27,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Refer to companions by frontmatter name, invoke them through the host mechanism, and never assume a literal invocation prefix.
 - Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.
 - Keep the original agent as orchestrator and Git owner. Use fresh agents only for read-only review or justified specialist assessment.
+- Before delegation, read `references/delegation-selection.md`.
 - Match agents to required roles and enforceable capabilities rather than provider names; Native remains the default and external execution retains its consent boundary.
 
 ## Inputs
@@ -40,7 +41,6 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - One approved isolated fix commit
 - Evidence-linked execution within five review batches, four fix cycles, and one no-verdict retry
 - A second commit only for validated later fixes that pass fresh review
-- Verification, review, commit, and residual-risk evidence
 
 ## Approval and isolation
 

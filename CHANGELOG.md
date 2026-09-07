@@ -6,6 +6,8 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.16.0 — 2026-09-07
+
 ### Changed
 
 - Aligned shared skill behavior with current GPT-6 Astra guidance while keeping
@@ -20,6 +22,16 @@ installations should pin an exact version.
 - Extended paired host evaluation with total tool-call budgets, an Astra-relevant
   low-impact implementation case, and a concise-output budget for simple
   communication.
+- Added guided `COMPLETE`, `PARTIAL`, and `BLOCKED` task outcomes so ordinary
+  implementation cannot treat source edits, skipped checks, or partial proof as
+  verified completion.
+- Made managed loops discoverable from explicit natural-language workflow intent
+  while preserving ordinary implementation and bug-fix boundaries plus all
+  worktree, commit, and external-provider approval gates.
+- Added capability-aware delegation packets and routing criteria that retain
+  product, UX, architecture, and public-contract decisions with the human or
+  orchestrator and prefer the lowest-cost eligible agent only when proof and
+  capability requirements remain intact.
 
 ## 0.15.3 — 2026-08-29
 
@@ -142,7 +154,8 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.15.3...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/nono911/nono-skills/compare/v0.15.3...v0.16.0
 [0.15.3]: https://github.com/nono911/nono-skills/compare/v0.15.2...v0.15.3
 [0.15.2]: https://github.com/nono911/nono-skills/compare/v0.15.1...v0.15.2
 [0.15.1]: https://github.com/nono911/nono-skills/compare/v0.15.0...v0.15.1

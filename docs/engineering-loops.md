@@ -1,6 +1,6 @@
 # Engineering loops
 
-`delivery-loop` and `bugfix-loop` are explicit workflows for changes that justify isolation, independent review, and a bounded remediation cycle. Ordinary implementation does not activate them automatically.
+`delivery-loop` and `bugfix-loop` are opt-in workflows for changes that justify isolation, independent review, and a bounded remediation cycle. They may be selected from the skill name or an explicit natural-language request for that complete workflow. Ordinary implementation or bug fixing without the isolation, commit, and review-fix intent does not activate them.
 
 ## Shared authority boundary
 
@@ -59,6 +59,8 @@ The reviewer must be a fresh project-scoped read-only agent or subagent, receive
 ## Native and external execution
 
 Native agents or subagents from the active host are the default. External or Hybrid execution is used only after explicit selection and consent. External results must echo the task identity, role, source scope, snapshot, and result contract. A provider that implemented a change cannot be the sole general reviewer for that change.
+
+The human and orchestrator retain business behavior, UX direction, architecture or public-contract choices, and unresolved ambiguity. Delegated work must be separable and receive a compact self-contained packet with accepted decisions, bounded scope, applicable acceptance IDs, required proof, and forbidden actions. Selection is based on required capabilities, risk, ambiguity, proof quality, and coordination cost rather than provider prestige; when comparable cost or speed is available, the lowest-cost eligible option is preferred without weakening the contract.
 
 ## Test-first boundary
 

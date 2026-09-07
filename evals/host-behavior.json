@@ -121,7 +121,7 @@
         "activate": ["implement"],
         "forbid": ["delivery-loop", "bugfix-loop"],
         "output": {
-          "contains_all": ["test"],
+          "contains_all": ["test", "COMPLETE"],
           "contains_any": ["verification", "verified"]
         },
         "performance": {
@@ -143,7 +143,7 @@
         "activate": ["implement"],
         "forbid": ["test", "delivery-loop", "bugfix-loop"],
         "output": {
-          "contains_all": ["package.json"],
+          "contains_all": ["package.json", "COMPLETE"],
           "contains_any": ["verification", "verified"]
         },
         "performance": {
@@ -161,7 +161,7 @@
     {
       "id": "delivery-large-scope-slicing",
       "skill": "delivery-loop",
-      "skill_prompt": "Use $delivery-loop for a feature spanning web, mobile, API, database, worker, billing, authentication, and reporting with eight independent acceptance outcomes and two unresolved product decisions. Assess whether this fits one independently verifiable change before creating artifacts or editing.",
+      "skill_prompt": "Deliver a feature through an isolated worktree, local commits, bounded independent review, and validated fixes. It spans web, mobile, API, database, worker, billing, authentication, and reporting with eight independent acceptance outcomes and two unresolved product decisions. Assess whether this fits one independently verifiable change before creating artifacts or editing.",
       "baseline_prompt": "Prepare delivery for a feature spanning web, mobile, API, database, worker, billing, authentication, and reporting with eight independent acceptance outcomes and two unresolved product decisions. Assess whether this fits one independently verifiable change before creating artifacts or editing.",
       "expect": {
         "activate": ["delivery-loop"],

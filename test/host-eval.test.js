@@ -76,10 +76,15 @@ test('black-box corpus defines bounded fast paths and requirement discovery case
   const communication = corpus.cases.find(
     (entry) => entry.id === 'communicate-simple-fast-path',
   );
+  const delivery = corpus.cases.find(
+    (entry) => entry.id === 'delivery-large-scope-slicing',
+  );
   assert.equal(planSmall.expect.performance.max_output_words, 220);
   assert.equal(brainstormSmall.expect.performance.max_output_words, 180);
   assert.equal(implementLowImpact.expect.performance.max_tool_calls, 6);
   assert.equal(communication.expect.performance.max_output_words, 24);
+  assert.equal(delivery.skill_prompt.includes('$delivery-loop'), false);
+  assert.ok(delivery.expect.activate.includes('delivery-loop'));
   assert.equal(planSmall.expect.output.not_contains, undefined);
   assert.equal(brainstormSmall.expect.output.not_contains, undefined);
 });

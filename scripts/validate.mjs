@@ -33,6 +33,7 @@ const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
 const findingRubric = await readFile(path.join(root, 'plugin', 'references', 'finding-rubric.md'), 'utf8');
 const branchNaming = await readFile(path.join(root, 'plugin', 'references', 'branch-naming.md'), 'utf8');
+const delegationSelection = await readFile(path.join(root, 'plugin', 'references', 'delegation-selection.md'), 'utf8');
 const loopController = await readFile(path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'), 'utf8');
 const evidenceContract = await readFile(path.join(root, 'plugin', 'runtime', 'evidence-contract.md'), 'utf8');
 const findingSkillNames = new Set([
@@ -45,7 +46,7 @@ const findingSkillNames = new Set([
   'review',
   'security-review',
 ]);
-const explicitSkillNames = new Set(['bugfix-loop', 'delivery-loop', 'handoff']);
+const explicitSkillNames = new Set(['handoff']);
 assertWorkspaceProtocolContract(workspaceProtocol);
 assert.match(findingRubric, /Keep severity independent from evidence strength/);
 assert.match(findingRubric, /`accepted_by\.type: human`/);
@@ -126,6 +127,11 @@ for (const relative of skillFiles) {
       await readFile(path.join(skillRoot, expectedName, 'references', 'branch-naming.md'), 'utf8'),
       branchNaming,
       `${expectedName} must bundle the canonical branch naming contract`,
+    );
+    assert.equal(
+      await readFile(path.join(skillRoot, expectedName, 'references', 'delegation-selection.md'), 'utf8'),
+      delegationSelection,
+      `${expectedName} must bundle the canonical delegation selection contract`,
     );
   }
 }

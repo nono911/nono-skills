@@ -25,7 +25,7 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 19 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only when explicitly requested, require consent for isolation and commits, and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 19 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
@@ -49,7 +49,7 @@ flowchart LR
 ### Native Codex plugin
 
 ```bash
-npx nono-skills@0.15.3 install
+npx nono-skills@0.16.0 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`. Optional repository scaffolding is available through `npx nono-skills init`; existing differing files are not overwritten unless `--force` is explicit.
@@ -92,7 +92,7 @@ $engineering:handoff
 Prepare a continuation packet for the next agent; do not write files.
 ```
 
-Invoke a managed loop explicitly when you want approved worktree isolation, bounded sequential review, and verified remediation:
+Request a managed loop when you want approved worktree isolation, local commits, bounded sequential review, and verified remediation. Invoke it by name or describe the same complete workflow in natural language:
 
 ```text
 $engineering:delivery-loop
@@ -161,7 +161,7 @@ A completed managed run writes a redacted `summary.json` outside tracked source.
 
 | Layer | Guarantee |
 |---|---|
-| Skill text | Model-interpreted guidance; activation and compliance are host-dependent. |
+| Skill text | Model-interpreted guidance; activation, completion labels, and compliance are host-dependent. |
 | Loop controller | Validates transitions, fixed budgets, exact-HEAD leases, evidence, dispositions, and residual completion after a managed run starts. |
 | Evidence records | Local, snapshot-bound, and hash-chained for tamper evidence. They are not tamper-proof and are not a security boundary. |
 | Evaluation | Measures asserted corpus boundaries; it does not prove identical behavior on every host. |

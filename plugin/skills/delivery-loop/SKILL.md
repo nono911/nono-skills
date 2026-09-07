@@ -1,6 +1,6 @@
 ---
 name: delivery-loop
-description: "Use only when explicitly invoked to deliver a feature in an approved isolated Git worktree through implementation, local commits, bounded independent review, and validated fixes."
+description: "Use when the user requests isolated feature delivery with commits, bounded independent review, and fixes; use implement for feature work."
 ---
 
 # Delivery Loop
@@ -27,6 +27,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Refer to companions by frontmatter name, invoke them through the host's native mechanism, and never assume a literal invocation prefix.
 - Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.
 - Keep the original agent as orchestrator and delegate only bounded work.
+- Before delegation, read `references/delegation-selection.md`.
 - At approval offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`; an unspecified choice means Native.
 - Probe or invoke external providers only after External, Hybrid, a named provider, or an options request. Then read `references/agent-delegation.md`, obtain explicit per-run consent before sharing source, and never invoke the current host externally.
 - Match agents to required roles and enforceable capabilities rather than provider names. Use one writer per file boundary, isolate delegated writers, and keep integration, verification, Git operations, and official commits with the orchestrator.

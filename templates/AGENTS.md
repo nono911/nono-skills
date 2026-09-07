@@ -24,6 +24,7 @@ Keep this file specific to the repository. Replace placeholders with commands an
 - Lead with the outcome, answer, or decision needed; add only evidence and context that help the reader act.
 - Match the user's language and requested depth. Keep progress updates brief and make final responses self-contained.
 - Distinguish verified facts, inferences, assumptions, and unknowns. Preserve material safety, compatibility, cost, and risk caveats.
+- Use `COMPLETE` only when scope and proof are satisfied; else use `PARTIAL` or `BLOCKED` and name what remains.
 - Prefer concise paragraphs. Use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.
 - Use established repository vocabulary and avoid routine tool narration, canned transitions, invented labels, repeated conclusions, unrequested contrast framing, and generic filler.
 

@@ -44,6 +44,11 @@ const representativeProtocolClauseIds = [
   'stance.user-priority',
   'stance.follow-through',
   'stance.transparency',
+  'completion.outcomes',
+  'completion.complete',
+  'completion.partial',
+  'completion.blocked',
+  'completion.evidence',
   'classification.transient-durable',
   'classification.transient-default',
   'repository.primary-folder',
@@ -333,7 +338,7 @@ test('every skill has specific UI metadata and uses the workspace protocol', asy
       `${name} short_description must be 25-64 characters`);
     assert.doesNotMatch(metadata, /Reusable engineering workflow|for this task\./);
     assert.match(metadata, new RegExp(`default_prompt: ".*\\$${name.replaceAll('-', '\\-')}\\b`));
-    if (['bugfix-loop', 'delivery-loop', 'handoff'].includes(name)) {
+    if (name === 'handoff') {
       assert.match(
         metadata,
         /^policy:\n  allow_implicit_invocation: false$/m,
@@ -379,7 +384,7 @@ test('contract rejects deleted acceptance-verify responsibilities', async () => 
   }
 });
 
-test('delivery-loop owns isolation approval and explicit child-skill composition', async () => {
+test('delivery-loop owns isolation approval and capability-aware child-skill composition', async () => {
   const content = await readFile(
     path.join(root, 'plugin', 'skills', 'delivery-loop', 'SKILL.md'),
     'utf8',
@@ -410,10 +415,20 @@ test('delivery-loop owns isolation approval and explicit child-skill composition
   assert.match(content, /`Native subagents \(default\)`, `External CLI agents`, and `Hybrid`/);
   assert.match(content, /an unspecified choice means Native/);
   assert.match(content, /Probe or invoke external providers only after External, Hybrid/);
+  assert.match(content, /references\/delegation-selection\.md/);
+  const metadata = await readFile(
+    path.join(root, 'plugin', 'skills', 'delivery-loop', 'agents', 'openai.yaml'),
+    'utf8',
+  );
+  assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
   assert.doesNotThrow(() => assertSkillWorkspaceContract('delivery-loop', content));
 });
 
 test('delivery-loop bundles a provider-neutral delegation contract and safe bridge', async () => {
+  const selection = await readFile(
+    path.join(root, 'plugin', 'references', 'delegation-selection.md'),
+    'utf8',
+  );
   const reference = await readFile(
     path.join(root, 'plugin', 'skills', 'delivery-loop', 'references', 'agent-delegation.md'),
     'utf8',
@@ -443,6 +458,8 @@ test('delivery-loop bundles a provider-neutral delegation contract and safe brid
   assert.match(reference, /input_digest/);
   assert.match(reference, /loop_context/);
   assert.match(reference, /select --mode <review\|implement>/);
+  assert.match(selection, /Do not require conversation history/);
+  assert.match(selection, /lowest-cost eligible option that preserves the contract/);
   assert.match(reference, /must not be (?:its|the) sole\s+general reviewer/);
   assert.ok(
     reference.trim().split(/\s+/).length <= 800,
@@ -498,7 +515,7 @@ test('bugfix-loop requires evidence-first diagnosis and sequential review', asyn
   assert.doesNotThrow(() => assertSkillWorkspaceContract('bugfix-loop', content));
 });
 
-test('both controlled loops bundle identical evidence, branch naming, and controller resources', async () => {
+test('both controlled loops bundle identical evidence, delegation, branch naming, and controller resources', async () => {
   const canonicalController = await readFile(
     path.join(root, 'plugin', 'runtime', 'loop-controller.mjs'),
     'utf8',
@@ -509,6 +526,10 @@ test('both controlled loops bundle identical evidence, branch naming, and contro
   );
   const canonicalBranchNaming = await readFile(
     path.join(root, 'plugin', 'references', 'branch-naming.md'),
+    'utf8',
+  );
+  const canonicalDelegationSelection = await readFile(
+    path.join(root, 'plugin', 'references', 'delegation-selection.md'),
     'utf8',
   );
   for (const name of ['bugfix-loop', 'delivery-loop']) {
@@ -523,6 +544,10 @@ test('both controlled loops bundle identical evidence, branch naming, and contro
     assert.equal(
       await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'branch-naming.md'), 'utf8'),
       canonicalBranchNaming,
+    );
+    assert.equal(
+      await readFile(path.join(root, 'plugin', 'skills', name, 'references', 'delegation-selection.md'), 'utf8'),
+      canonicalDelegationSelection,
     );
   }
   assert.match(canonicalController, /review_batches: Object\.freeze\(\{ limit: 5 \}\)/);
@@ -544,6 +569,7 @@ test('both controlled loops bundle identical evidence, branch naming, and contro
   assert.match(canonicalBranchNaming, /does not need to invoke a naming helper or supply a prefix/);
   assert.match(canonicalBranchNaming, /`hotfix\/` only for an explicitly urgent production repair/);
   assert.match(canonicalBranchNaming, /Do not use an agent or vendor prefix such as `codex\/`/);
+  assert.match(canonicalDelegationSelection, /lowest-cost eligible option that preserves the contract/);
 });
 
 test('finding producers and consumers bundle one calibrated finding rubric', async () => {
@@ -651,7 +677,7 @@ for (const [name, budget] of Object.entries(expectedSkillWordBudgets)) {
   });
 }
 
-for (const name of ['bugfix-loop', 'delivery-loop', 'handoff']) {
+for (const name of ['handoff']) {
   test(`package validation rejects implicit ${name} metadata`, async () => {
     const result = await validateMutatedFixture(async (fixtureRoot) => {
       const metadataPath = path.join(
@@ -671,6 +697,16 @@ for (const name of ['bugfix-loop', 'delivery-loop', 'handoff']) {
       await writeFile(metadataPath, mutated, 'utf8');
     });
     assertValidationFails(result, `${name} must require explicit invocation`);
+  });
+}
+
+for (const name of ['bugfix-loop', 'delivery-loop']) {
+  test(`${name} remains discoverable from explicit natural-language workflow intent`, async () => {
+    const metadata = await readFile(
+      path.join(root, 'plugin', 'skills', name, 'agents', 'openai.yaml'),
+      'utf8',
+    );
+    assert.doesNotMatch(metadata, /allow_implicit_invocation: false/);
   });
 }
 
@@ -726,6 +762,22 @@ test('package validation rejects a drifted bundled branch naming contract', asyn
   assertValidationFails(result, 'delivery-loop must bundle the canonical branch naming contract');
 });
 
+test('package validation rejects a drifted bundled delegation selection contract', async () => {
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    const bundledPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'bugfix-loop',
+      'references',
+      'delegation-selection.md',
+    );
+    const content = await readFile(bundledPath, 'utf8');
+    await writeFile(bundledPath, `${content}\nDrifted copy.\n`, 'utf8');
+  });
+  assertValidationFails(result, 'bugfix-loop must bundle the canonical delegation selection contract');
+});
+
 test('portable resource sync restores workspace, finding, evidence, and controller resources', async () => {
   await withValidationFixture(async (fixtureRoot) => {
     const skillPath = path.join(fixtureRoot, 'plugin', 'skills', 'review', 'SKILL.md');
@@ -769,6 +821,14 @@ test('portable resource sync restores workspace, finding, evidence, and controll
       'references',
       'branch-naming.md',
     );
+    const delegationSelectionPath = path.join(
+      fixtureRoot,
+      'plugin',
+      'skills',
+      'bugfix-loop',
+      'references',
+      'delegation-selection.md',
+    );
     const content = await readFile(skillPath, 'utf8');
     await writeFile(
       skillPath,
@@ -783,6 +843,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     await writeFile(controllerPath, 'stale\n', 'utf8');
     await writeFile(evidencePath, 'stale\n', 'utf8');
     await writeFile(branchNamingPath, 'stale\n', 'utf8');
+    await writeFile(delegationSelectionPath, 'stale\n', 'utf8');
 
     const result = spawnSync(process.execPath, ['scripts/sync-portable-resources.mjs'], {
       cwd: fixtureRoot,
@@ -1471,6 +1532,7 @@ test('project initialization bundles repository guidance and a reviewer agent', 
   assert.match(guidance, /Continue to a verified outcome instead of stopping at acknowledgement or a plan/);
   assert.match(guidance, /Explicit task instructions override default skill recommendations/);
   assert.match(guidance, /broaden or repeat verification only when a failure, subsequent edit, repository rule, or unresolved material risk justifies it/);
+  assert.match(guidance, /Use `COMPLETE` only when scope and proof are satisfied/);
   assert.match(guidance, /Prefer concise paragraphs/);
   assert.match(reviewer, /^name = "engineering_reviewer"$/m);
   assert.match(reviewer, /^sandbox_mode = "read-only"$/m);

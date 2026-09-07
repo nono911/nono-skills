@@ -1,10 +1,10 @@
 # Assurance boundaries
 
-Nono Skills combines model-interpreted instructions with a deterministic controller used by the two explicit engineering loops. Those layers provide different guarantees.
+Nono Skills combines model-interpreted instructions with a deterministic controller used by the two opt-in engineering loops. Those layers provide different guarantees.
 
 ## Skill layer
 
-Skills define triggers, inputs, outputs, guardrails, evidence expectations, and human-escalation boundaries. The host decides whether a skill is discoverable and activated, and the model interprets its instructions. The pack cannot force activation or prevent a model from ignoring a skill.
+Skills define triggers, inputs, outputs, guardrails, evidence expectations, and human-escalation boundaries. The host decides whether a skill is discoverable and activated, and the model interprets its instructions. Natural-language loop discovery and ordinary `COMPLETE`, `PARTIAL`, or `BLOCKED` reporting are guided behavior: the pack cannot force activation, truthful status, or prevent a model from ignoring a skill.
 
 ## Controller layer
 

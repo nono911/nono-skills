@@ -68,6 +68,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
   'communicate-clearly': Object.freeze([
     '- Lead with the answer, outcome, or requested decision. Follow with only decision-relevant evidence, uncertainty, blockers, and a next action that actually exists.',
     '- Default to concise paragraphs. Keep simple answers to a sentence or short paragraph; use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.',
+    '- Preserve the owning workflow\'s evidence and status. Never rewrite partial, blocked, unverified, failed, or residual work as complete, resolved, passed, clean, or ready.',
     '- Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon. Avoid canned transitions, invented labels, unrequested contrast framing, and repeated conclusions.',
     '- External creation or mutation requires the user\'s scoped request and a capable connector. Without both, produce a draft and state that no external item changed.',
     '- Compose with the technical skill that owns implementation, review, testing, or debugging. This skill owns human-facing communication, not the underlying engineering operation.',
@@ -95,6 +96,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.',
     '- Add or update tests only when they provide meaningful proof of changed behavior or regression risk. For a reversible low-impact change, do not add a test that merely mirrors the implementation.',
     '- Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.',
+    '- Do not report `COMPLETE` from source edits or a passing subset of required checks. Report `PARTIAL` when requested work or proof remains and `BLOCKED` only for a concrete stopping condition; distinguish executed evidence from inference and name the next executable action.',
   ]),
   test: Object.freeze([
     '- Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.',
@@ -118,6 +120,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Add negative, compatibility, rollout, or rollback criteria only when material to the risk.',
     '- Keep optional enhancements and future possibilities out of the current plan. Mention a deferred item only when useful, label it `Not now`, and state the concrete evidence or threshold that would justify revisiting it.',
     '- Do not add a new abstraction, dependency, service, data store, migration, feature flag, observability stack, or rollout mechanism unless the current acceptance contract, repository evidence, or material risk requires it.',
+    '- When an approved plan item will be delegated, make its packet self-contained enough to execute without hidden conversation context: include its outcome, accepted decisions, bounded scope, relevant acceptance IDs, required proof, and escalation conditions.',
   ]),
   'fix-findings': Object.freeze([
     '- When called by an orchestrating loop, handle one supplied finding batch and return dispositions and verification. Never invoke or request `review`, `delivery-loop`, `bugfix-loop`, or another fix loop; only the parent decides the next phase.',
@@ -134,6 +137,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- If strict control cannot execute or persist, stop this named loop. Offer ordinary implementation only with separate authority and never claim bounded or independently reviewed completion.',
     '- Refer to companions by frontmatter name, invoke them through the host\'s native mechanism, and never assume a literal invocation prefix.',
     '- Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.',
+    '- Before delegation, read `references/delegation-selection.md`.',
     '- At approval offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`; an unspecified choice means Native.',
     '- Probe or invoke external providers only after External, Hybrid, a named provider, or an options request. Then read `references/agent-delegation.md`, obtain explicit per-run consent before sharing source, and never invoke the current host externally.',
     '- Match agents to required roles and enforceable capabilities rather than provider names. Use one writer per file boundary, isolate delegated writers, and keep integration, verification, Git operations, and official commits with the orchestrator.',
@@ -163,6 +167,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- If strict control cannot execute or persist, stop this named loop. Offer ordinary bug fixing only with separate authority and never claim bounded or independently reviewed completion.',
     '- Refer to companions by frontmatter name, invoke them through the host mechanism, and never assume a literal invocation prefix.',
     '- Core companions are `debug`, `test`, `implement`, `review`, and `fix-findings`. Use `acceptance-verify` when the symptom is a runnable user journey and security, architecture, or migration specialists only when the changed risk requires them.',
+    '- Before delegation, read `references/delegation-selection.md`.',
     '- Match agents to required roles and enforceable capabilities rather than provider names; Native remains the default and external execution retains its consent boundary.',
     '- Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree with an unambiguous base, read `references/branch-naming.md` before proposing its branch, and never move a detached task or check out its branch elsewhere.',
     '- Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The bugfix commit may be amended before review; one unpushed review-fix commit may be amended later.',

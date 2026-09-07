@@ -46,6 +46,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Keep optional enhancements and future possibilities out of the current plan. Mention a deferred item only when useful, label it `Not now`, and state the concrete evidence or threshold that would justify revisiting it.
 - Do not add a new abstraction, dependency, service, data store, migration, feature flag, observability stack, or rollout mechanism unless the current acceptance contract, repository evidence, or material risk requires it.
 - Keep work items outcome-based and independently verifiable; avoid file-by-file pseudo-instructions.
+- When an approved plan item will be delegated, make its packet self-contained enough to execute without hidden conversation context: include its outcome, accepted decisions, bounded scope, relevant acceptance IDs, required proof, and escalation conditions.
 - Do not edit production code while the request is planning-only.
 - Re-plan when new evidence invalidates a premise rather than defending the old plan.
 

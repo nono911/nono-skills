@@ -32,6 +32,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Answer every material part of the request exactly once. Do not repeat the prompt, narrate routine tool use, add generic introductions or closings, or duplicate a conclusion in a second summary.
 - Default to concise paragraphs. Keep simple answers to a sentence or short paragraph; use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.
 - Distinguish observed facts, supported inferences, assumptions, and unknowns. Do not expose private chain-of-thought; provide concise reasons and evidence instead.
+- Preserve the owning workflow's evidence and status. Never rewrite partial, blocked, unverified, failed, or residual work as complete, resolved, passed, clean, or ready.
 - Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon. Avoid canned transitions, invented labels, unrequested contrast framing, and repeated conclusions.
 - Preserve exact code, commands, structured data, logs, quotations, legal text, and user-designated verbatim content. Never shorten away safety, compatibility, cost, or uncertainty that changes a decision.
 - Keep progress updates brief and new-information-only. Make the final response self-contained even when earlier updates are collapsed.

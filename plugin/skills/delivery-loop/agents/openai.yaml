@@ -2,6 +2,3 @@ interface:
   display_name: "Delivery Loop"
   short_description: "Deliver verified slices with native-first agents"
   default_prompt: "Use $delivery-loop to deliver one approved slice with TDD-preferred implementation, native subagents by default, independent review, and verified fixes."
-
-policy:
-  allow_implicit_invocation: false
