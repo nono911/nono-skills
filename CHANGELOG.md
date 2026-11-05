@@ -6,6 +6,8 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.17.0 — 2026-11-05
+
 ### Added
 
 - Added `retro` for evidence-backed session improvements, scoped remediation when
@@ -23,6 +25,17 @@ installations should pin an exact version.
 - Kept ordinary reports concise and natural while preserving machine-facing
   finding schemas and specialist outcomes.
 - Expanded behavioral evaluation for retrospectives and observable work outcomes.
+
+### Compatibility
+
+- Controller evidence schemas and the five-review/four-fix budgets are unchanged;
+  existing run records need no migration.
+- Older host-evaluation captures without the new runner observations cannot pass
+  the updated implementation cases. Executable probes require a supported Codex
+  sandbox and fail closed when unavailable; normal skill use does not require it.
+- Upgrade or roll back by installing the intended pinned pack version through
+  the same installation path. Retain existing run records and project artifacts.
+- Smaller instruction text is not a measured claim of token or latency savings.
 
 ## 0.16.0 — 2026-09-07
 
@@ -172,7 +185,8 @@ installations should pin an exact version.
 See [Upgrading from v0.13 to v0.14](docs/upgrading-to-0.14.md) for the migration
 procedure and integration changes.
 
-[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/nono911/nono-skills/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/nono911/nono-skills/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/nono911/nono-skills/compare/v0.15.3...v0.16.0
 [0.15.3]: https://github.com/nono911/nono-skills/compare/v0.15.2...v0.15.3
 [0.15.2]: https://github.com/nono911/nono-skills/compare/v0.15.1...v0.15.2
