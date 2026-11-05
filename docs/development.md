@@ -20,7 +20,7 @@ The npm tarball intentionally excludes development-only `test/` and `docs/` dire
 
 ## Canonical and portable sources
 
-Canonical shared resources live under `plugin/runtime/` and the root templates. The universal installer expects each skill to be self-contained, so `npm run sync:portable` generates matching workspace references and loop-controller copies inside the affected skill directories.
+Canonical shared resources live under `plugin/references/`, `plugin/runtime/`, and the root templates. `workspaces.md` is the small shared entrypoint; `durable-workspaces.md` loads only for durable artifact work. Conditional verification reuse has a separate reference. The universal installer expects each skill to be self-contained, so `npm run sync:portable` generates matching workspace references and loop-controller copies inside the affected skill directories.
 
 The copies are a portability artifact, not independent implementations. Validation checks that generated files match the canonical source. Change the canonical source first, regenerate, and never patch a generated copy alone.
 
@@ -56,7 +56,7 @@ The bundled Codex adapter runs each variant in a fresh temporary repository and 
 node scripts/adapters/codex.mjs --preflight
 ```
 
-Run the ten-case pilot only with explicit quota authority and an exact model identifier. The example targets GPT-6 Astra, but captures for other supported hosts and models remain valid when their identity is recorded exactly:
+Run the pilot only with explicit quota authority and an exact model identifier. The example targets GPT-6 Astra, but captures for other supported hosts and models remain valid when their identity is recorded exactly:
 
 ```bash
 node scripts/eval-host.mjs run \
@@ -68,6 +68,14 @@ node scripts/eval-host.mjs run \
 ```
 
 The adapter derives tool timing from Codex JSONL events and records both fixture and candidate-plugin digests in the host identity. Codex does not expose skill-body and reference loads as dedicated JSONL events, so those counts and canonical activation names are structured model reports; treat them as host-observed evidence, not deterministic telemetry. Keep result captures under `benchmarks/results/`, which is excluded from the npm tarball, and publish a scorecard only with the exact host identity and committed capture.
+
+The implementation fixture cases require runner-owned `observations`, collected after the model returns for both variants. The adapter probes actual behavior or package metadata, checks changed artifacts, and runs fixture tests; scoring fails missing or unsuccessful observations even if the response claims completion. Executable probes require a working `codex sandbox --permission-profile` in a fresh credential-free home, with workspace/runtime reads only, no writes, and no network. Unsupported sandbox hosts return blocked observations; there is no unsandboxed fallback. Older captures without these observations cannot pass the updated cases. Token usage and completed command/file-change event counts are captured only where the host exposes them; they do not prove TDD order. Post-run probes are excluded from model duration and tool-call metrics.
+
+The activation corpus reports `assessment_scope`: text assertions are smoke checks, not proof of executed behavior. `implement-edge` is explicitly activation-only; an activation pass does not verify that destructive changes were withheld. Use independent workspace/action evidence to assess authorization safety.
+
+Run `NONO_SANDBOX_SMOKE=1 node --test test/codex-fixture-sandbox.test.js` to check live sandbox confinement without model calls (set the environment variable with your shell's equivalent on Windows). A dynamic Node installation may fail the probe because loader aliases are outside the allowed runtime paths; prefer a self-contained Node runtime instead of broadening read access. An unavailable sandbox cannot produce a passing outcome score.
+
+For a before/after comparison, run the same corpus and fixture with the same exact host, model, effort, and tool configuration against the released plugin and the candidate using `--plugin-root`. Each run includes its own skill-off baseline. Repeat representative tasks and compare observed correctness before interpreting time, calls, or tokens; do not compare cheaper failures with successful deliveries as an efficiency win. Use a disposable development environment because fixture checks execute model-edited local code. Real-host runs consume quota and remain opt-in; deterministic suite results and independent skill exercises are not a published model benchmark.
 
 ## Release discipline
 

@@ -22,6 +22,7 @@ export const expectedDurableEndings = Object.freeze({
   plan: "When durable state is approved, append the decision to the selected work item's `decisions.md`; otherwise include it in the final response.",
   refactor: "When durable state is approved, append boundary changes, compatibility assumptions, and accepted tradeoffs to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed refactoring scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
   'release-readiness': "When durable state is approved, append only accepted release risk, waivers, rollback choices, and readiness-scope decisions to the selected work item's decisions.md; otherwise include them in the final response.",
+  retro: "When durable state is approved, append accepted environment changes, supporting evidence, and follow-up measurements to the selected work item's decisions.md; otherwise return recommendations in chat.",
   review: "When durable state is approved, track defects and their lifecycle in the selected work item's findings.md and append only review-scope or accepted-risk decisions to decisions.md; otherwise report them in the final response.",
   'security-review': "When durable state is approved, track sanitized vulnerabilities in the selected work item's findings.md and append accepted security tradeoffs, threat assumptions, compensating controls, or risk acceptance to decisions.md; otherwise report them in the final response.",
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
@@ -34,6 +35,7 @@ export const expectedSkillWordBudgets = Object.freeze({
   'communicate-clearly': 650,
   'delivery-loop': 1500,
   handoff: 550,
+  retro: 600,
   'write-guide': 850,
 });
 
@@ -96,11 +98,11 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Treat an explicit user request for TDD or test-first development as a requirement. If a meaningful red phase is impossible, stop and explain the evidence gap instead of silently switching workflows.',
     '- Add or update tests only when they provide meaningful proof of changed behavior or regression risk. For a reversible low-impact change, do not add a test that merely mirrors the implementation.',
     '- Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.',
-    '- Do not report `COMPLETE` from source edits or a passing subset of required checks. Report `PARTIAL` when requested work or proof remains and `BLOCKED` only for a concrete stopping condition; distinguish executed evidence from inference and name the next executable action.',
+    '- Claim completion only when requested scope and required proof are satisfied. Describe unfinished work or a concrete blocker and the next action naturally; preserve exact statuses required by a caller.',
   ]),
   test: Object.freeze([
     '- Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.',
-    '- When paired with implementation and a viable deterministic harness, establish `RED` first with the smallest behavioral test and confirm it fails for the intended reason rather than setup error; after implementation, establish `GREEN` and keep it green through refactoring.',
+    '- When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.',
     '- Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.',
     '- Stop when the smallest reliable set proves the requested behavior and required checks pass. Broaden or repeat only when a failure, subsequent edit, or uncovered material risk justifies it.',
   ]),
@@ -112,7 +114,7 @@ export const expectedRequiredResponsibilityLines = Object.freeze({
     '- Default to the smallest sufficient change that satisfies confirmed outcomes and constraints; prefer existing paths, patterns, and components before adding new ones.',
     '- Every proposed component and plan item must map to a current requirement, acceptance criterion, repository fact, or material risk. Remove work justified only by generic flexibility, hypothetical scale, or unspecified future reuse.',
     '- For a small reversible change, prefer one to three outcome-based steps and a direct proof path; exceed that only when repository evidence or material risk requires separate work.',
-    '- Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.',
+    '- Use stable `AC-<number>` identifiers for durable, multi-outcome, delegated, material-risk, or controller-managed work. For a small transient change, a direct expected outcome and proof are sufficient; preserve existing acceptance IDs.',
     '- For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.',
     '- For multi-criterion or material-risk work, present a compact Behavior-to-Proof map linking each acceptance ID to its planned proof; omit the table for a trivial single outcome.',
     '- Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.',

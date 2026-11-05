@@ -4,7 +4,7 @@ Nono Skills combines model-interpreted instructions with a deterministic control
 
 ## Skill layer
 
-Skills define triggers, inputs, outputs, guardrails, evidence expectations, and human-escalation boundaries. The host decides whether a skill is discoverable and activated, and the model interprets its instructions. Natural-language loop discovery and ordinary `COMPLETE`, `PARTIAL`, or `BLOCKED` reporting are guided behavior: the pack cannot force activation, truthful status, or prevent a model from ignoring a skill.
+Skills define triggers, inputs, outputs, guardrails, evidence expectations, and human-escalation boundaries. The host decides whether a skill is discoverable and activated, and the model interprets its instructions. Natural-language loop discovery and truthful completion reporting are guided behavior: the pack cannot force activation, truthful status, or prevent a model from ignoring a skill.
 
 ## Controller layer
 
@@ -32,7 +32,7 @@ Evidence Contract v2 is designed for outcomes, identifiers, structured finding o
 
 Schema-v1 runs remain readable through list and status operations. The controller rejects resume and mutation instead of silently migrating them. With explicit human confirmation, `runs supersede` may create one linked v2 successor at the current HEAD; it does not alter the v1 chain, import its proof, accept its risks, or delete it.
 
-Completed summaries and repository insights are local, redacted, evidence-linked, and advisory. `clean_with_residuals` is a qualified completion and preserves every unresolved non-actionable item. These records do not train a model, rewrite skills, change permissions, extend budgets, accept risk, or send telemetry.
+Completed summaries and repository insights are local, redacted, evidence-linked, and advisory. `clean_with_residuals` is a qualified completion and preserves every unresolved non-actionable item. These records do not train a model, rewrite skills, change permissions, extend budgets, accept risk, or send telemetry. `retro` uses scoped session evidence and these advisory records to propose improvements; remediation requires a scoped fix request, and claimed benefits need measurement.
 
 ## Evaluation boundary
 
@@ -40,7 +40,11 @@ Repository tests validate deterministic contracts and controller behavior. The s
 
 Scored host captures report asserted activation precision and recall, forbidden and unasserted activations, per-skill counts, a full case-owner activation matrix, and sparse boundary confusions. These checks improve observability and regression detection. They do not guarantee identical behavior across models, hosts, prompts, repositories, or tool configurations.
 
-The current host evaluator does not observe or prove file-edit or test-execution ordering. TDD sequencing remains guided by skill instructions until an adapter captures ordered execution evidence; final-response labels such as `RED` and `GREEN` are not scored as proof of that sequence.
+The current host evaluator does not observe or prove file-edit or test-execution ordering sufficiently to certify TDD. The Codex adapter captures completed file-change and command-event counts, plus token usage when exposed. Missing usage stays absent, not zero. Final-response labels such as `RED`, `GREEN`, or `COMPLETE` are not execution proof.
+
+Two implementation cases also require runner-owned observations after the model returns: actual fixture behavior or package metadata, changed-file scope or a surviving changed test artifact, and fixture test execution. A changed test artifact is not proof that the test catches the requested regression; the independent behavior probe checks the null-guard contract separately. Both variants receive the same probes, outside model timing metrics. Executable checks require an available read-only, network-disabled Codex sandbox and credential-free environment; otherwise observations are blocked, never retried unsandboxed. Missing observations fail those cases, and baseline quality is reported separately. Adapter-supplied observations still depend on the adapter's integrity; these checks are not a security boundary or evidence of unmeasured model improvements.
+
+Activation-only cases, including `implement-edge`, do not verify execution or the absence of unauthorized edits. The activation scorer exposes this scope separately from its lexical response smoke checks; neither substitutes for independent action evidence.
 
 ## Claim vocabulary
 

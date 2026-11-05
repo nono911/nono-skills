@@ -30,11 +30,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Prefer behavior assertions over implementation-detail assertions.
 - Map each applicable acceptance criterion or changed observable behavior to the test boundary that proves it; keep a trivial single outcome artifact-light.
-- When paired with implementation and a viable deterministic harness, establish `RED` first with the smallest behavioral test and confirm it fails for the intended reason rather than setup error; after implementation, establish `GREEN` and keep it green through refactoring.
+- When changed behavior is deterministic through a viable automated harness, prefer red-green-refactor: add the smallest behavioral test, run it and confirm the intended failure, implement the minimum change to pass, then refactor while the focused tests remain green.
 - Treat an explicit request for TDD or test-first development as a sequencing requirement. If the behavior already passes, refine the proof or report that no meaningful red phase exists; never break production code to manufacture failure.
+- Do not manufacture a red phase for documentation, generated output, exploratory prototypes, behavior already covered by a passing test, or work without a viable deterministic harness. Use the strongest safe proof and disclose why test-first was not used.
 - For a bug, first demonstrate the failure when practical, then verify the fix.
 - Cover happy path, meaningful boundaries, errors, permissions, and regression risk in proportion to impact.
 - Stop when the smallest reliable set proves the requested behavior and required checks pass. Broaden or repeat only when a failure, subsequent edit, or uncovered material risk justifies it.
+- When considering reuse of earlier verification, read `references/verification.md`.
 - Use real components where practical; mock only unstable or external boundaries.
 - Eliminate flaky timing, shared-state leakage, order dependence, and production dependencies.
 - Do not change production semantics merely to make a weak test pass.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Retro"
+  short_description: "Improve future runs from observed session friction"
+  default_prompt: "Use $retro to inspect this session and recommend the smallest evidence-backed improvements."

@@ -22,7 +22,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - Findings ordered `critical`, `high`, `medium`, then `low`
-- Each finding includes a stable ID, severity, category, location, evidence, impact, reasoning or reproduction, and remediation direction
+- Standalone findings show severity, location, impact, supporting evidence, and remediation concisely; include stable IDs and structured fields when a caller or durable tracker requires them
 - Residual risks and verification gaps; explicitly state when no actionable findings remain
 
 ## Workflow
@@ -32,7 +32,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 3. Trace affected runtime, data, compatibility, and failure paths beyond the diff when needed to prove impact.
 4. Evaluate relevant tests and runtime evidence, including important behavior the change leaves untested.
 5. Compare observed behavior with acceptance criteria, public contracts, and repository rules.
-6. Read `references/finding-rubric.md`, then return only findings with calibrated severity, `evidence_status`, and structured evidence bound to the reviewed HEAD, or explicitly state that no actionable findings remain. Preserve impact severity when evidence is insufficient; mark the evidence insufficient instead of downgrading it.
+6. Read `references/finding-rubric.md` and apply its evidence and severity thresholds. Use concise prose for standalone advice; return the full schema and HEAD-bound evidence when a controller, tracker, or caller requires it. State when no actionable findings remain, and preserve severity while labeling insufficient evidence.
 
 ## Guardrails
 

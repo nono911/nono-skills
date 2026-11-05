@@ -14,12 +14,15 @@ const canonicalEvidenceContractPath = path.join(root, 'plugin', 'runtime', 'evid
 const legacyWorkspaceInstruction = 'Read `../../references/workspaces.md` once per Codex task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 const portableWorkspaceInstruction = 'Read `references/workspaces.md` once per agent task before selecting or creating workflow artifacts; reuse it unless repository scope or task authority changes. This skill owns only the task-specific behavior below.';
 
+const canonicalDurableWorkspace = await readFile(path.join(root, 'plugin', 'references', 'durable-workspaces.md'), 'utf8');
 const canonicalWorkspace = await readFile(canonicalWorkspacePath, 'utf8');
 const canonicalFindingRubric = await readFile(canonicalFindingRubricPath, 'utf8');
 const canonicalBranchNaming = await readFile(canonicalBranchNamingPath, 'utf8');
 const canonicalDelegationSelection = await readFile(canonicalDelegationSelectionPath, 'utf8');
 const canonicalLoopController = await readFile(canonicalLoopControllerPath, 'utf8');
 const canonicalEvidenceContract = await readFile(canonicalEvidenceContractPath, 'utf8');
+const verification = await readFile(path.join(root, 'plugin', 'references', 'verification.md'), 'utf8');
+const verificationSkills = new Set(['implement', 'test', 'release-readiness', 'delivery-loop', 'bugfix-loop']);
 const skillNames = [...canonicalSkillNames].sort();
 
 for (const skillName of skillNames) {
@@ -37,7 +40,11 @@ for (const skillName of skillNames) {
 
   await writeFile(skillPath, content);
   await mkdir(path.dirname(referencePath), { recursive: true });
+  if (verificationSkills.has(skillName)) {
+    await writeFile(path.join(skillRoot, 'references', 'verification.md'), verification);
+  }
   await writeFile(referencePath, canonicalWorkspace);
+  await writeFile(path.join(skillRoot, 'references', 'durable-workspaces.md'), canonicalDurableWorkspace);
 }
 
 const findingSkillNames = [

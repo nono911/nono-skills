@@ -34,6 +34,7 @@ function requestFor(evalCase, variant) {
     prompt: variant === 'skill' ? evalCase.skill_prompt : evalCase.baseline_prompt,
     skills_enabled: variant === 'skill',
     isolation: 'fresh-session',
+    requested_observations: evalCase.expect.observations ?? [],
     response_contract: {
       activated_skills: 'canonical nono-skills names only',
       output: 'final user-facing text',
@@ -117,11 +118,13 @@ async function capture(options) {
       skill: {
         activated_skills: skillResponse.activated_skills,
         output: skillResponse.output,
+        ...(skillResponse.observations ? { observations: skillResponse.observations } : {}),
         metrics: skillResponse.metrics,
       },
       baseline: {
         activated_skills: baselineResponse.activated_skills,
         output: baselineResponse.output,
+        ...(baselineResponse.observations ? { observations: baselineResponse.observations } : {}),
         metrics: baselineResponse.metrics,
       },
     });
@@ -154,12 +157,14 @@ try {
     const corpus = await loadHostEvalCorpus(args[1] ?? defaultCorpus);
     const score = scoreHostEvalResults(corpus, await readJson(args[0]), { allowMissing });
     console.log(`Host eval: ${score.passed}/${score.total} passed; ${score.failed} failed; ${score.missing} missing.`);
+    console.log(`Observed outcomes: skill ${score.observed_quality.skill_passed}/${score.observed_quality.cases}; baseline ${score.observed_quality.baseline_passed}/${score.observed_quality.cases}.`);
     console.log(`Median first-action tax: ${score.performance.median_first_action_tax_ratio ?? 'n/a'}x; duration tax: ${score.performance.median_duration_tax_ratio ?? 'n/a'}x.`);
     for (const failure of score.failures) console.error(`${failure.case_id}: ${failure.reasons.join('; ')}`);
     if (!score.ok) process.exitCode = 1;
   } else if (command === 'run') {
     const score = await capture(parseRunArgs(args));
     console.log(`Host eval: ${score.passed}/${score.total} passed; ${score.failed} failed; ${score.missing} missing.`);
+    console.log(`Observed outcomes: skill ${score.observed_quality.skill_passed}/${score.observed_quality.cases}; baseline ${score.observed_quality.baseline_passed}/${score.observed_quality.cases}.`);
     console.log(`Median first-action tax: ${score.performance.median_first_action_tax_ratio ?? 'n/a'}x; duration tax: ${score.performance.median_duration_tax_ratio ?? 'n/a'}x.`);
     for (const failure of score.failures) console.error(`${failure.case_id}: ${failure.reasons.join('; ')}`);
     if (!score.ok) process.exitCode = 1;

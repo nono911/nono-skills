@@ -37,7 +37,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Default to the smallest sufficient change that satisfies confirmed outcomes and constraints; prefer existing paths, patterns, and components before adding new ones.
 - Every proposed component and plan item must map to a current requirement, acceptance criterion, repository fact, or material risk. Remove work justified only by generic flexibility, hypothetical scale, or unspecified future reuse.
 - For a small reversible change, prefer one to three outcome-based steps and a direct proof path; exceed that only when repository evidence or material risk requires separate work.
-- Define an Acceptance Contract with stable `AC-<number>` identifiers for every user-visible or externally observable outcome.
+- Use stable `AC-<number>` identifiers for durable, multi-outcome, delegated, material-risk, or controller-managed work. For a small transient change, a direct expected outcome and proof are sufficient; preserve existing acceptance IDs.
 - For each acceptance criterion, state the observable outcome, verification boundary, and expected evidence; include at least one verification method.
 - For multi-criterion or material-risk work, present a compact Behavior-to-Proof map linking each acceptance ID to its planned proof; omit the table for a trivial single outcome.
 - Link each execution-plan outcome to the affected acceptance IDs when applicable; do not invent acceptance criteria for purely enabling internal tasks.
@@ -45,7 +45,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Add negative, compatibility, rollout, or rollback criteria only when material to the risk.
 - Keep optional enhancements and future possibilities out of the current plan. Mention a deferred item only when useful, label it `Not now`, and state the concrete evidence or threshold that would justify revisiting it.
 - Do not add a new abstraction, dependency, service, data store, migration, feature flag, observability stack, or rollout mechanism unless the current acceptance contract, repository evidence, or material risk requires it.
-- Keep work items outcome-based and independently verifiable; avoid file-by-file pseudo-instructions.
+- Keep work items outcome-based and independently verifiable. Add examples, integration boundaries, or checkpoints only where ambiguity, unfamiliar context, delegation, or observed execution failures require them; do not infer detail needs from model names.
 - When an approved plan item will be delegated, make its packet self-contained enough to execute without hidden conversation context: include its outcome, accepted decisions, bounded scope, relevant acceptance IDs, required proof, and escalation conditions.
 - Do not edit production code while the request is planning-only.
 - Re-plan when new evidence invalidates a premise rather than defending the old plan.

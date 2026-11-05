@@ -7,6 +7,7 @@ import {
   assertCanonicalSkillInventory,
   assertSkillDiscoveryContract,
   assertWorkspaceProtocolContract,
+  assertDurableWorkspaceProtocolContract,
 } from '../src/plugin-contract.js';
 import {
   assertSkillWorkspaceContract,
@@ -31,6 +32,7 @@ assert.deepEqual(
 );
 const discoveryMetadata = [];
 const workspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
+const durableWorkspaceProtocol = await readFile(path.join(root, 'plugin', 'references', 'durable-workspaces.md'), 'utf8');
 const findingRubric = await readFile(path.join(root, 'plugin', 'references', 'finding-rubric.md'), 'utf8');
 const branchNaming = await readFile(path.join(root, 'plugin', 'references', 'branch-naming.md'), 'utf8');
 const delegationSelection = await readFile(path.join(root, 'plugin', 'references', 'delegation-selection.md'), 'utf8');
@@ -46,8 +48,12 @@ const findingSkillNames = new Set([
   'review',
   'security-review',
 ]);
+const verification = await readFile(path.join(root, 'plugin', 'references', 'verification.md'), 'utf8');
+const verificationSkills = new Set(['implement', 'test', 'release-readiness', 'delivery-loop', 'bugfix-loop']);
 const explicitSkillNames = new Set(['handoff']);
 assertWorkspaceProtocolContract(workspaceProtocol);
+assertDurableWorkspaceProtocolContract(durableWorkspaceProtocol);
+assert.ok(workspaceProtocol.trim().split(/\s+/).length <= 350, 'shared entry rules must stay under 350 words');
 assert.match(findingRubric, /Keep severity independent from evidence strength/);
 assert.match(findingRubric, /`accepted_by\.type: human`/);
 assert.match(branchNaming, /derive a host-neutral name from the primary change outcome/);
@@ -90,6 +96,14 @@ for (const relative of skillFiles) {
     workspaceProtocol,
     `${expectedName} must bundle the canonical workspace protocol`,
   );
+  assert.equal(
+    await readFile(path.join(skillRoot, expectedName, 'references', 'durable-workspaces.md'), 'utf8'),
+    durableWorkspaceProtocol,
+    `${expectedName} must bundle the canonical durable workspace protocol`,
+  );
+  if (verificationSkills.has(expectedName)) {
+    assert.equal(await readFile(path.join(skillRoot, expectedName, 'references', 'verification.md'), 'utf8'), verification, `${expectedName} must bundle the canonical verification reference`);
+  }
   if (findingSkillNames.has(expectedName)) {
     assert.equal(
       await readFile(path.join(skillRoot, expectedName, 'references', 'finding-rubric.md'), 'utf8'),

@@ -120,6 +120,10 @@ export function assertSkillEvalCorpus(corpus) {
       );
     }
 
+    if (entry.assessment !== undefined) {
+      assert.equal(entry.assessment, 'activation-only', `${id} has unknown assessment scope`);
+      assert.equal(expect.output, undefined, `${id} activation-only case cannot assert behavior from text`);
+    }
     if (expect.output !== undefined) {
       assertOutputAssertions(expect.output, `${id} expect.output`);
       outputCoverage.add(skill);
@@ -304,6 +308,11 @@ export function scoreSkillEvalResults(corpus, results, { allowMissing = false } 
     failed: failures.length,
     missing,
     activation,
+    assessment_scope: {
+      activation_only_cases: corpus.cases.filter((entry) => !entry.expect.output).map((entry) => entry.id),
+      text_smoke_cases: corpus.cases.filter((entry) => entry.expect.output).map((entry) => entry.id),
+      execution_verified_cases: [],
+    },
     failures,
   });
 }

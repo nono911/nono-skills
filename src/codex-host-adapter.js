@@ -45,10 +45,22 @@ export function buildCodexExecArgs({ model, reasoningEffort, workspace, schemaFi
 export function summarizeCodexEvents(timedEvents, durationMs) {
   const toolIds = new Set();
   let firstActionMs = null;
+  const usage = [];
+  const eventCounts = { file_changes: 0, completed_commands: 0, failed_commands: 0 };
+  const completedIds = new Set();
   let toolCallsBeforeFirstAction = 0;
   for (const entry of timedEvents) {
+    if (entry.event?.type === 'turn.completed' && entry.event.usage) usage.push(entry.event.usage);
     const item = entry.event?.item;
     if (!item || !String(entry.event.type).startsWith('item.')) continue;
+    if (entry.event.type === 'item.completed' && item.id && !completedIds.has(item.id)) {
+      completedIds.add(item.id);
+      if (item.type === 'file_change') eventCounts.file_changes += 1;
+      if (item.type === 'command_execution') {
+        eventCounts.completed_commands += 1;
+        if (typeof item.exit_code === 'number' && item.exit_code !== 0) eventCounts.failed_commands += 1;
+      }
+    }
     const id = item.id ?? `${item.type}:${entry.elapsed_ms}`;
     if (toolItemTypes.has(item.type) && !toolIds.has(id)) {
       toolIds.add(id);
@@ -58,7 +70,15 @@ export function summarizeCodexEvents(timedEvents, durationMs) {
       && (item.type !== 'agent_message' || entry.event.type === 'item.completed');
     if (material && firstActionMs === null) firstActionMs = entry.elapsed_ms;
   }
+  const tokenMetrics = {};
+  for (const name of ['input_tokens', 'cached_input_tokens', 'output_tokens']) {
+    if (usage.length && usage.every((item) => Number.isInteger(item[name]) && item[name] >= 0)) {
+      tokenMetrics[name] = usage.reduce((total, item) => total + item[name], 0);
+    }
+  }
   return {
+    ...tokenMetrics,
+    observed_events: eventCounts,
     duration_ms: Math.max(0, Math.round(durationMs)),
     time_to_first_action_ms: Math.max(0, Math.round(firstActionMs ?? durationMs)),
     tool_calls: toolIds.size,

@@ -56,6 +56,7 @@ try {
         console.log(
           `Behavioral eval: ${score.passed}/${score.total} passed; ${score.failed} failed; ${score.missing} missing.`,
         );
+        console.log(`Scope: ${score.assessment_scope.activation_only_cases.length} activation-only cases; ${score.assessment_scope.text_smoke_cases.length} text-smoke cases; no execution-verified safety claims.`);
         console.log(
           `Activation: asserted precision ${score.activation.asserted_precision?.toFixed(3) ?? 'n/a'}; recall ${score.activation.recall?.toFixed(3) ?? 'n/a'}; forbidden ${score.activation.forbidden_activations}/${score.activation.forbidden_opportunities}; unasserted ${score.activation.unasserted_activations}.`,
         );

@@ -24,7 +24,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Scoped source, test, configuration, migration, or documentation changes
 - Updated existing plan status and handoff when those artifacts are in use and work remains
 - Acceptance-linked verification evidence and a concise change summary
-- A truthful `COMPLETE`, `PARTIAL`, or `BLOCKED` task outcome with remaining work and the next executable action when applicable
+- A truthful outcome in natural language, with remaining work and the next executable action when applicable; preserve exact labels required by the caller
 
 ## Rules
 
@@ -37,7 +37,9 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Do not manufacture a red phase for documentation, generated output, exploratory prototypes, behavior already covered by a passing test, or work without a viable deterministic harness. Use the strongest safe proof and disclose why test-first was not used.
 - Add or update tests only when they provide meaningful proof of changed behavior or regression risk. For a reversible low-impact change, do not add a test that merely mirrors the implementation.
 - Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.
-- Do not report `COMPLETE` from source edits or a passing subset of required checks. Report `PARTIAL` when requested work or proof remains and `BLOCKED` only for a concrete stopping condition; distinguish executed evidence from inference and name the next executable action.
+- Claim completion only when requested scope and required proof are satisfied. Describe unfinished work or a concrete blocker and the next action naturally; preserve exact statuses required by a caller.
+- When considering reuse of earlier verification, read `references/verification.md`.
+- For material UI or interaction changes, inspect the existing design system and use an available relevant UX/UI skill through the host mechanism. Select only what the change needs; do not assume a particular pack is installed. Verify affected rendered states and journeys with `acceptance-verify` when available, or the host's browser capability; disclose unavailable visual proof.
 - Do not silently weaken tests, validation, security, typing, or error handling to make checks pass.
 
 ## Decision-log updates

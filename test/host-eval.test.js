@@ -42,6 +42,7 @@ function conformingResults(corpus) {
       skill: {
         activated_skills: evalCase.expect.activate,
         output: outputFor(evalCase),
+        observations: (evalCase.expect.observations ?? []).map((id) => ({ id, status: 'passed', source: 'runner' })),
         metrics: {
           ...metrics,
           questions: evalCase.expect.performance.min_questions ?? 0,
@@ -50,6 +51,7 @@ function conformingResults(corpus) {
       baseline: {
         activated_skills: [],
         output: 'baseline result',
+        observations: (evalCase.expect.observations ?? []).map((id) => ({ id, status: 'passed', source: 'runner' })),
         metrics,
       },
     })),
@@ -58,7 +60,7 @@ function conformingResults(corpus) {
 
 test('black-box corpus defines bounded fast paths and requirement discovery cases', async () => {
   const corpus = await loadHostEvalCorpus(corpusPath);
-  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 10 });
+  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 11 });
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-complete-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-small-scope-calibration'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'brainstorm-small-scope-calibration'));
@@ -108,7 +110,7 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   const results = conformingResults(corpus);
   const score = scoreHostEvalResults(corpus, results);
   assert.equal(score.ok, true);
-  assert.equal(score.passed, 10);
+  assert.equal(score.passed, 11);
   assert.equal(score.performance.median_first_action_tax_ratio, 1);
 
   results.results[0].skill.metrics.questions = 4;
@@ -226,4 +228,26 @@ console.log(JSON.stringify({
   const captured = JSON.parse(await readFile(output, 'utf8'));
   assert.equal(captured.results[0].skill.activated_skills[0], 'plan');
   assert.equal(captured.results[0].baseline.activated_skills.length, 0);
+});
+
+test('completion prose cannot replace missing or failed runner observations', async () => {
+  const corpus = await loadHostEvalCorpus(corpusPath);
+  const results = conformingResults(corpus);
+  const entry = results.results.find((item) => item.case_id === 'implement-small-fast-path');
+  entry.skill.output += ' COMPLETE verified tests passed';
+  delete entry.skill.observations;
+  let score = scoreHostEvalResults(corpus, results);
+  assert.equal(score.ok, false);
+  assert.match(score.failures[0].reasons.join(' '), /parser-contract: missing/);
+  entry.skill.observations = [
+    { id: 'parser-contract', status: 'failed', source: 'runner' },
+    { id: 'regression-test-change', status: 'passed', source: 'runner' },
+    { id: 'fixture-tests', status: 'passed', source: 'runner' },
+  ];
+  score = scoreHostEvalResults(corpus, results);
+  assert.match(score.failures[0].reasons.join(' '), /parser-contract: failed/);
+  assert.equal(score.observed_quality.skill_passed, 1);
+  assert.equal(score.observed_quality.baseline_passed, 2);
+  entry.skill.observations[0].source = 'model';
+  assert.throws(() => scoreHostEvalResults(corpus, results), /runner-owned/);
 });

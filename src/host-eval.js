@@ -91,6 +91,7 @@ export function assertHostEvalCorpus(corpus) {
     for (const skill of entry.expect.activate) {
       assert.equal(entry.expect.forbid.includes(skill), false, `${entry.id} cannot activate and forbid ${skill}`);
     }
+    if (entry.expect.observations !== undefined) assertStringList(entry.expect.observations, `${entry.id}.expect.observations`);
     assertOutputContract(entry.expect.output, `${entry.id}.expect.output`);
     assertPerformanceBudget(entry.expect.performance, `${entry.id}.expect.performance`);
   }
@@ -105,6 +106,9 @@ export async function loadHostEvalCorpus(file) {
 
 function assertMetrics(metrics, label) {
   assert.ok(metrics && typeof metrics === 'object' && !Array.isArray(metrics), `${label} must be an object`);
+  for (const name of ['input_tokens', 'cached_input_tokens', 'output_tokens']) {
+    if (metrics[name] !== undefined) assert.ok(Number.isInteger(metrics[name]) && metrics[name] >= 0, `${label}.${name} must be a non-negative integer`);
+  }
   for (const name of metricNames) {
     assert.equal(typeof metrics[name], 'number', `${label}.${name} must be a number`);
     assert.ok(Number.isInteger(metrics[name]) && metrics[name] >= 0, `${label}.${name} must be a non-negative integer`);
@@ -116,6 +120,17 @@ function assertVariant(value, label) {
   assertKnownSkills(value.activated_skills, `${label}.activated_skills`, { allowEmpty: true });
   assert.equal(typeof value.output, 'string', `${label}.output must be a string`);
   assertMetrics(value.metrics, `${label}.metrics`);
+  if (value.observations !== undefined) {
+    assert.ok(Array.isArray(value.observations), `${label}.observations must be an array`);
+    const ids = new Set();
+    for (const item of value.observations) {
+      assert.ok(item && typeof item.id === 'string' && item.id.trim(), `${label} observation must have an id`);
+      assert.equal(ids.has(item.id), false, `${label} has duplicate observation ${item.id}`);
+      ids.add(item.id);
+      assert.equal(item.source, 'runner', `${label} observations must be runner-owned`);
+      assert.ok(['passed', 'failed', 'blocked'].includes(item.status), `${label} observation status is invalid`);
+    }
+  }
 }
 
 function assertHostEvalResults(corpus, results) {
@@ -179,6 +194,7 @@ export function scoreHostEvalResults(corpus, results, { allowMissing = false } =
   const failures = [];
   const firstActionRatios = [];
   const durationRatios = [];
+  const observedQuality = { skill_passed: 0, baseline_passed: 0, cases: 0 };
   let passed = 0;
   for (const evalCase of corpus.cases) {
     const result = byId.get(evalCase.id);
@@ -193,6 +209,17 @@ export function scoreHostEvalResults(corpus, results, { allowMissing = false } =
     }
     for (const skill of evalCase.expect.forbid) {
       if (activated.has(skill)) reasons.push(`forbidden activation: ${skill}`);
+    }
+    if (evalCase.expect.observations?.length) {
+      observedQuality.cases += 1;
+      for (const variant of ['skill', 'baseline']) {
+        const observed = new Map((result[variant].observations ?? []).map((item) => [item.id, item.status]));
+        const missingOrFailed = evalCase.expect.observations.filter((id) => observed.get(id) !== 'passed');
+        if (missingOrFailed.length === 0) observedQuality[variant + '_passed'] += 1;
+        if (variant === 'skill') {
+          for (const id of missingOrFailed) reasons.push('observation ' + id + ': ' + (observed.get(id) ?? 'missing'));
+        }
+      }
     }
     reasons.push(...outputAssertionFailures(evalCase.expect.output, result.skill.output));
     const performance = performanceFailures(
@@ -217,6 +244,7 @@ export function scoreHostEvalResults(corpus, results, { allowMissing = false } =
     passed,
     failed: failures.length,
     missing: inventory.cases - results.results.length,
+    observed_quality: observedQuality,
     performance: {
       median_first_action_tax_ratio: median(firstActionRatios),
       median_duration_tax_ratio: median(durationRatios),

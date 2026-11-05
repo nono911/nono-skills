@@ -3,7 +3,7 @@
 [![CI](https://github.com/nono911/nono-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/nono911/nono-skills/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/nono-skills)](https://www.npmjs.com/package/nono-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/nono911/nono-skills/blob/main/LICENSE)
-[![Skills: 21](https://img.shields.io/badge/skills-21-5c6ac4.svg)](#skills)
+[![Skills: 22](https://img.shields.io/badge/skills-22-5c6ac4.svg)](#skills)
 
 A reusable software-engineering skill pack for Codex and other Agent Skills hosts. It gives capable coding agents concise intent, evidence requirements, and escalation rules without forcing every task through a large workflow.
 
@@ -15,7 +15,6 @@ A reusable software-engineering skill pack for Codex and other Agent Skills host
 - **Using Claude Code, Cursor, Windsurf, Kiro, OpenCode, Gemini CLI, or another Agent Skills host?** Use the universal installer: `npx skills@latest add nono911/nono-skills`
 
 Choose one installation path for the same host and scope to avoid duplicate skill names.
-
 ## Requirements
 
 - Node.js 20 or newer for the native installer and `nono-skills` maintenance CLI.
@@ -25,11 +24,11 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 19 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 20 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
-- 21 focused skills spanning discovery, implementation, review, testing, communication, product guides, handoff, design, migration, QA, and release readiness.
+- 22 focused skills spanning discovery, implementation, review, testing, communication, product guides, handoff, design, migration, QA, and release readiness.
 - `delivery-loop` for features and `bugfix-loop` for proven defects.
 - Native Codex packaging under the `engineering` namespace and portable Agent Skills folders.
 - Deterministic contract validation plus paired black-box scenarios for measuring host behavior and workflow overhead.
@@ -74,7 +73,7 @@ Portable installation is not a claim that every host activates or follows skills
 
 ## Use
 
-For ordinary work, ask naturally:
+For ordinary work, ask naturally. Ask for `retro` to improve future runs from observed friction; it recommends changes unless fixes are also requested:
 
 ```text
 Implement user authentication and verify the affected behavior.
@@ -110,7 +109,7 @@ The packaged corpus can be checked without making a model call:
 
 ```console
 $ npx nono-skills eval
-Validated 105 behavioral cases across 21 skills and 5 categories.
+Validated 110 behavioral cases across 22 skills and 5 categories.
 This validates the corpus only. Use eval cases with a host adapter, then eval score on captured results.
 ```
 
@@ -141,6 +140,7 @@ A completed managed run writes a redacted `summary.json` outside tracked source.
 | Explain, summarize, report, or shape human-readable work items | `communicate-clearly` |
 | Create or update a verified user, onboarding, setup, or operator guide | `write-guide` |
 | Prepare a safe continuation packet for another owner | `handoff` |
+| Improve future runs from session evidence | `retro` |
 | Review a diff without editing it | `review` |
 | Correct validated findings | `fix-findings` |
 | QA a runnable user journey without changing source | `acceptance-verify` |

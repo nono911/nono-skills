@@ -35,7 +35,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Mark each material requirement as confirmed, inferred, or unknown.
 - Ask only when an unknown would change user-visible outcomes or option ranking. Ask one to three highest-leverage questions per round; never ask for facts safely discoverable from the repository.
 - State a reversible low-impact assumption and proceed when it cannot materially change the recommendation. Do not recommend while the core user, outcome, or success signal remains unknown.
-- Reflect the settled requirement snapshot before presenting options.
+- For a small settled request, reflect the goal and important assumption in one sentence. Expand discovery and option detail only where uncertainty or consequential tradeoffs need it.
 - Prefer distinct strategies over cosmetic variants.
 - Default to the smallest sufficient direction that satisfies the confirmed outcome and constraints; prefer reuse of existing product and technical paths before proposing new machinery.
 - Scale the option set to the decision. Do not invent alternatives to fill a quota; for a small reversible choice, one recommendation and one brief materially different alternative are enough.

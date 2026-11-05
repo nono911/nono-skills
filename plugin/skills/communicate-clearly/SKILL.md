@@ -35,7 +35,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Preserve the owning workflow's evidence and status. Never rewrite partial, blocked, unverified, failed, or residual work as complete, resolved, passed, clean, or ready.
 - Use established repository or domain vocabulary when available. Define an ambiguous term once rather than replacing it with invented jargon. Avoid canned transitions, invented labels, unrequested contrast framing, and repeated conclusions.
 - Preserve exact code, commands, structured data, logs, quotations, legal text, and user-designated verbatim content. Never shorten away safety, compatibility, cost, or uncertainty that changes a decision.
-- Keep progress updates brief and new-information-only. Make the final response self-contained even when earlier updates are collapsed.
+- Keep progress updates brief and new-information-only. Make the final response self-contained even when earlier updates are collapsed. Use natural status wording for people; retain exact labels or structured fields when a caller contract requires them.
 - When work items are the primary output, read `references/work-items.md`. Shape the content here; let the active project-management connector discover and apply the platform's native schema.
 - External creation or mutation requires the user's scoped request and a capable connector. Without both, produce a draft and state that no external item changed.
 - Compose with the technical skill that owns implementation, review, testing, or debugging. This skill owns human-facing communication, not the underlying engineering operation.

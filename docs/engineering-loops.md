@@ -67,3 +67,9 @@ The human and orchestrator retain business behavior, UX direction, architecture 
 General implementation is TDD-preferred, not blindly TDD-mandatory. When changed behavior is deterministic through a viable automated harness, the agent demonstrates the intended failing test before production edits, implements the minimum passing change, and keeps the proof green through refactoring. Documentation, generated output, exploratory prototypes, already-covered behavior, and work without a meaningful deterministic harness use the strongest safe alternative with the limitation disclosed.
 
 An explicit user request for TDD or test-first development is a requirement. If no meaningful red phase can be demonstrated, the agent stops and reports the blocker instead of silently claiming TDD.
+
+## Verification reuse and retrospectives
+
+Final verification may reuse accessible passing results only when the tested snapshot, dependencies, configuration, environment, and coverage remain valid and policy permits reuse. A shared HEAD alone is insufficient if relevant uncommitted inputs changed. Required controller events still bind evidence to the current HEAD, and each review remains independent. Disclose reuse instead of claiming a fresh execution.
+
+After repeated observed friction or budget exhaustion, the orchestrator may briefly offer `retro`. It runs on user request, uses available evidence, and does not reopen or extend the managed run. Recommendations stay advisory unless scoped remediation is requested.

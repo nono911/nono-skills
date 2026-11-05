@@ -8,6 +8,8 @@ import test from 'node:test';
 import { listFiles } from '../src/fs-safe.js';
 import {
   assertWorkspaceProtocolContract,
+  assertDurableWorkspaceProtocolContract,
+  durableWorkspaceProtocolClauses,
   assertSkillDiscoveryContract,
   canonicalSkillNames,
   workspaceProtocolClauses,
@@ -47,9 +49,8 @@ const representativeProtocolClauseIds = [
   'completion.outcomes',
   'completion.complete',
   'completion.partial',
-  'completion.blocked',
   'completion.evidence',
-  'classification.transient-durable',
+  'classification.routing',
   'classification.transient-default',
   'repository.primary-folder',
   'consent.explicit',
@@ -101,7 +102,7 @@ function assertValidationPasses(result) {
   );
   assert.equal(
     result.stdout,
-    `Validated engineering plugin ${packageVersion} with 21 skills.\n`,
+    `Validated engineering plugin ${packageVersion} with 22 skills.\n`,
   );
   assert.equal(result.stderr, '');
 }
@@ -160,9 +161,9 @@ function assertValidationFails(result, expectedDiagnostic) {
   }
 }
 
-async function validateMutatedProtocol(clause) {
+async function validateMutatedProtocol(clause, file = 'workspaces.md') {
   return validateMutatedFixture(async (fixtureRoot) => {
-    const protocolPath = path.join(fixtureRoot, 'plugin', 'references', 'workspaces.md');
+    const protocolPath = path.join(fixtureRoot, 'plugin', 'references', file);
     const content = await readFile(protocolPath, 'utf8');
     const mutated = content.replace(`${clause.text}\n`, '');
     assert.notEqual(mutated, content, `${clause.id} test mutation must change the protocol`);
@@ -220,7 +221,7 @@ test('package discovery metadata describes the engineering-loop product', async 
   assert.doesNotMatch(packageJson.keywords.join(' '), /claude|qwen|opencode|codewhale|antigravity|cursor|copilot|superpowers/);
 });
 
-test('bundle contains exactly the validated 21-skill set', async () => {
+test('bundle contains exactly the validated 22-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -241,29 +242,24 @@ test('bundle contains exactly the validated 21-skill set', async () => {
   assert.doesNotThrow(() => assertSkillDiscoveryContract(discoveryMetadata));
 });
 
-test('shared workspace protocol contract accepts the released protocol', async () => {
-  const protocol = await readFile(path.join(root, 'plugin', 'references', 'workspaces.md'), 'utf8');
-  assert.doesNotThrow(() => assertWorkspaceProtocolContract(protocol));
-
-  for (const id of representativeProtocolClauseIds) {
-    const clause = workspaceProtocolClauses.find((candidate) => candidate.id === id);
-    assert.ok(clause, `workspace protocol contract must expose ${id}`);
-    const mutated = protocol.replace(`${clause.text}\n`, '');
-    assert.notEqual(mutated, protocol, `${id} deletion mutation must change the protocol`);
-    assert.throws(
-      () => assertWorkspaceProtocolContract(mutated),
-      new RegExp(`workspace protocol must include ${id.replaceAll('.', '\\.')} exactly once`),
-    );
-  }
-});
-
-for (const id of representativeProtocolClauseIds) {
-  test(`package validation rejects removal of workspace protocol clause ${id}`, async () => {
-    const clause = workspaceProtocolClauses.find((candidate) => candidate.id === id);
-    assert.ok(clause, `workspace protocol contract must expose ${id}`);
-    const result = await validateMutatedProtocol(clause);
-    assertValidationFails(result, `workspace protocol must include ${id} exactly once`);
+for (const [file, clauses, validate, label] of [
+  ['workspaces.md', workspaceProtocolClauses, assertWorkspaceProtocolContract, 'workspace protocol'],
+  ['durable-workspaces.md', durableWorkspaceProtocolClauses, assertDurableWorkspaceProtocolContract, 'durable workspace protocol'],
+]) {
+  test(file + ' preserves its authoritative contract', async () => {
+    const protocol = await readFile(path.join(root, 'plugin', 'references', file), 'utf8');
+    assert.doesNotThrow(() => validate(protocol));
+    for (const clause of clauses.filter((item) => representativeProtocolClauseIds.includes(item.id))) {
+      const mutated = protocol.replace(clause.text + '\n', '');
+      assert.notEqual(mutated, protocol);
+      assert.throws(() => validate(mutated), /must include/);
+    }
   });
+  for (const clause of clauses.filter((item) => representativeProtocolClauseIds.includes(item.id))) {
+    test(file + ' rejects removal of ' + clause.id, async () => {
+      assertValidationFails(await validateMutatedProtocol(clause, file), label + ' must include ' + clause.id + ' exactly once');
+    });
+  }
 }
 
 test('README is a concise and honest product introduction', async () => {
@@ -278,7 +274,7 @@ test('README is a concise and honest product introduction', async () => {
   assert.match(readme, /Pin exact versions in repeatable setups/);
   assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
-  assert.match(readme, /Validated 105 behavioral cases across 21 skills and 5 categories/);
+  assert.match(readme, /Validated 110 behavioral cases across 22 skills and 5 categories/);
   assert.match(readme, /CONTRIBUTING\.md/);
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
@@ -851,7 +847,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable resources for 21 skills, 8 finding consumers, and 2 controlled loops.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 22 skills, 8 finding consumers, and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });
@@ -871,7 +867,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 21 canonical skills',
+    'plugin skill inventory must contain exactly the 22 canonical skills',
   );
 });
 
@@ -1531,12 +1527,26 @@ test('project initialization bundles repository guidance and a reviewer agent', 
   const guidance = await readFile(path.join(root, 'templates', 'AGENTS.md'), 'utf8');
   assert.match(guidance, /Continue to a verified outcome instead of stopping at acknowledgement or a plan/);
   assert.match(guidance, /Explicit task instructions override default skill recommendations/);
-  assert.match(guidance, /broaden or repeat verification only when a failure, subsequent edit, repository rule, or unresolved material risk justifies it/);
-  assert.match(guidance, /Use `COMPLETE` only when scope and proof are satisfied/);
+  assert.match(guidance, /required checks proportionate to risk/);
+  assert.match(guidance, /Reuse valid execution evidence; rerun affected checks when inputs change or policy requires it/);
+  assert.match(guidance, /Report completion only when scope and proof are satisfied/);
   assert.match(guidance, /Prefer concise paragraphs/);
   assert.match(reviewer, /^name = "engineering_reviewer"$/m);
   assert.match(reviewer, /^sandbox_mode = "read-only"$/m);
   assert.match(reviewer, /\$engineering:review/);
   assert.doesNotMatch(reviewer, /^model\s*=/m);
   assert.doesNotMatch(reviewer, /^model_reasoning_effort\s*=/m);
+});
+
+test('conditional references stay portable without inflating the shared entry rules', async () => {
+  const shared = await readFile(path.join(root, 'plugin/references/workspaces.md'), 'utf8');
+  const durable = await readFile(path.join(root, 'plugin/references/durable-workspaces.md'), 'utf8');
+  assert.ok(shared.trim().split(/\s+/).length <= 350);
+  for (const skill of canonicalSkillNames) {
+    assert.equal(await readFile(path.join(root, 'plugin/skills', skill, 'references/durable-workspaces.md'), 'utf8'), durable);
+  }
+  const result = await validateMutatedFixture(async (fixtureRoot) => {
+    await writeFile(path.join(fixtureRoot, 'plugin/skills/retro/references/durable-workspaces.md'), 'drifted');
+  });
+  assertValidationFails(result, 'retro must bundle the canonical durable workspace protocol');
 });

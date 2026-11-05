@@ -21,7 +21,7 @@ Severity describes impact. It does not by itself prove that the item belongs in 
 
 Keep severity independent from evidence strength. Never downgrade impact merely because evidence is incomplete. Record `evidence_status` as `supported` or `insufficient`; only supported findings may become actionable.
 
-Every finding uses a structured evidence object:
+Every finding needs supporting evidence. When a controller, tracker, or caller requires structured output, use an evidence object:
 
 - `kind`: `failing-check`, `reproduction`, `trace`, `static-path`, or `observation`
 - `head_sha`: the exact reviewed HEAD
@@ -143,7 +143,7 @@ references with truthful values from the current run.
 
 ## Required finding shape
 
-Every finding contains:
+Structured findings contain:
 
 - stable `id`
 - `severity` and `category`
@@ -153,6 +153,8 @@ Every finding contains:
 - remediation direction
 
 Keep observed facts separate from inferred causes. Avoid full source, diffs, terminal logs, credentials, or sensitive payloads.
+
+For standalone human review, concise prose may present the same severity, location, evidence, impact, and remediation without schema keys. Preserve evidence thresholds and uncertainty; use stable IDs and the full schema when a caller or durable tracker requires them.
 
 ## Example
 

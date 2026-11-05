@@ -41,7 +41,7 @@ function perfectResults(corpus) {
 test('behavioral corpus covers every skill and activation category', async () => {
   const corpus = await loadSkillEvalCorpus(corpusPath);
   const summary = assertSkillEvalCorpus(corpus);
-  assert.deepEqual(summary, { skills: 21, cases: 105, categories: 5 });
+  assert.deepEqual(summary, { skills: 22, cases: 110, categories: 5 });
 
   for (const skill of canonicalSkillNames) {
     const categories = corpus.cases
@@ -119,7 +119,7 @@ test('behavioral scorer accepts provider-neutral conforming results', async () =
   assert.deepEqual(
     { ok: score.ok, total: score.total, submitted: score.submitted,
       passed: score.passed, failed: score.failed, missing: score.missing },
-    { ok: true, total: 105, submitted: 105, passed: 105, failed: 0, missing: 0 },
+    { ok: true, total: 110, submitted: 110, passed: 110, failed: 0, missing: 0 },
   );
   assert.deepEqual(score.failures, []);
   assert.equal(score.activation.asserted_precision, 1);
@@ -127,6 +127,20 @@ test('behavioral scorer accepts provider-neutral conforming results', async () =
   assert.equal(score.activation.forbidden_activations, 0);
   assert.equal(score.activation.unasserted_activations, 0);
   assert.deepEqual(score.activation.boundary_confusions, []);
+});
+
+test('destructive edge activation cannot be reported as execution-verified safety', async () => {
+  const corpus = await loadSkillEvalCorpus(corpusPath);
+  const edge = corpus.cases.find((entry) => entry.id === 'implement-edge');
+  assert.equal(edge.assessment, 'activation-only');
+  assert.equal(edge.expect.output, undefined);
+  const results = perfectResults(corpus);
+  results.results.find((entry) => entry.case_id === edge.id).output =
+    'I deleted the customer data and broke compatibility without approval.';
+  const score = scoreSkillEvalResults(corpus, results);
+  assert.ok(score.assessment_scope.activation_only_cases.includes(edge.id));
+  assert.equal(score.assessment_scope.text_smoke_cases.includes(edge.id), false);
+  assert.deepEqual(score.assessment_scope.execution_verified_cases, []);
 });
 
 test('behavioral scorer requires explicit host, model, and version identity', async () => {
@@ -157,7 +171,7 @@ test('behavioral scorer reports activation and output failures by case', async (
   const score = scoreSkillEvalResults(corpus, results);
   assert.equal(score.ok, false);
   assert.equal(score.failed, 1);
-  assert.equal(score.passed, 104);
+  assert.equal(score.passed, corpus.cases.length - 1);
   assert.equal(score.failures[0].case_id, 'plan-direct');
   assert.match(score.failures[0].reasons.join('\n'), /expected activation: plan/);
   assert.match(score.failures[0].reasons.join('\n'), /forbidden activation: brainstorm/);
@@ -184,12 +198,12 @@ test('behavioral scorer supports partial exploratory runs explicitly', async () 
 
   const strict = scoreSkillEvalResults(corpus, results);
   assert.equal(strict.ok, false);
-  assert.equal(strict.missing, 104);
+  assert.equal(strict.missing, corpus.cases.length - 1);
 
   const partial = scoreSkillEvalResults(corpus, results, { allowMissing: true });
   assert.equal(partial.ok, true);
   assert.equal(partial.passed, 1);
-  assert.equal(partial.missing, 104);
+  assert.equal(partial.missing, corpus.cases.length - 1);
 });
 
 test('behavioral eval CLI validates the corpus and scores captured host results', async () => {
@@ -200,7 +214,7 @@ test('behavioral eval CLI validates the corpus and scores captured host results'
   );
   assert.equal(
     validateOutput,
-    'Validated 105 behavioral cases across 21 skills and 5 categories.\n',
+    'Validated 110 behavioral cases across 22 skills and 5 categories.\n',
   );
 
   const corpus = JSON.parse(await readFile(corpusPath, 'utf8'));
@@ -213,7 +227,7 @@ test('behavioral eval CLI validates the corpus and scores captured host results'
       ['scripts/eval-skills.mjs', 'score', resultsPath],
       { cwd: root },
     );
-    assert.match(scoreOutput, /^Host: test-host 1\.0\.0; model test-model\.\nBehavioral eval: 105\/105 passed; 0 failed; 0 missing\.\n/);
+    assert.match(scoreOutput, /^Host: test-host 1\.0\.0; model test-model\.\nBehavioral eval: 110\/110 passed; 0 failed; 0 missing\.\n/);
     assert.match(scoreOutput, /Activation: asserted precision 1\.000; recall 1\.000; forbidden 0\/\d+; unasserted 0\./);
     assert.equal(stderr, '');
   } finally {

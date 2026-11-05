@@ -41,14 +41,13 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 ## Outputs
 
 - One approved isolated implementation and commit
-- Evidence-linked execution with no more than five review batches, four fix cycles, and one no-verdict retry for the entire run
+- Evidence-linked execution within five review batches, four fix cycles, and one no-verdict retry
 - A second commit only for validated later fixes that pass fresh review
-- Verification, delegation, commit, and residual-risk evidence
 
 ## Approval and isolation
 
 - Before isolation approval, decide whether the request fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, a worktree, or a controller run.
-- Inspect repository scope, worktrees, base SHA, HEAD, and change states before editing.
+- Inspect scope, worktrees, base SHA, HEAD, and changes before editing.
 - Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree with an unambiguous base, read `references/branch-naming.md` before proposing its branch, and never move a detached task or check out its branch elsewhere.
 - Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.
 - Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.
@@ -71,30 +70,30 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 1. Before every round, obtain a controller review lease for the exact HEAD and capability-matched reviewer batch. Use a fresh project-scoped read-only reviewer agent or subagent, activate `review`, and forbid delegation or mutation. If unavailable, stop; a non-independent fallback cannot report `CLEAN`.
 2. The controller exclusively owns the review-batch counter; the original orchestrator owns transitions. Every child performs one leased bounded pass, returns Evidence Contract output, and never invokes or requests another review or loop.
-3. Give each reviewer the exact snapshot, criteria, checks, full diff, guidance, prior dispositions, and accepted decisions.
-4. Require `CLEAN` or findings with stable ID, severity, category, location, evidence, impact, and remediation.
-5. Add a risk-required read-only specialist to the same batch.
+3. Supply snapshot, criteria, causal evidence where relevant, checks, full diff, guidance, dispositions, and accepted decisions.
+4. Require `CLEAN` or findings following the evidence contract.
+5. Include required read-only specialists in this batch.
 6. Ingest the review, preserve claimed severity, and record one structured disposition for every finding before editing. Low findings are `non-blocking`; unrelated valid defects are `out-of-scope`; insufficient claims are `unvalidated` and never enter a fix cycle.
 7. Keep the original agent as fixer and activate `fix-findings` once for actionable findings. Validate the changed scope and dispositions; never let a reviewer modify the feature.
 8. Create the loop-owned review-fix commit on the first fix cycle and amend only that unpushed commit on later cycles. Ingest the new committed HEAD and verification evidence, then acquire a fresh lease.
 
 ## Loop controls
 
-- One round is one batch over one HEAD: the general reviewer plus risk-required specialists.
+- One round is one batch over one HEAD.
 - Run rounds sequentially: review, validate and fix findings, verify, then start a fresh review. Never launch all five rounds at once.
 - `CLEAN` means no actionable defect; optional suggestions do not block.
 - The controller enforces five batches, four fix cycles, and one no-verdict retry for the entire delivery run. Its persisted counters are monotonic and non-renewable; `continue`, extra commit authority, provider changes, or more-round requests never reset or extend them.
 - Never review the same HEAD twice. The sole no-verdict retry reuses its numbered batch and a fresh lease.
-- Stop earlier for a repeated finding, material reviewer conflict, or needed product decision.
+- Stop for repeated findings, material reviewer conflict, or needed product decisions. If observed friction recurs or the budget is exhausted, briefly offer `retro`; run it only on request, without changing this run's outcome or budget.
 - If fifth-batch triage confirms an actionable defect, accept the controller's `BUDGET_EXHAUSTED` transition, do not mutate, and report its recovery record. A narrower linked run needs explicit approval and never makes this run `CLEAN`.
 - Keep external calls within their approved bound.
 - Never hide, downgrade, or close a disputed finding to terminate the loop.
 
 ## Finalize
 
-1. After a clean review, run all required checks and affected acceptance scenarios, then ingest final verification evidence.
+1. After clean review, read `references/verification.md`; reuse only valid results and run missing or invalidated required checks and affected scenarios. Ingest final evidence at the current HEAD.
 2. If final verification changes state, fix and freshly review within the remaining budget; otherwise do not claim `CLEAN` or commit it.
-3. Inspect the worktree and stage only validated delivery-loop fixes.
+3. Stage only validated delivery-loop fixes.
 4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
 5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized. Lead the report with outcome, commits, acceptance-to-proof mapping, budgets, findings, checks, delegation, insights, and risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
 6. Do not claim completion while blocking findings or required checks remain.

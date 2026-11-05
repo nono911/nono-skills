@@ -26,6 +26,9 @@ import {
   summarizeCodexEvents,
 } from '../../src/codex-host-adapter.js';
 
+import { captureFixtureEvidence } from '../../src/host-fixture-evidence.js';
+import { createCodexFixtureRunner } from '../../src/codex-fixture-sandbox.js';
+
 const root = path.resolve(import.meta.dirname, '..', '..');
 
 function parseArgs(values) {
@@ -283,6 +286,11 @@ async function runRequest(options, request) {
       timeoutMs: options.timeoutMs,
     })).stdout);
     const plugin = JSON.parse(await readFile(path.join(options.pluginRoot, '.codex-plugin', 'plugin.json'), 'utf8'));
+    const evidenceHome = path.join(temporaryRoot, 'evidence-home');
+    await mkdir(evidenceHome, { mode: 0o700 });
+    const evidenceRunner = request.requested_observations?.length
+      ? createCodexFixtureRunner({ codex: options.codex, home: evidenceHome, workspace })
+      : undefined;
     return {
       host: {
         name: 'codex-cli',
@@ -295,6 +303,7 @@ async function runRequest(options, request) {
       },
       activated_skills: structured.activated_skills,
       output: structured.output,
+      observations: await captureFixtureEvidence(workspace, request.case_id, { run: evidenceRunner }),
       metrics: {
         ...summarizeCodexEvents(timedEvents, durationMs),
         loaded_skill_bodies: structured.loaded_skill_bodies,

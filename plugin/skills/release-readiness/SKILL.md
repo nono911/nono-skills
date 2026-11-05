@@ -31,7 +31,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - When findings affect the verdict, read `references/finding-rubric.md` and verify their severity and disposition instead of trusting uncalibrated labels.
 - Treat `clean_with_residuals` as a disclosed qualified completion, not evidence that every reported risk was fixed; include its residual ledger in the readiness verdict.
 - Inspect current state; do not rely on stale claims that checks passed.
-- Run the strongest safe local checks and distinguish local proof from CI, staging, and production proof.
+- Establish required release checks from repository policy and changed risk. Read `references/verification.md` before reusing earlier results; execute missing or invalidated checks and distinguish local proof from CI, staging, and production proof.
 - Treat code complete, merge ready, deploy ready, deployed, and verified in production as separate states.
 - Block on open critical or high findings unless risk is explicitly accepted by the proper owner.
 - Do not merge, tag, publish, deploy, or migrate without explicit authorization.

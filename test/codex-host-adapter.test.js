@@ -65,6 +65,7 @@ test('Codex JSONL metrics count inspection before the first material action', ()
     },
   ], 60);
   assert.deepEqual(summary, {
+    observed_events: { file_changes: 0, completed_commands: 1, failed_commands: 0 },
     duration_ms: 60,
     time_to_first_action_ms: 30,
     tool_calls: 1,
@@ -97,4 +98,18 @@ test('stable host fixture exposes the intended passing behavior and null defect'
   assert.deepEqual(parser.parseItems({ items: [' one ', 'two'] }), ['one', 'two']);
   assert.throws(() => parser.parseItems(null), /items/);
   assert.equal(parser.parseRetryCount(0), 0);
+});
+
+test('Codex usage and completed events are observed without guessing missing token counts', () => {
+  const events = [
+    { elapsed_ms: 1, event: { type: 'item.completed', item: { id: 'edit', type: 'file_change' } } },
+    { elapsed_ms: 2, event: { type: 'item.completed', item: { id: 'cmd', type: 'command_execution', exit_code: 1 } } },
+    { elapsed_ms: 3, event: { type: 'turn.completed', usage: { input_tokens: 100, cached_input_tokens: 20, output_tokens: 10 } } },
+  ];
+  const summary = summarizeCodexEvents(events, 4);
+  assert.equal(summary.input_tokens, 100);
+  assert.equal(summary.cached_input_tokens, 20);
+  assert.equal(summary.output_tokens, 10);
+  assert.deepEqual(summary.observed_events, { file_changes: 1, completed_commands: 1, failed_commands: 1 });
+  assert.equal(summarizeCodexEvents([], 0).input_tokens, undefined);
 });

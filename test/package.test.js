@@ -41,7 +41,7 @@ test('npm package includes runtime assets and excludes development state', async
     'evals/fixtures/stable-repository/package.json',
     'evals/fixtures/stable-repository/src/parser.js',
     'evals/fixtures/stable-repository/test/parser.test.js',
-    'plugin/references/workspaces.md', 'plugin/references/finding-rubric.md',
+    'plugin/references/workspaces.md', 'plugin/references/durable-workspaces.md', 'plugin/references/verification.md', 'plugin/references/finding-rubric.md',
     'plugin/references/branch-naming.md',
     'scripts/sync-portable-resources.mjs',
     'plugin/skills/delivery-loop/references/agent-delegation.md',
@@ -60,12 +60,13 @@ test('npm package includes runtime assets and excludes development state', async
     'plugin/skills/bugfix-loop/references/branch-naming.md',
     'templates/AGENTS.md', 'README.md', 'CHANGELOG.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
-  assert.equal(expectedSkills.length, 21);
+  assert.equal(expectedSkills.length, 22);
   for (const name of expectedSkills) {
     for (const required of [
       `plugin/skills/${name}/SKILL.md`,
       `plugin/skills/${name}/agents/openai.yaml`,
       `plugin/skills/${name}/references/workspaces.md`,
+      `plugin/skills/${name}/references/durable-workspaces.md`,
     ]) assert.equal(names.includes(required), true, `missing ${required}`);
   }
   for (const name of [

@@ -6,6 +6,24 @@ installations should pin an exact version.
 
 ## Unreleased
 
+### Added
+
+- Added `retro` for evidence-backed session improvements, scoped remediation when
+  requested, and follow-up measurement without automatic memory or policy edits.
+
+### Changed
+
+- Split shared entry rules from conditionally loaded durable workspace details.
+- Calibrated plan detail to uncertainty and risk; small transient work can use a
+  direct outcome and proof without formal acceptance IDs.
+- Aligned test-first preferences and exceptions across implementation and testing.
+- Added snapshot-aware verification reuse without weakening required checks,
+  independent reviews, or controller transitions.
+- Routed material UI implementation through available design and browser skills.
+- Kept ordinary reports concise and natural while preserving machine-facing
+  finding schemas and specialist outcomes.
+- Expanded behavioral evaluation for retrospectives and observable work outcomes.
+
 ## 0.16.0 — 2026-09-07
 
 ### Changed

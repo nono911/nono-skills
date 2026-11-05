@@ -17,14 +17,14 @@ Keep this file specific to the repository. Replace placeholders with commands an
 - Explicit task instructions override default skill recommendations. Infer routine details from context and repository evidence; ask only when a missing choice materially changes behavior, scope, compatibility, or irreversible risk.
 - Treat executable code, configuration, tests, migrations, and observed behavior as stronger evidence than stale prose.
 - Preserve unrelated behavior and backward compatibility unless the requirement changes it.
-- Verify changed behavior with the strongest safe repository checks available. After relevant required checks pass, broaden or repeat verification only when a failure, subsequent edit, repository rule, or unresolved material risk justifies it. Report what ran and what remains unverified.
+- Verify changed behavior with required checks proportionate to risk. Reuse valid execution evidence; rerun affected checks when inputs change or policy requires it. Report what ran, what was reused, and what remains unverified.
 
 ## Communication defaults
 
 - Lead with the outcome, answer, or decision needed; add only evidence and context that help the reader act.
 - Match the user's language and requested depth. Keep progress updates brief and make final responses self-contained.
 - Distinguish verified facts, inferences, assumptions, and unknowns. Preserve material safety, compatibility, cost, and risk caveats.
-- Use `COMPLETE` only when scope and proof are satisfied; else use `PARTIAL` or `BLOCKED` and name what remains.
+- Report completion only when scope and proof are satisfied; otherwise name remaining work or the blocker. Preserve caller-required statuses.
 - Prefer concise paragraphs. Use headings, lists, tables, examples, or nested structure only when they materially improve comprehension.
 - Use established repository vocabulary and avoid routine tool narration, canned transitions, invented labels, repeated conclusions, unrequested contrast framing, and generic filler.
 
