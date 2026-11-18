@@ -6,7 +6,10 @@ installations should pin an exact version.
 
 ## Unreleased
 
-- Added `ui-design` for rendered-screen refinement during UI implementation.
+## 0.18.0 — 2026-11-18
+
+- Added `ui-design` for rendered-screen refinement during UI implementation. `implement` now directs agents to inspect changed screens, correct visual imbalance, and recheck the result, including visible spacing around dropdown chevrons.
+- Visual verification depends on host rendering capabilities; skill guidance does not guarantee activation or a visual pass. No controller or evidence migration is required. Pin `0.17.0` to restore the previous behavior.
 
 ## 0.17.0 — 2026-11-05
 
