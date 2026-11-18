@@ -6,6 +6,8 @@ installations should pin an exact version.
 
 ## Unreleased
 
+- Added `ui-design` for rendered-screen refinement during UI implementation.
+
 ## 0.17.0 — 2026-11-05
 
 ### Added

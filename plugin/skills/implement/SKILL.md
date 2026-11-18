@@ -39,7 +39,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 - Run the focused checks required by the change. Broaden or repeat verification only when a failure, subsequent edit, repository requirement, or unresolved material risk justifies it.
 - Claim completion only when requested scope and required proof are satisfied. Describe unfinished work or a concrete blocker and the next action naturally; preserve exact statuses required by a caller.
 - When considering reuse of earlier verification, read `references/verification.md`.
-- For material UI or interaction changes, inspect the existing design system and use an available relevant UX/UI skill through the host mechanism. Select only what the change needs; do not assume a particular pack is installed. Verify affected rendered states and journeys with `acceptance-verify` when available, or the host's browser capability; disclose unavailable visual proof.
+- For work that creates or changes a visible layout, control, or interaction state, load `ui-design` as part of implementation without a separate request. If installed alone, apply the fallback directly: inspect the actual screen as a whole and up close, fix in-scope imbalance, and render again before handoff. Disclose unavailable visual proof. Skip this path for nonvisual changes. Use `acceptance-verify` for journey-level QA when needed, reusing existing evidence.
 - Do not silently weaken tests, validation, security, typing, or error handling to make checks pass.
 
 ## Decision-log updates

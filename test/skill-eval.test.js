@@ -41,7 +41,7 @@ function perfectResults(corpus) {
 test('behavioral corpus covers every skill and activation category', async () => {
   const corpus = await loadSkillEvalCorpus(corpusPath);
   const summary = assertSkillEvalCorpus(corpus);
-  assert.deepEqual(summary, { skills: 22, cases: 110, categories: 5 });
+  assert.deepEqual(summary, { skills: 23, cases: 115, categories: 5 });
 
   for (const skill of canonicalSkillNames) {
     const categories = corpus.cases
@@ -119,7 +119,7 @@ test('behavioral scorer accepts provider-neutral conforming results', async () =
   assert.deepEqual(
     { ok: score.ok, total: score.total, submitted: score.submitted,
       passed: score.passed, failed: score.failed, missing: score.missing },
-    { ok: true, total: 110, submitted: 110, passed: 110, failed: 0, missing: 0 },
+    { ok: true, total: 115, submitted: 115, passed: 115, failed: 0, missing: 0 },
   );
   assert.deepEqual(score.failures, []);
   assert.equal(score.activation.asserted_precision, 1);
@@ -214,7 +214,7 @@ test('behavioral eval CLI validates the corpus and scores captured host results'
   );
   assert.equal(
     validateOutput,
-    'Validated 110 behavioral cases across 22 skills and 5 categories.\n',
+    'Validated 115 behavioral cases across 23 skills and 5 categories.\n',
   );
 
   const corpus = JSON.parse(await readFile(corpusPath, 'utf8'));
@@ -227,7 +227,7 @@ test('behavioral eval CLI validates the corpus and scores captured host results'
       ['scripts/eval-skills.mjs', 'score', resultsPath],
       { cwd: root },
     );
-    assert.match(scoreOutput, /^Host: test-host 1\.0\.0; model test-model\.\nBehavioral eval: 110\/110 passed; 0 failed; 0 missing\.\n/);
+    assert.match(scoreOutput, /^Host: test-host 1\.0\.0; model test-model\.\nBehavioral eval: 115\/115 passed; 0 failed; 0 missing\.\n/);
     assert.match(scoreOutput, /Activation: asserted precision 1\.000; recall 1\.000; forbidden 0\/\d+; unasserted 0\./);
     assert.equal(stderr, '');
   } finally {

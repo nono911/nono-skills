@@ -22,9 +22,87 @@
     "review",
     "security-review",
     "test",
+    "ui-design",
     "write-guide"
   ],
   "cases": [
+    {
+      "id": "ui-design-direct",
+      "skill": "ui-design",
+      "category": "direct",
+      "prompt": "Use $ui-design to assess visual hierarchy on the supplied settings screen; advise only.",
+      "expect": {
+        "activate": [
+          "ui-design"
+        ],
+        "forbid": [
+          "implement"
+        ]
+      }
+    },
+    {
+      "id": "ui-design-indirect",
+      "skill": "ui-design",
+      "category": "indirect",
+      "prompt": "Implement a responsive filter row on the results page using our existing select and button. Deliver the finished screen.",
+      "expect": {
+        "activate": [
+          "implement",
+          "ui-design"
+        ],
+        "forbid": [
+          "delivery-loop"
+        ]
+      }
+    },
+    {
+      "id": "ui-design-incomplete",
+      "skill": "ui-design",
+      "category": "incomplete",
+      "prompt": "Check the visual balance of my new checkout controls. Only a CSS excerpt is available; the app cannot run here and there is no screenshot.",
+      "expect": {
+        "activate": [
+          "ui-design"
+        ],
+        "forbid": [],
+        "output": {
+          "contains_any": [
+            "unverified",
+            "render",
+            "screenshot"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ui-design-negative",
+      "skill": "ui-design",
+      "category": "negative",
+      "prompt": "Implement server-side retry backoff for search requests without changing the search page or any visible behavior.",
+      "expect": {
+        "activate": [
+          "implement"
+        ],
+        "forbid": [
+          "ui-design"
+        ]
+      }
+    },
+    {
+      "id": "ui-design-edge",
+      "skill": "ui-design",
+      "category": "edge",
+      "prompt": "Implement the approved asymmetric layout exactly. Check the narrow layout and fix the clipped select chevron; do not redesign the page.",
+      "expect": {
+        "activate": [
+          "implement",
+          "ui-design"
+        ],
+        "forbid": [
+          "brainstorm"
+        ]
+      }
+    },
     {
       "id": "acceptance-verify-direct",
       "skill": "acceptance-verify",

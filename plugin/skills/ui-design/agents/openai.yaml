@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Design"
+  short_description: "Refine layouts and controls on the rendered screen"
+  default_prompt: "Use $ui-design to refine this screen and check the rendered result."

@@ -26,6 +26,7 @@ export const expectedDurableEndings = Object.freeze({
   review: "When durable state is approved, track defects and their lifecycle in the selected work item's findings.md and append only review-scope or accepted-risk decisions to decisions.md; otherwise report them in the final response.",
   'security-review': "When durable state is approved, track sanitized vulnerabilities in the selected work item's findings.md and append accepted security tradeoffs, threat assumptions, compensating controls, or risk acceptance to decisions.md; otherwise report them in the final response.",
   test: "When durable state is approved, append material test-boundary, fidelity, or coverage-risk decisions to the selected work item's decisions.md; for a selected approved durable work item with an existing plan.md, update only relevant plan-item status and verification evidence for the performed testing scope, never invent unrelated work, and do not mark the work completed unless the workspace lifecycle criteria are satisfied; otherwise include material decisions and performed-scope verification in the final response.",
+  'ui-design': "When durable state is approved, append material visual tradeoffs or unresolved design decisions to the selected work item's decisions.md; otherwise report them in the final response.",
   'write-guide': "When durable state is approved, append material audience, scope, version, verification-boundary, or accepted-documentation-risk decisions to the selected work item's decisions.md; otherwise include them in the final response.",
 });
 

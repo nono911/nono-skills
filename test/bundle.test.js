@@ -102,7 +102,7 @@ function assertValidationPasses(result) {
   );
   assert.equal(
     result.stdout,
-    `Validated engineering plugin ${packageVersion} with 22 skills.\n`,
+    `Validated engineering plugin ${packageVersion} with 23 skills.\n`,
   );
   assert.equal(result.stderr, '');
 }
@@ -221,7 +221,7 @@ test('package discovery metadata describes the engineering-loop product', async 
   assert.doesNotMatch(packageJson.keywords.join(' '), /claude|qwen|opencode|codewhale|antigravity|cursor|copilot|superpowers/);
 });
 
-test('bundle contains exactly the validated 22-skill set', async () => {
+test('bundle contains exactly the validated 23-skill set', async () => {
   const files = await listFiles(path.join(root, 'plugin', 'skills'));
   const skillFiles = files.filter((file) => file.endsWith('/SKILL.md'));
   const discoveryMetadata = [];
@@ -274,7 +274,7 @@ test('README is a concise and honest product introduction', async () => {
   assert.match(readme, /Pin exact versions in repeatable setups/);
   assert.match(readme, /paired black-box scenarios/);
   assert.match(readme, /npx skills@latest add nono911\/nono-skills/);
-  assert.match(readme, /Validated 110 behavioral cases across 22 skills and 5 categories/);
+  assert.match(readme, /Validated 115 behavioral cases across 23 skills and 5 categories/);
   assert.match(readme, /CONTRIBUTING\.md/);
   assert.match(readme, /The controller cannot force a model to activate a skill or call the controller/);
   assert.match(readme, /They are not tamper-proof and are not a security boundary/);
@@ -847,7 +847,7 @@ test('portable resource sync restores workspace, finding, evidence, and controll
     });
     assertSpawnCompleted(result);
     assert.equal(result.status, 0);
-    assert.equal(result.stdout, 'Synchronized portable resources for 22 skills, 8 finding consumers, and 2 controlled loops.\n');
+    assert.equal(result.stdout, 'Synchronized portable resources for 23 skills, 8 finding consumers, and 2 controlled loops.\n');
     assert.equal(result.stderr, '');
     assertValidationPasses(runPackageValidation(fixtureRoot));
   });
@@ -867,7 +867,7 @@ test('package validation rejects deletion from inventory, ending map, and derive
   });
   assertValidationFails(
     result,
-    'plugin skill inventory must contain exactly the 22 canonical skills',
+    'plugin skill inventory must contain exactly the 23 canonical skills',
   );
 });
 

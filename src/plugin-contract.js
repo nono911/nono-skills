@@ -22,6 +22,7 @@ export const canonicalSkillNames = Object.freeze([
   'review',
   'security-review',
   'test',
+  'ui-design',
   'write-guide',
 ]);
 

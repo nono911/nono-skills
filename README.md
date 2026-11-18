@@ -3,7 +3,7 @@
 [![CI](https://github.com/nono911/nono-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/nono911/nono-skills/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/nono-skills)](https://www.npmjs.com/package/nono-skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/nono911/nono-skills/blob/main/LICENSE)
-[![Skills: 22](https://img.shields.io/badge/skills-22-5c6ac4.svg)](#skills)
+[![Skills: 23](https://img.shields.io/badge/skills-23-5c6ac4.svg)](#skills)
 
 A reusable software-engineering skill pack for Codex and other Agent Skills hosts. It gives capable coding agents concise intent, evidence requirements, and escalation rules without forcing every task through a large workflow.
 
@@ -24,11 +24,11 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 20 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 21 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
-- 22 focused skills spanning discovery, implementation, review, testing, communication, product guides, handoff, design, migration, QA, and release readiness.
+- 23 focused skills spanning discovery, implementation, review, testing, communication, product guides, handoff, design, migration, QA, and release readiness.
 - `delivery-loop` for features and `bugfix-loop` for proven defects.
 - Native Codex packaging under the `engineering` namespace and portable Agent Skills folders.
 - Deterministic contract validation plus paired black-box scenarios for measuring host behavior and workflow overhead.
@@ -109,7 +109,7 @@ The packaged corpus can be checked without making a model call:
 
 ```console
 $ npx nono-skills eval
-Validated 110 behavioral cases across 22 skills and 5 categories.
+Validated 115 behavioral cases across 23 skills and 5 categories.
 This validates the corpus only. Use eval cases with a host adapter, then eval score on captured results.
 ```
 
@@ -137,6 +137,7 @@ A completed managed run writes a redacted `summary.json` outside tracked source.
 | Explore a product or technical direction | `brainstorm` |
 | Turn defined work into acceptance-linked steps | `plan` |
 | Build a general software change | `implement` |
+| Inspect, correct and recheck the rendered screen during UI implementation | `ui-design` |
 | Explain, summarize, report, or shape human-readable work items | `communicate-clearly` |
 | Create or update a verified user, onboarding, setup, or operator guide | `write-guide` |
 | Prepare a safe continuation packet for another owner | `handoff` |
@@ -183,8 +184,6 @@ npx nono-skills uninstall
 Inspect managed evidence with `npx nono-skills runs list`, `npx nono-skills runs show <run-id>`, and `npx nono-skills runs supersede <legacy-run-id> --confirm`. Universal installations use `npx skills list`, `npx skills update`, and `npx skills remove`.
 
 ## Documentation and contributing
-
-Recommended reading order:
 
 1. [Installation and maintenance](https://github.com/nono911/nono-skills/blob/main/docs/installation.md)
 2. [Delivery and bugfix loops](https://github.com/nono911/nono-skills/blob/main/docs/engineering-loops.md)

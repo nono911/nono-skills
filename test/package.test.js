@@ -60,7 +60,7 @@ test('npm package includes runtime assets and excludes development state', async
     'plugin/skills/bugfix-loop/references/branch-naming.md',
     'templates/AGENTS.md', 'README.md', 'CHANGELOG.md', 'LICENSE',
   ]) assert.equal(names.includes(required), true, `missing ${required}`);
-  assert.equal(expectedSkills.length, 22);
+  assert.equal(expectedSkills.length, 23);
   for (const name of expectedSkills) {
     for (const required of [
       `plugin/skills/${name}/SKILL.md`,
