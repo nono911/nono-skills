@@ -6,6 +6,10 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.18.1 — 2026-11-19
+
+- Updated `ui-design` to choose first-draft components and layouts around the user's decision. Mobile comparisons prioritize legible differences without requiring people to scroll back to recall values. Includes a visual example; no specific layout is prescribed.
+
 ## 0.18.0 — 2026-11-18
 
 - Added `ui-design` for rendered-screen refinement during UI implementation. `implement` now directs agents to inspect changed screens, correct visual imbalance, and recheck the result, including visible spacing around dropdown chevrons.

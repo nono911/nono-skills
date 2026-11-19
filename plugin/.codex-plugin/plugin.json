@@ -1,6 +1,6 @@
 {
   "name": "engineering",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "description": "Reusable engineering skills and bounded review-fix loops for OpenAI Codex.",
   "author": {
     "name": "thitikorn.j"
