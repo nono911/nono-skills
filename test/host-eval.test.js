@@ -60,7 +60,7 @@ function conformingResults(corpus) {
 
 test('black-box corpus defines bounded fast paths and requirement discovery cases', async () => {
   const corpus = await loadHostEvalCorpus(corpusPath);
-  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 11 });
+  assert.deepEqual(assertHostEvalCorpus(corpus), { cases: 14 });
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-complete-fast-path'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'plan-small-scope-calibration'));
   assert.ok(corpus.cases.some((entry) => entry.id === 'brainstorm-small-scope-calibration'));
@@ -110,7 +110,7 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
   const results = conformingResults(corpus);
   const score = scoreHostEvalResults(corpus, results);
   assert.equal(score.ok, true);
-  assert.equal(score.passed, 11);
+  assert.equal(score.passed, corpus.cases.length);
   assert.equal(score.performance.median_first_action_tax_ratio, 1);
 
   results.results[0].skill.metrics.questions = 4;
@@ -139,6 +139,23 @@ test('black-box scorer combines behavior and skill-tax budgets', async () => {
     (entry) => entry.case_id === 'implement-low-impact-verification',
   );
   assert.match(implementationFailure.reasons.join('\n'), /tool calls was 7, budget 6/);
+});
+
+test('delivery startup rejects redundant setup questions while retaining restriction cases', async () => {
+  const corpus = await loadHostEvalCorpus(corpusPath);
+  for (const id of ['delivery-default-startup', 'delivery-explicit-restriction', 'delivery-native-unavailable']) {
+    const evalCase = corpus.cases.find((entry) => entry.id === id);
+    assert.ok(evalCase);
+    assert.equal(evalCase.expect.performance.max_questions, 0);
+    assert.equal(evalCase.expect.observations, undefined, 'startup decisions are not execution proof');
+  }
+  const results = conformingResults(corpus);
+  const startup = results.results.find((entry) => entry.case_id === 'delivery-default-startup');
+  startup.skill.output += ' Shall I create a worktree, commit, and use native agents?';
+  startup.skill.metrics.questions = 1;
+  const scored = scoreHostEvalResults(corpus, results);
+  assert.equal(scored.ok, false);
+  assert.match(scored.failures.find((entry) => entry.case_id === startup.case_id).reasons.join(' '), /questions/);
 });
 
 test('positive output assertions treat hyphenated and spaced wording as equivalent', async () => {

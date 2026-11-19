@@ -555,13 +555,13 @@
       "id": "delivery-loop-direct",
       "skill": "delivery-loop",
       "category": "direct",
-      "prompt": "Deliver booking cancellation in an approved isolated worktree with local implementation and review-fix commits, evidence-gated verification, capability-matched reviewers, and bounded fresh independent review rounds.",
+      "prompt": "Deliver booking cancellation through an isolated worktree with local commits, evidence-gated verification, and bounded fresh independent review. The acceptance scope and repository are known, no local actions are restricted, and native read-only subagents are available.",
       "expect": {
         "activate": ["delivery-loop"],
         "forbid": ["bugfix-loop"],
         "output": {
           "contains_all": ["worktree", "review", "evidence"],
-          "contains_any": ["approval", "authority"]
+          "contains_any": ["native", "subagent"]
         }
       }
     },
@@ -579,7 +579,7 @@
       "id": "delivery-loop-incomplete",
       "skill": "delivery-loop",
       "category": "incomplete",
-      "prompt": "Use $delivery-loop for a feature, but the feature goal, acceptance criteria, risk signals, base revision, and worktree authority are not supplied. Do not create a run before approval.",
+      "prompt": "Use $delivery-loop for a feature, but I have not said what feature or observable outcome I want. Establish the missing scope before creating a worktree or controller run; do not substitute a setup approval or provider-selection menu for the requirement question.",
       "expect": {
         "activate": ["delivery-loop"],
         "forbid": []

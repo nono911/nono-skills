@@ -1,6 +1,6 @@
 # Evidence Contract and Loop Controller
 
-Read this reference only after an explicit `delivery-loop` or `bugfix-loop` invocation is approved. The controller is mandatory for bounded-loop completion; it is not a user setup step.
+Read this reference when starting an explicitly requested managed loop under its authority rules: delivery-loop includes local defaults; bugfix-loop retains its approval gate. The controller is mandatory for bounded-loop completion, not a user setup step.
 
 ## Contract
 
@@ -61,7 +61,7 @@ Schema-version-1 runs remain available through `list` and `status` for read-only
 
 Resolve this skill's `scripts/loop-controller.mjs`; never ask the user to run it. Use a temporary owner-readable JSON file for caller evidence and remove it after ingestion.
 
-1. After workflow approval and before implementation, start or resume the run:
+1. Once the calling loop's scope, isolation, and authority requirements are satisfied, start or resume the run before implementation:
 
 ```text
 node <skill-root>/scripts/loop-controller.mjs start --kind <delivery|bugfix> \

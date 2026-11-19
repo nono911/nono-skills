@@ -24,7 +24,7 @@ Choose one installation path for the same host and scope to avoid duplicate skil
 
 Standalone prompts and small skill collections are often enough for focused tasks. Nono Skills is for work that also benefits from shared engineering intent, explicit human escalation, independently reviewed changes, and bounded review-fix execution.
 
-The 21 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction, keep speculative future work out of scope, and expand only when current evidence or risk requires it. The two managed loops activate only from an explicit request for the full workflow, whether named directly or described in natural language; they still require consent for isolation and commits and preserve structured local evidence. If you need only one checklist, a smaller standalone skill may be the better choice.
+The 21 ordinary skills remain lightweight and model-directed. `brainstorm` and `plan` default to the smallest sufficient direction and expand only when evidence or risk requires it. Managed loops require an explicit full-workflow request, named or described naturally. `delivery-loop` then defaults to task worktrees, up to two local commits, and native subagents without another setup confirmation; explicit restrictions still win. `bugfix-loop` retains its isolation and commit approval gate. If you need only one checklist, a smaller standalone skill may be the better choice.
 
 ## What it provides
 
@@ -91,7 +91,7 @@ $engineering:handoff
 Prepare a continuation packet for the next agent; do not write files.
 ```
 
-Request a managed loop when you want approved worktree isolation, local commits, bounded sequential review, and verified remediation. Invoke it by name or describe the same complete workflow in natural language:
+Request `delivery-loop` for default worktree isolation, local commits, native subagents, bounded sequential review, and verified remediation. No execution-mode question is needed. Invoke it by name or describe the same complete workflow:
 
 ```text
 $engineering:delivery-loop

@@ -2,9 +2,13 @@
 
 `delivery-loop` and `bugfix-loop` are opt-in workflows for changes that justify isolation, independent review, and a bounded remediation cycle. They may be selected from the skill name or an explicit natural-language request for that complete workflow. Ordinary implementation or bug fixing without the isolation, commit, and review-fix intent does not activate them.
 
-## Shared authority boundary
+## Local defaults and authority
 
-Invoking a loop does not by itself authorize a new worktree, commits, push, merge, deploy, production mutation, external providers, or cleanup. A host-managed worktree is reused when practical. Otherwise the agent proposes the base revision, branch, worktree path, and up to two local commits for one approval.
+An explicit request to execute `delivery-loop`, by name or equivalent full-workflow intent, includes task worktrees, up to two local commits, and native subagents without another setup confirmation. The agent announces its base, branch, and worktree path, then proceeds. A host-managed task worktree is reused without nesting or renaming; otherwise the requested base or current committed HEAD is used with a contextual branch and unused path. Unrelated uncommitted work is preserved, not silently copied or committed.
+
+User, repository, and host restrictions override these defaults. Discussing the skill, planning-only requests, and ordinary implementation do not grant this local authority. Ambiguous scope or base, missing reviewer capability, Git identity/remote restrictions, and explicitly prohibited local actions still require resolution. Optional durable documents retain their workspace-consent gate; mandatory controller records need no separate setup approval.
+
+`bugfix-loop` is unchanged: invoking it alone does not grant worktree or commit authority. Unless already authorized, the agent proposes the base, branch, worktree path, and up to two local commits for one approval.
 
 Host-managed branch names are preserved. For a CLI-created branch, repository conventions and explicit user choices take precedence; otherwise the loop derives a host-neutral prefix from the primary change, such as `feature/`, `fix/`, `hotfix/`, `docs/`, or `refactor/`. An agent-name prefix such as `codex/` is never the default.
 
@@ -13,11 +17,11 @@ The two commits are:
 1. The implementation or bugfix commit, amendable before first review.
 2. One optional unpushed review-fix commit, amendable across later fix cycles.
 
-Push, merge, deploy, worktree removal, and branch deletion remain separately authorized.
+Push, merge, release, deploy, production mutation, external execution, worktree removal, and branch deletion remain separately authorized. Only loop-owned unpushed commits may be amended; the implementation commit is amendable only before review.
 
 ## Delivery loop
 
-1. Confirm acceptance outcomes, affected risks, repository rules, isolation, and authority.
+1. Inspect acceptance outcomes, risks, and repository rules; apply the local defaults without a setup approval or provider menu.
 2. Before isolation, use `plan` to split broad work into the smallest independently verifiable slices and ask which slice to deliver.
 3. Start or resume a managed delivery run.
 4. Activate `implement`, prefer red-green-refactor when the behavior has a viable deterministic harness, map acceptance outcomes to proof, and record the exact HEAD.
@@ -58,7 +62,7 @@ The reviewer must be a fresh project-scoped read-only agent or subagent, receive
 
 ## Native and external execution
 
-Native agents or subagents from the active host are the default. External or Hybrid execution is used only after explicit selection and consent. External results must echo the task identity, role, source scope, snapshot, and result contract. A provider that implemented a change cannot be the sole general reviewer for that change.
+Native agents or subagents from the active host are the default. Delivery-loop does not ask the user to select a mode or present an unsolicited External/Hybrid menu. In native mode, an unavailable fresh read-only reviewer stops the loop rather than triggering a provider switch. External or Hybrid execution is used only after explicit selection and per-run consent. External results must echo the task identity, role, source scope, snapshot, and result contract. A provider that implemented a change cannot be the sole general reviewer for that change.
 
 The human and orchestrator retain business behavior, UX direction, architecture or public-contract choices, and unresolved ambiguity. Delegated work must be separable and receive a compact self-contained packet with accepted decisions, bounded scope, applicable acceptance IDs, required proof, and forbidden actions. Selection is based on required capabilities, risk, ambiguity, proof quality, and coordination cost rather than provider prestige; when comparable cost or speed is available, the lowest-cost eligible option is preferred without weakening the contract.
 

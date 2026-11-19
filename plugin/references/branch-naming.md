@@ -2,7 +2,7 @@
 
 Read this reference only when a managed loop must propose or create a new CLI branch. Do not rename an existing or host-managed branch merely to apply this guidance.
 
-The loop applies this reference automatically before branch approval. The user does not need to invoke a naming helper or supply a prefix.
+The loop applies this reference automatically before branch creation. The user does not need to invoke a naming helper or supply a prefix.
 
 ## Resolve the name
 
@@ -32,4 +32,4 @@ Choose one prefix that represents the primary change:
 
 Append a short kebab-case outcome slug, optionally with the repository's issue identifier, for example `feature/booking-cancellation`, `fix/123-expired-session`, or `docs/operator-guide`. Prefer the dominant deliverable when a coherent change touches multiple types; do not concatenate several prefixes.
 
-Before approval, show the exact base, branch, and worktree path. If the repository convention conflicts with the inferred change type, follow the repository and state the reason without asking unless the choice changes automation, permissions, or release policy.
+Before creation, show the exact base, branch, and worktree path. Follow the calling loop's authority rules: delivery-loop defaults need no extra confirmation, while bugfix-loop retains its approval gate. Follow repository conventions without asking unless the choice changes automation, permissions, or release policy.

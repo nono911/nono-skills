@@ -380,7 +380,7 @@ test('contract rejects deleted acceptance-verify responsibilities', async () => 
   }
 });
 
-test('delivery-loop owns isolation approval and capability-aware child-skill composition', async () => {
+test('delivery-loop owns local defaults and capability-aware child-skill composition', async () => {
   const content = await readFile(
     path.join(root, 'plugin', 'skills', 'delivery-loop', 'SKILL.md'),
     'utf8',
@@ -408,8 +408,11 @@ test('delivery-loop owns isolation approval and capability-aware child-skill com
   assert.match(content, /explicit per-run consent/);
   assert.match(content, /one writer per file boundary/);
   assert.match(content, /never invoke the current host externally/);
-  assert.match(content, /`Native subagents \(default\)`, `External CLI agents`, and `Hybrid`/);
-  assert.match(content, /an unspecified choice means Native/);
+  assert.match(content, /native subagents without a mode-selection question/);
+  assert.match(content, /up to two loop-owned local commits/);
+  assert.match(content, /User, repository, and host restrictions override these defaults/);
+  assert.match(content, /Push, merge, release, deploy, external mutation, worktree removal, and branch deletion need separate authorization/);
+  assert.doesNotMatch(content, /At approval offer|Invocation alone grants neither|request one approval for creation/);
   assert.match(content, /Probe or invoke external providers only after External, Hybrid/);
   assert.match(content, /references\/delegation-selection\.md/);
   const metadata = await readFile(
@@ -561,7 +564,7 @@ test('both controlled loops bundle identical evidence, delegation, branch naming
   assert.doesNotMatch(canonicalEvidence, /scope_approval_required|human\.feedback\.recorded/);
   assert.match(canonicalBranchNaming, /Repository instructions, documented conventions/);
   assert.match(canonicalBranchNaming, /derive a host-neutral name from the primary change outcome/);
-  assert.match(canonicalBranchNaming, /applies this reference automatically before branch approval/);
+  assert.match(canonicalBranchNaming, /applies this reference automatically before branch creation/);
   assert.match(canonicalBranchNaming, /does not need to invoke a naming helper or supply a prefix/);
   assert.match(canonicalBranchNaming, /`hotfix\/` only for an explicitly urgent production repair/);
   assert.match(canonicalBranchNaming, /Do not use an agent or vendor prefix such as `codex\/`/);

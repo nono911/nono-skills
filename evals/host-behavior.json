@@ -169,7 +169,7 @@
         "activate": ["delivery-loop"],
         "forbid": ["bugfix-loop"],
         "output": {
-          "contains_all": ["scope", "approval"],
+          "contains_all": ["scope"],
           "contains_any": ["slice", "split", "narrow"]
         },
         "performance": {
@@ -181,6 +181,42 @@
           "max_loaded_references": 2,
           "max_first_action_tax_ratio": 5
         }
+      }
+    },
+    {
+      "id": "delivery-default-startup",
+      "skill": "delivery-loop",
+      "skill_prompt": "Use $delivery-loop to assess startup for this supplied execution request: deliver an optional display label, with no persistence or public-contract changes. Preflight facts: clean main checkout, known HEAD, configured Git identity, no repository restrictions, no existing task worktree, and fresh read-only native subagents available. State the first local actions and any required human decision. This is a read-only startup assessment, not permission to execute those actions now.",
+      "baseline_prompt": "Assess startup for a request to deliver an optional display label through isolated implementation, local commits, native independent review, and bounded fixes. Preflight facts: clean main checkout, known HEAD, configured Git identity, no restrictions, no existing task worktree, and fresh read-only native subagents available. State the first local actions and any required human decision; do not execute them.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": ["bugfix-loop"],
+        "output": { "contains_all": ["worktree", "commit", "native"] },
+        "performance": { "max_questions": 0, "max_output_words": 180 }
+      }
+    },
+    {
+      "id": "delivery-explicit-restriction",
+      "skill": "delivery-loop",
+      "skill_prompt": "Use $delivery-loop to assess startup for a scoped feature. The execution request explicitly says do not create a worktree and do not commit; there is no existing isolated task worktree. Native read-only subagents are available and Git is configured. State whether this loop can start under those restrictions. This is a read-only assessment; do not execute anything.",
+      "baseline_prompt": "Assess whether an isolated feature-delivery workflow requiring local commits can start when the user explicitly prohibits worktree creation and commits and no isolated task worktree exists. Native reviewers and Git are available. Report the decision without executing anything.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": ["implement", "bugfix-loop"],
+        "output": { "contains_all": ["worktree", "commit"], "contains_any": ["blocked", "conflict", "cannot"] },
+        "performance": { "max_questions": 0, "max_output_words": 160 }
+      }
+    },
+    {
+      "id": "delivery-native-unavailable",
+      "skill": "delivery-loop",
+      "skill_prompt": "Use $delivery-loop to assess startup for a fully scoped feature. Git identity and local worktree support are ready, but this host cannot provide a fresh read-only native reviewer. Claude Code CLI happens to be installed, and the user has not requested external execution or provider options. State the decision and limitation. This is a read-only assessment; do not execute anything.",
+      "baseline_prompt": "Assess startup for isolated feature delivery with native independent review. Local Git and worktree support are ready, but no fresh read-only native reviewer is available. Another provider CLI is installed without external-execution consent. State the decision and limitation without executing anything.",
+      "expect": {
+        "activate": ["delivery-loop"],
+        "forbid": ["implement", "bugfix-loop"],
+        "output": { "contains_all": ["native"], "contains_any": ["blocked", "stop", "cannot"] },
+        "performance": { "max_questions": 0, "max_output_words": 160 }
       }
     },
     {

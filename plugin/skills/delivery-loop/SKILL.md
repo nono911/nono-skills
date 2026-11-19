@@ -1,6 +1,6 @@
 ---
 name: delivery-loop
-description: "Use when the user requests isolated feature delivery with commits, bounded independent review, and fixes; use implement for feature work."
+description: "Use when the user requests delivery-loop or complete isolated feature delivery with local commits and bounded independent review; use implement for ordinary feature work."
 ---
 
 # Delivery Loop
@@ -15,7 +15,7 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 ## Evidence control
 
-- After approval, read `references/evidence-contract.md` and use the bundled controller before implementation. Start or resume one local run. If active schema-v1 blocks startup, show its ID and obtain approval for a linked v2 successor. Never ask the user to operate the controller or silently purge legacy evidence.
+- Before implementation, read `references/evidence-contract.md` and start or resume one local run through the bundled controller. An active schema-v1 run still requires explicit approval for a linked v2 successor; never purge legacy evidence or ask the user to operate the controller.
 - Before review or finding triage, read `references/finding-rubric.md` and apply its severity and disposition contract.
 - Treat the controller-issued run ID, evidence events, review leases, snapshots, and immutable budgets as authoritative across continuation, compaction, replanning, providers, and child returns. Never edit controller state directly or replace a rejected transition with prose.
 - Record implementation, verification, review, finding triage, fixes, blocks, and completion through Evidence Contract v2. Keep prompts, conversations, source, diffs, terminal logs, environment values, and secrets out of evidence.
@@ -26,45 +26,44 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 
 - Refer to companions by frontmatter name, invoke them through the host's native mechanism, and never assume a literal invocation prefix.
 - Core companions are `implement`, `review`, and `fix-findings`. Use `plan` when durable multi-step planning is warranted, `acceptance-verify` when a runnable user journey is material, and security, architecture, or migration specialists only when the changed risk requires them.
-- Keep the original agent as orchestrator and delegate only bounded work.
 - Before delegation, read `references/delegation-selection.md`.
-- At approval offer `Native subagents (default)`, `External CLI agents`, and `Hybrid`; an unspecified choice means Native.
+- Use the active host's native subagents without a mode-selection question. Offer External or Hybrid only when the user requests them, names a provider, or asks for options.
 - Probe or invoke external providers only after External, Hybrid, a named provider, or an options request. Then read `references/agent-delegation.md`, obtain explicit per-run consent before sharing source, and never invoke the current host externally.
 - Match agents to required roles and enforceable capabilities rather than provider names. Use one writer per file boundary, isolate delegated writers, and keep integration, verification, Git operations, and official commits with the orchestrator.
 
 ## Inputs
 
-- Feature request, acceptance criteria, repository instructions, and required checks
+- Feature scope, acceptance criteria, repository rules, and checks
 - Base revision, worktree state, unrelated changes, Git identity rules, and current authority
 - Execution mode and approved provider limits when applicable
 
 ## Outputs
 
-- One approved isolated implementation and commit
-- Evidence-linked execution within five review batches, four fix cycles, and one no-verdict retry
-- A second commit only for validated later fixes that pass fresh review
+- One isolated feature implementation and up to two local commits
+- Evidence-linked execution within the fixed review and fix budgets
+- One optional review-fix commit, independently reviewed
 
-## Approval and isolation
+## Defaults and isolation
 
-- Before isolation approval, decide whether the request fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, a worktree, or a controller run.
+- Before isolation, check that scope fits one independently verifiable change. Otherwise activate `plan`, propose coherent slices, and ask which to deliver before creating artifacts, worktrees, or controller state.
 - Inspect scope, worktrees, base SHA, HEAD, and changes before editing.
-- Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree with an unambiguous base, read `references/branch-naming.md` before proposing its branch, and never move a detached task or check out its branch elsewhere.
-- Otherwise propose the exact base, branch, and worktree and request one approval for creation and two local commits unless already authorized. The implementation commit may be amended before review; one unpushed review-fix commit may be amended later.
-- Invocation alone grants neither worktree nor commit authority. In a reused worktree request only missing authority for up to two local commits.
-- If required isolation is declined, stop this loop and offer ordinary implementation in the checkout only with explicit write and commit authority.
-- Approval covers isolation and two loop-owned commits; push, merge, deploy, external mutation, handoff, removal, and deletion remain separate.
-- Preserve unrelated changes and follow repository remote and identity rules before each commit.
+- Reuse a host-managed worktree without nesting or renaming it. Otherwise use a dedicated task worktree and read `references/branch-naming.md` before creating its branch. Never move a detached task or check out its branch elsewhere.
+- An explicit request to execute `delivery-loop`, by name or equivalent full-workflow intent, authorizes task worktrees, up to two loop-owned local commits, and native subagents without another confirmation. Discovery, discussion, planning-only requests, and ordinary implementation do not.
+- User, repository, and host restrictions override these defaults. If isolation or commits are prohibited, report the conflict and stop this loop; do not bypass controls or silently degrade it.
+- For a new worktree, use the requested base or current committed HEAD, a contextual branch, and an unused path. Briefly announce the selection and proceed; ask only when the intended base or scope cannot be established safely.
+- Push, merge, release, deploy, external mutation, worktree removal, and branch deletion need separate authorization.
+- Preserve unrelated changes and follow repository remote and identity rules before each commit. Never include uncommitted user work without task authority.
 - Do not copy ignored files or secrets or change host worktree rules without authorization.
-- Before editing require a fresh isolated read-only reviewer. Otherwise offer ordinary implementation with disclosed self-review or stop; that path cannot report `CLEAN`.
+- Before editing, require a fresh isolated read-only reviewer for the selected mode; otherwise stop without claiming independent review or switching providers.
 
 ## Implement and commit
 
-1. Create a CLI worktree and branch only when approved and required; otherwise remain in the approved isolated environment.
+1. Create the required task worktree and branch under the defaults above, or reuse existing task isolation.
 2. For multi-step work activate `plan` before implementation; keep small well-defined features artifact-light and follow workspace consent for durable state.
 3. Keep the original agent as orchestrator and activate `implement` for the smallest complete TDD-preferred feature with acceptance-linked proof.
 4. For a material runnable journey activate source-read-only `acceptance-verify`, resolve validated failures, and rerun affected scenarios.
 5. Validate delegated scope and claims, verify in proportion to risk, and exclude out-of-scope changes.
-6. Stage only in-scope changes, create the authorized implementation commit, then ingest its implementation and verification evidence.
+6. Stage only in-scope changes, create the implementation commit, then ingest its implementation and verification evidence. Amend only loop-owned unpushed commits; the implementation commit is amendable only before review.
 
 ## Review and fix
 
@@ -96,7 +95,6 @@ Read `references/workspaces.md` once per agent task before selecting or creating
 3. Stage only validated delivery-loop fixes.
 4. Keep validated later fixes in the single loop-owned review-fix commit, amending it before each fresh review when needed; do not create an empty or third commit.
 5. Complete the controller run only after final evidence passes. Preserve worktrees unless removal is authorized. Lead the report with outcome, commits, acceptance-to-proof mapping, budgets, findings, checks, delegation, insights, and risks. Always print the controller's `CLEAN` or `CLEAN_WITH_RESIDUALS` completion kind and list every residual finding with severity, disposition, reason code, and location.
-6. Do not claim completion while blocking findings or required checks remain.
 
 ## Decision-log updates
 

@@ -6,6 +6,8 @@ Nono Skills combines model-interpreted instructions with a deterministic control
 
 Skills define triggers, inputs, outputs, guardrails, evidence expectations, and human-escalation boundaries. The host decides whether a skill is discoverable and activated, and the model interprets its instructions. Natural-language loop discovery and truthful completion reporting are guided behavior: the pack cannot force activation, truthful status, or prevent a model from ignoring a skill.
 
+An explicit delivery-loop execution request includes its documented local worktree, commit, and native-subagent defaults. This is workflow guidance, not a permission bypass: explicit user restrictions and repository/host controls still win. Bugfix-loop keeps its approval gate; external execution and remote/destructive actions remain separately authorized.
+
 ## Controller layer
 
 After an agent starts a managed run and continues to invoke the controller, the controller can reject invalid state transitions. It validates:
@@ -45,6 +47,8 @@ The current host evaluator does not observe or prove file-edit or test-execution
 Two implementation cases also require runner-owned observations after the model returns: actual fixture behavior or package metadata, changed-file scope or a surviving changed test artifact, and fixture test execution. A changed test artifact is not proof that the test catches the requested regression; the independent behavior probe checks the null-guard contract separately. Both variants receive the same probes, outside model timing metrics. Executable checks require an available read-only, network-disabled Codex sandbox and credential-free environment; otherwise observations are blocked, never retried unsandboxed. Missing observations fail those cases, and baseline quality is reported separately. Adapter-supplied observations still depend on the adapter's integrity; these checks are not a security boundary or evidence of unmeasured model improvements.
 
 Activation-only cases, including `implement-edge`, do not verify execution or the absence of unauthorized edits. The activation scorer exposes this scope separately from its lexical response smoke checks; neither substitutes for independent action evidence.
+
+Delivery startup cases assess decisions, disclosure, and unnecessary questions from supplied preflight facts. They are read-only response smoke checks, not proof that a host actually created worktrees, committed safely, or enforced native reviewer isolation.
 
 ## Claim vocabulary
 
