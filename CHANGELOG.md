@@ -6,6 +6,10 @@ installations should pin an exact version.
 
 ## Unreleased
 
+## 0.18.2 — 2026-11-19
+
+- An explicit delivery-loop execution request now covers an isolated worktree, up to two local commits, and native independent review without a second setup prompt. User and repository restrictions still apply. External execution, push, merge, and cleanup remain separately authorized; bugfix-loop is unchanged.
+
 ## 0.18.1 — 2026-11-19
 
 - Updated `ui-design` to choose first-draft components and layouts around the user's decision. Mobile comparisons prioritize legible differences without requiring people to scroll back to recall values. Includes a visual example; no specific layout is prescribed.

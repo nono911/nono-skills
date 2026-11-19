@@ -48,7 +48,7 @@ flowchart LR
 ### Native Codex plugin
 
 ```bash
-npx nono-skills@0.18.1 install
+npx nono-skills@0.18.2 install
 ```
 
 Start a new Codex task after installation or update. Skills appear as `$engineering:<name>`. Optional repository scaffolding is available through `npx nono-skills init`; existing differing files are not overwritten unless `--force` is explicit.
